@@ -43,7 +43,7 @@ plot(r2)
 ## would have a dependency if so
 ## happens during run_explicit_SEEIR_model
 
-
+unloadNamespace("squire")
 ## now back to simple_SEIR
 ## last error with contact_matrix_set
 ## from ?squire::run_simple_SEEIR_model
