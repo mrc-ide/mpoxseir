@@ -57,8 +57,8 @@ m[, ] <- user()
 
 # Generating Force of Infection
 #temp[] <- I[i]
-s_ij[, ] <- m[i, j] * I[j] # why temp[j] not temp[i] RM corrected as with help page 9/4
-lambda[] <- beta * sum(s_ij[i,]) ## in help page column i not row i
+s_ij[, ] <- m[i, j] * I[j] 
+lambda[] <- beta * sum(s_ij[i,]) 
 
 
 ## Draws from binomial distributions for numbers changing between compartments:
