@@ -58,7 +58,7 @@ m[, ] <- user()
 # Generating Force of Infection
 #temp[] <- I[i]
 s_ij[, ] <- m[i, j] * I[j] 
-lambda[] <- beta * sum(s_ij[i,]) 
+lambda[] <- (beta + beta_zoonotic) * sum(s_ij[i,]) 
 
 
 ## Draws from binomial distributions for numbers changing between compartments:
@@ -119,6 +119,7 @@ D0[] <- user()
 
 ##Parameters
 beta <- user()
+beta_zoonotic <- user()
 gamma_E <- user()
 gamma_I <- user()
 gamma_Ir <- user()
