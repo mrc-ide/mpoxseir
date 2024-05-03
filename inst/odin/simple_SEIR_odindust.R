@@ -78,8 +78,8 @@ n_E2Ir[] <- n_E2I[i] - n_E2Id[i] # whatever infections don't die go to R
 # n_IrR[] <- rbinom(I[i], p_IrR)
 # n_IdD[] <- rbinom(I[i], p_IdR)
 
-n_IrR[] <- rbinom(n_E2Ir[i],p_IrR)
-n_IdD[] <- rbinom(n_E2Id[i],p_IdD)
+n_IrR[] <- rbinom(Ir[i],p_IrR)
+n_IdD[] <- rbinom(Id[i],p_IdD)
 
 I[] <- Ir[i] + Id[i]
 
