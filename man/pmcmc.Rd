@@ -70,10 +70,10 @@ pmcmc(
 \item{log_likelihood}{function to calculate log likelihood, must take named parameter vector as input,
 allow passing of implicit arguments corresponding to the main function arguments.
 Returns a named list, with entries:
-  - $log_likelihood, a single numeric
-  - $sample_state, a numeric vector corresponding to the state of a single particle, chosen at random,
-  at the final time point for which we have data.
-  If NULL, calculated using the function calc_loglikelihood.}
+- $log_likelihood, a single numeric
+- $sample_state, a numeric vector corresponding to the state of a single particle, chosen at random,
+at the final time point for which we have data.
+If NULL, calculated using the function calc_loglikelihood.}
 
 \item{log_prior}{function to calculate log prior, must take named parameter vector as input, returns a single numeric.
 If NULL, uses uninformative priors which do not affect the posterior}
@@ -91,10 +91,10 @@ If NULL, uses uninformative priors which do not affect the posterior}
 \item{pars_obs}{list of parameters to use in comparison
 with \code{compare}. Must be a list containing, e.g.
 list(phi_cases = 0.1,
-     k_cases = 2,
-     phi_death = 1,
-     k_death = 2,
-     exp_noise = 1e6)}
+k_cases = 2,
+phi_death = 1,
+k_death = 2,
+exp_noise = 1e6)}
 
 \item{pars_init}{named list of initial inputs for parameters being sampled}
 
@@ -216,26 +216,26 @@ to select parameter set. For each parmater set sampled, run particle filter with
 }
 \value{
 squire_simulation \describe{
-  \item{output}{Trajectories from the sampled pMCMC parameter iterations.}
-  \item{parameters}{Model parameters use for squire}
-  \item{model}{Squire model used}
-  \item{inputs}{Inputs into the squire model for the pMCMC.}
-  \item{pMCMC_results}{An mcmc object generated from \code{pmcmc} and contains:}
-     \describe{
-        \item{inputs}{List of inputs}
-        \item{chains}{List that include}:
-           \describe{
-             \item{results}{Matrix of accepted parameter samples, rows = iterations
-                   as well as log prior, (particle filter estimate of) log likelihood and log posterior}
-             \item{states}{Matrix of compartment states}
-             \item{acceptance_rate}{MCMC acceptance rate}
-             \item{ess}{MCMC chain effective sample size}
-        }
-       \item{rhat}{MCMC Diagnostics}
-     }
- \item{interventions}{Contains the interventions that can be called with projections}.
- \item{replicate_parameters}{contains the parameter values for the sampled pMCMC parameter iterations
-  used to generate the \code{squire_model} trajectories}
+\item{output}{Trajectories from the sampled pMCMC parameter iterations.}
+\item{parameters}{Model parameters use for squire}
+\item{model}{Squire model used}
+\item{inputs}{Inputs into the squire model for the pMCMC.}
+\item{pMCMC_results}{An mcmc object generated from \code{pmcmc} and contains:}
+\describe{
+\item{inputs}{List of inputs}
+\item{chains}{List that include}:
+\describe{
+\item{results}{Matrix of accepted parameter samples, rows = iterations
+as well as log prior, (particle filter estimate of) log likelihood and log posterior}
+\item{states}{Matrix of compartment states}
+\item{acceptance_rate}{MCMC acceptance rate}
+\item{ess}{MCMC chain effective sample size}
+}
+\item{rhat}{MCMC Diagnostics}
+}
+\item{interventions}{Contains the interventions that can be called with projections}.
+\item{replicate_parameters}{contains the parameter values for the sampled pMCMC parameter iterations
+used to generate the \code{squire_model} trajectories}
 }
 }
 \description{
@@ -244,31 +244,33 @@ The log prior likelihood of these parameters is calculated based on the user-def
 prior distributions.
 The log likelihood of the data given the initial parameters is estimated using a particle filter,
 which has two functions:
-     - Firstly, to generate a set of 'n_particles' samples of the model state space,
-       at time points corresponding to the data, one of which is
-       selected randomly to serve as the proposed state sequence sample at the final
-       data time point.
-     - Secondly, to produce an unbiased estimate of the likelihood of the data given the proposed parameters.
+- Firstly, to generate a set of 'n_particles' samples of the model state space,
+at time points corresponding to the data, one of which is
+selected randomly to serve as the proposed state sequence sample at the final
+data time point.
+- Secondly, to produce an unbiased estimate of the likelihood of the data given the proposed parameters.
 The log posterior of the initial parameters given the data is then estimated by adding the log prior and
 log likelihood estimate.
 
 The pMCMC sampler then proceeds as follows, for n_mcmc iterations:
 At each loop iteration the pMCMC sampler pefsorms three steps:
-  1. Propose new candidate samples for R0, Meff, Meff_pl, and start_date based on
-    the current samples, using the proposal distribution
-    (currently multivariate Gaussian with user-input covariance matrix (proposal_kernel), and reflecting boundaries defined by pars_min, pars_max)
-  2. Calculate the log prior of the proposed parameters,
-     Use the particle filter to estimate log likelihood of the data given the proposed parameters, as described above,
-     as well as proposing a model state space.
-     Add the log prior and log likelihood estimate to estimate the log posterior of the proposed parameters given the data.
-  3. Metropolis-Hastings step: The joint canditate sample (consisting of the proposed parameters
-     and state space) is then accepted with probability min(1, a), where the acceptance ratio is
-     simply the ratio of the posterior likelihood of the proposed parameters to the posterior likelihood
-     of the current parameters. Note that by choosing symmetric proposal distributions by including
-     reflecting boundaries, we avoid the the need to include the proposal likelihood in the MH ratio.
+\enumerate{
+\item Propose new candidate samples for R0, Meff, Meff_pl, and start_date based on
+the current samples, using the proposal distribution
+(currently multivariate Gaussian with user-input covariance matrix (proposal_kernel), and reflecting boundaries defined by pars_min, pars_max)
+\item Calculate the log prior of the proposed parameters,
+Use the particle filter to estimate log likelihood of the data given the proposed parameters, as described above,
+as well as proposing a model state space.
+Add the log prior and log likelihood estimate to estimate the log posterior of the proposed parameters given the data.
+\item Metropolis-Hastings step: The joint canditate sample (consisting of the proposed parameters
+and state space) is then accepted with probability min(1, a), where the acceptance ratio is
+simply the ratio of the posterior likelihood of the proposed parameters to the posterior likelihood
+of the current parameters. Note that by choosing symmetric proposal distributions by including
+reflecting boundaries, we avoid the the need to include the proposal likelihood in the MH ratio.
+}
 
-  If the proposed parameters and states are accepted then we update the current parameters and states
-  to match the proposal, otherwise the previous parameters/states are retained for the next iteration.
+If the proposed parameters and states are accepted then we update the current parameters and states
+to match the proposal, otherwise the previous parameters/states are retained for the next iteration.
 
 After generating the pMCMC simulation, there are \code{replicates} specific iterations sampled based on the
 posterior probability. The parameters from those iterations are then used to generate new trajectories within

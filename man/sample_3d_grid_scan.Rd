@@ -28,10 +28,10 @@ including the state and the declared outputs are returned. Deafult = FALSE}
 }
 \value{
 \code{\link{list}}. First element (trajectories) is a 3
-  dimensional array of trajectories (time, state, tranjectories). Second
-  element (param_grid) is the parameters chosen when  sampling from the
-  \code{scan_results} grid and the third dimension (inputs) is a list of
-  model inputs.
+dimensional array of trajectories (time, state, tranjectories). Second
+element (param_grid) is the parameters chosen when  sampling from the
+\code{scan_results} grid and the third dimension (inputs) is a list of
+model inputs.
 }
 \description{
 Take a grid search produced by \code{\link{scan_R0_date_Meff}} and

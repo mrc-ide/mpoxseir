@@ -1,7 +1,6 @@
 #' Create an explicit model
 #'
 #' @title Explicit SEEIR model creation.
-#'
 #' We will use this structure to ensure that model fitting is flexible in the
 #' future as more models are added
 #'
@@ -75,7 +74,6 @@ explicit_model <- function() {
 #' Create a simple  model
 #'
 #' @title Simple SEEIR model creation.
-#'
 #' We will use this structure to ensure that model fitting is flexible in the
 #' future as more models are added
 #'
@@ -99,7 +97,6 @@ simple_model <- function() {
 #' Create a simple  model
 #'
 #' @title Simple SEEIR model creation.
-#'
 #' We will use this structure to ensure that model fitting is flexible in the
 #' future as more models are added
 #'

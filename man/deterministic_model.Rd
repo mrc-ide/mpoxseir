@@ -3,7 +3,6 @@
 \name{deterministic_model}
 \alias{deterministic_model}
 \title{Simple SEEIR model creation.
-
 We will use this structure to ensure that model fitting is flexible in the
 future as more models are added}
 \usage{

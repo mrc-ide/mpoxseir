@@ -16,15 +16,15 @@ format_output(
 \item{x}{squire_simulation object}
 
 \item{var_select}{Vector of compartment names, e.g. \code{c("S", "R")}. In
-  addition a number of summary compartment can be requested. These include:
+addition a number of summary compartment can be requested. These include:
 \itemize{
-      \item{"deaths"}{ Daily Deaths }
-      \item{"infections"}{ Daily Infections }
-      \item{"hospital_occupancy"}{ Occupied Hospital Beds }
-      \item{"ICU_occupancy"}{ Occupied ICU Beds }
-      \item{"hospital_demand}{ Required Hospital Beds }
-      \item{"ICU_demand}{ Required ICU Beds }
-      }}
+\item{"deaths"}{ Daily Deaths }
+\item{"infections"}{ Daily Infections }
+\item{"hospital_occupancy"}{ Occupied Hospital Beds }
+\item{"ICU_occupancy"}{ Occupied ICU Beds }
+\item{"hospital_demand}{ Required Hospital Beds }
+\item{"ICU_demand}{ Required ICU Beds }
+}}
 
 \item{reduce_age}{Collapse age-dimension, calculating the total in the
 compartment.}

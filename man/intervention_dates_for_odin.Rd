@@ -32,6 +32,6 @@ relative to the data and to odin's internal clock.
 }
 \details{
 If start date is after elements in dates, these will be trimmed
-  accordinly and the final change value used as the value one day after
-  start date.
+accordinly and the final change value used as the value one day after
+start date.
 }

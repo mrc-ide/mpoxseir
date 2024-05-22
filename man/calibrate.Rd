@@ -17,7 +17,9 @@ calibrate(
   Meff_max = 1,
   Meff_step = 0.1,
   squire_model = explicit_model(),
-  Rt_func = function(R0_change, R0, Meff) {     exp(log(R0) - Meff * (1 - R0_change)) },
+  Rt_func = function(R0_change, R0, Meff) {
+     exp(log(R0) - Meff * (1 - R0_change))
+ },
   pars_obs = NULL,
   forecast = 0,
   n_particles = 100,
@@ -54,7 +56,7 @@ and \code{particle_filter_data()}}
 \item{R0_prior}{Prior for R0. Default = NULL, which is a flat prior. Should be
 provided as a list with first argument the distribution function and the second
 the function arguments (excluding quantiles which are worked out based on
-R0_min and R0_max), e.g. `list("func" = dnorm, args = list("mean"= 3.5, "sd"= 3))`.}
+R0_min and R0_max), e.g. \code{list("func" = dnorm, args = list("mean"= 3.5, "sd"= 3))}.}
 
 \item{first_start_date}{Earliest start date as 'yyyy-mm-dd'}
 

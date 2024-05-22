@@ -13,7 +13,9 @@ scan_R0_date(
   day_step,
   data,
   model_params,
-  Rt_func = function(R0_change, R0, Meff) {     exp(log(R0) - Meff * (1 - R0_change)) },
+  Rt_func = function(R0_change, R0, Meff) {
+     exp(log(R0) - Meff * (1 - R0_change))
+ },
   R0_prior = NULL,
   R0_change = NULL,
   date_R0_change = NULL,
@@ -51,7 +53,7 @@ on the log scale given by \code{exp(log(R0) - Meff*(1-R0_change))}.}
 \item{R0_prior}{Prior for R0. Default = NULL, which is a flat prior. Should be
 provided as a list with first argument the distribution function and the second
 the function arguments (excluding quantiles which are worked out based on
-R0_min and R0_max), e.g. `list("func" = dnorm, args = list("mean"= 3.5, "sd"= 3))`.}
+R0_min and R0_max), e.g. \code{list("func" = dnorm, args = list("mean"= 3.5, "sd"= 3))}.}
 
 \item{R0_change}{Numeric vector for relative changes in R0. Default = NULL,
 i.e. no change in R0}
@@ -78,7 +80,7 @@ Defaut = NULL, i.e. no change}
 }
 \value{
 List of R0 and start date grid values, and
-  normalised probabilities at each point
+normalised probabilities at each point
 }
 \description{
 Run a grid search of the particle filter over R0 and start date.

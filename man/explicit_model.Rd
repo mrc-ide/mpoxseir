@@ -3,7 +3,6 @@
 \name{explicit_model}
 \alias{explicit_model}
 \title{Explicit SEEIR model creation.
-
 We will use this structure to ensure that model fitting is flexible in the
 future as more models are added}
 \usage{

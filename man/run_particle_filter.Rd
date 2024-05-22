@@ -9,8 +9,8 @@ run_particle_filter(
   squire_model,
   model_params,
   model_start_date = "2020-02-02",
-  obs_params = list(phi_cases = 0.1, k_cases = 2, phi_death = 1, k_death = 2, exp_noise
-    = 1e+06),
+  obs_params = list(phi_cases = 0.1, k_cases = 2, phi_death = 1, k_death = 2, exp_noise =
+    1e+06),
   n_particles = 1000,
   forecast_days = 0,
   save_particles = FALSE,
@@ -29,7 +29,7 @@ the \code{parameters_<type>_model} functions.}
 \item{model_start_date}{Date to run model simulations from}
 
 \item{obs_params}{List of parameters used for comparing
-  model to data in the particle filter
+model to data in the particle filter
 t}
 
 \item{n_particles}{Number of particles}

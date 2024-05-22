@@ -16,7 +16,9 @@ scan_R0_date_Meff(
   Meff_step,
   data,
   model_params,
-  Rt_func = function(R0_change, R0, Meff) {     exp(log(R0) - Meff * (1 - R0_change)) },
+  Rt_func = function(R0_change, R0, Meff) {
+     exp(log(R0) - Meff * (1 - R0_change))
+ },
   R0_prior = NULL,
   R0_change = NULL,
   date_R0_change = NULL,
@@ -87,7 +89,7 @@ Defaut = NULL, i.e. no change}
 }
 \value{
 List of R0 and start date grid values, and
-  normalised probabilities at each point
+normalised probabilities at each point
 }
 \description{
 Run a grid search of the particle filter over R0, start date and Meff.

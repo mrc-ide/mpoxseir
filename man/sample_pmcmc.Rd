@@ -24,10 +24,10 @@ sample_pmcmc(
 \item{log_likelihood}{function to calculate log likelihood, must take named parameter vector as input,
 allow passing of implicit arguments corresponding to the main function arguments.
 Returns a named list, with entries:
-  - $log_likelihood, a single numeric
-  - $sample_state, a numeric vector corresponding to the state of a single particle, chosen at random,
-  at the final time point for which we have data.
-  If NULL, calculated using the function calc_loglikelihood.}
+- $log_likelihood, a single numeric
+- $sample_state, a numeric vector corresponding to the state of a single particle, chosen at random,
+at the final time point for which we have data.
+If NULL, calculated using the function calc_loglikelihood.}
 
 \item{n_trajectories}{interger; Number of trajectories to be returned. Integer. Default = 10.}
 
@@ -37,10 +37,10 @@ Returns a named list, with entries:
 }
 \value{
 \describe{
-  \item{trajectories}{A 3-dimensional array of trajectories (time, state, tranjectories).}
-  \item{sampled_PMCMC_Results}{The parameters chosen when sampling from the \code{pmcmc} posteriors}
-  \item{inputs}{A list of model inputs.}
-  }
+\item{trajectories}{A 3-dimensional array of trajectories (time, state, tranjectories).}
+\item{sampled_PMCMC_Results}{The parameters chosen when sampling from the \code{pmcmc} posteriors}
+\item{inputs}{A list of model inputs.}
+}
 }
 \description{
 Sample from the posterior probability results produced by \code{run_mcmc_chain}

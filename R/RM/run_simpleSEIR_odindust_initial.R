@@ -1,57 +1,5 @@
-## running odin.dust
 
-gen_sir <- odin.dust::odin_dust("C:/Users/rom116/OneDrive - Imperial College London/mpox/Modelling/sir-demo.R")
-
-## to run in package is a different thing 
-
-sir_model <- gen_sir$new(pars = list(dt = 1,
-                                     S_ini = 1000,
-                                     I_ini = 10,
-                                     beta = 0.2,
-                                     gamma = 0.1),
-                         time = 1,
-                         n_particles = 10L,
-                         n_threads = 4L,
-                         seed = 1L)
-
-sir_model$state()
-sir_model$run(10)
-sir_model$run(20)
-sir_model$run(100)
-
-dt <- 0.25
-n_particles <- 10L
-p_new <- list(dt = dt, S_ini = 2000, I_ini = 10, beta = 0.4, gamma = 0.1)
-sir_model$update_state(pars = p_new, time = 0)
-#sir_model$run(100)
-sir_model$state()
-
-
-n_times <- 200
-x <- array(NA, dim = c(sir_model$info()$len, n_particles, n_times))
-
-for (t in seq_len(n_times)) {
-  x[ , , t] <- sir_model$run(t)
-}
-time <- x[1, 1, ]
-x <- x[-1, , ]
-
-par(mar = c(4.1, 5.1, 0.5, 0.5), las = 1)
-cols <- c(S = "#8c8cd9", I = "#cc0044", R = "#999966")
-matplot(time, t(x[1, , ]), type = "l",
-        xlab = "Time", ylab = "Number of individuals",
-        col = cols[["S"]], lty = 1, ylim = range(x))
-matlines(time, t(x[2, , ]), col = cols[["I"]], lty = 1)
-matlines(time, t(x[3, , ]), col = cols[["R"]], lty = 1)
-legend("left", lwd = 1, col = cols, legend = names(cols), bty = "n")
-
-
-# run_simple_SEEIR_model in odin.dust
-
-# test <- odin_dust("inst/odin/simple_SEIR.R") # doesn't like output
-# test <- odin_dust("C:/Users/rom116/OneDrive - Imperial College London/mpox/Modelling/sir-age-demo.R") # compiled
-
-first_attempt <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R") ##it worked!!! issue was defining dimension of the contact mixing matrix 
+first_attempt <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R")
 
 data(polymod, package = "socialmixr")
 age.limits = seq(0, 70, 10)
@@ -75,17 +23,17 @@ dt <- 0.25
 # E02[] <- user()
 # I0[] <- user()
 # R0[] <- user()
-# 
+#
 # ##Parameters
 # beta <- user()
 # gamma_E <- user()
 # gamma_I <- user()
-# 
-# 
+#
+#
 # #Number of age classes & number of transmissibility classes
 # N_age <- user()
 # m[, ] <- user()
-# 
+#
 # dt <- user()
 
 model <- first_attempt$new(pars = list(dt = 0.25,
@@ -139,7 +87,7 @@ mtext("Time", side = 1, line = 0, outer =T)
 ### now want to run the updated version with (non-age-strat) deaths
 
 
-seird <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R") 
+seird <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R")
 
 data(polymod, package = "socialmixr")
 age.limits = seq(0, 70, 10)
@@ -156,29 +104,6 @@ transmission
 N_age <- length(age.limits)
 n_particles <- 5L
 dt <- 1
-
-
-
-
-# ##Initial vectors
-# S0[] <- user()
-# E0[] <- user()
-# E02[] <- user()
-# Ir0[] <- user()
-# Id0[] <- user()
-# R0[] <- user()
-# D0[] <- user()
-# 
-# ##Parameters
-# beta <- user()
-# gamma_E <- user()
-# gamma_I <- user()
-# gamma_Ir <- user()
-# gamma_Id <- user()
-# CFR[] <- user() #CFR
-# 
-# #Number of age classes & number of transmissibility classes
-# N_age <- user()
 
 
 model <- seird$new(pars = list(dt = 1,
@@ -206,7 +131,7 @@ model <- seird$new(pars = list(dt = 1,
 
 # seirds_col <- c("#8c8cd9", "#e67300", "#d279a6", "#ff4d4d", "#999966",
 #                 "#660000")
-# 
+#
 # set.seed(1)
 # x_res <- model$run(365)
 # par(mar = c(4.1, 5.1, 0.5, 0.5), las = 1)
@@ -214,9 +139,9 @@ model <- seird$new(pars = list(dt = 1,
 #         type = "l", col = seirds_col, lty = 1) ### these are not the correct columns to pull out I think
 # legend("left", lwd = 1, col = seirds_col,
 #        legend = c("S", "E", "Ir", "Id", "R", "D"), bty = "n")
-# 
-# 
-# 
+#
+#
+#
 # x_res
 
 n_times <- 1000
@@ -236,7 +161,7 @@ time <- x[1, 1, ]
 x <- x[-1, , ]
 par(mfrow = c(2,4), oma=c(2,3,0,0))
 
-seird_cols <- c( S="#8c8cd9",   E= "#e67300", 
+seird_cols <- c( S="#8c8cd9",   E= "#e67300",
                 Ir="#d279a6",  Id= "#ff4d4d",
                  R="#999966",    D="#660000")
 
@@ -253,7 +178,7 @@ seird_cols <- c( S="#8c8cd9",   E= "#e67300",
 
 # age groups are then sequential within these
 
-# plot by age initially and then can make an aggregated one 
+# plot by age initially and then can make an aggregated one
 
 
 for (i in 1:N_age) {
@@ -276,9 +201,9 @@ for (i in 1:N_age) {
 
 
 
-## make an aggregated plot 
+## make an aggregated plot
 ## essentially we want in the same format but we want to sum the relevant rows (e.g. replace 8 individual rows with 1 aggregated row)
-## apply per column and time dimension 
+## apply per column and time dimension
 
 
 
@@ -287,16 +212,16 @@ n_comps <- 6
 sum_df <- c()
 
 for(j in 1:n_comps){
-  
+
   sum_df_j <- data.frame(apply(x[((j-1)*N_age +1):(j*N_age),,],2,colSums)) %>%
     mutate(comp = j)
-  
+
   sum_df <- rbind(sum_df,sum_df_j)
-  
+
 }
 
 
-sum_df <- sum_df %>% 
+sum_df <- sum_df %>%
   mutate(comp_name = case_when(comp==1 ~ "S",
                                comp==2 ~ "E",
                                comp==3 ~ "Ir",
@@ -334,7 +259,7 @@ ggplot(sum_df_long,
 
 # test <- x[1:N_age,,]
 # test2 <- apply(test,2,colSums)
-# 
+#
 # matplot(time,test2)
 
 

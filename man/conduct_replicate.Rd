@@ -81,9 +81,9 @@ if provided.}
 \item{tt_ICU_beds}{Change time points for ICU_bed_capacity}
 
 \item{model_user_args}{List of other parameters to be passed to the model to
-  be run. Default = NULL. An example would be:
+be run. Default = NULL. An example would be:
 
-  \code{list(
+\code{list(
   list(
   "prob_severe" = runif(17),
   "tt_dur_get_ox_survive" = c(0, 10),
@@ -94,11 +94,11 @@ if provided.}
   "gamma_get_mv_survive" = 0.1)
   )}
 
-  The list should be the same length as the number of replicates in the
-  simulations. Each list element should then be a list with elements
-  named to match the arguments expected by the odin model with \code{r}.
-  Above would be suitable to set the model parameters for a simulation with
-  2 replicates. You do not have to have the same arguments in each list.}
+The list should be the same length as the number of replicates in the
+simulations. Each list element should then be a list with elements
+named to match the arguments expected by the odin model with \code{r}.
+Above would be suitable to set the model parameters for a simulation with
+2 replicates. You do not have to have the same arguments in each list.}
 }
 \description{
 Handles simulating replicates within \code{projections}
