@@ -1,93 +1,12 @@
 
-first_attempt <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R")
-
-data(polymod, package = "socialmixr")
-age.limits = seq(0, 70, 10)
-contact <- socialmixr::contact_matrix(
-  survey = polymod,
-  countries = "United Kingdom",
-  age.limits = age.limits,
-  symmetric = TRUE)
-
-transmission <- contact$matrix /
-  rep(contact$demography$population, each = ncol(contact$matrix))
-transmission
-
-N_age <- length(age.limits)
-n_particles <- 5L
-dt <- 0.25
-
-# ##Initial vectors
-# S0[] <- user()
-# E0[] <- user()
-# E02[] <- user()
-# I0[] <- user()
-# R0[] <- user()
-#
-# ##Parameters
-# beta <- user()
-# gamma_E <- user()
-# gamma_I <- user()
-#
-#
-# #Number of age classes & number of transmissibility classes
-# N_age <- user()
-# m[, ] <- user()
-#
-# dt <- user()
-
-model <- first_attempt$new(pars = list(dt = 0.25,
-                                       S0 = contact$demography$population,
-                                       E0 = c(0, 0, 0, 0, 0, 0, 0, 0),
-                                       E02 = c(0, 0, 0, 0, 0, 0, 0, 0),
-                                       I0 = c(0, 1000, 0, 0, 0, 0, 0, 0),
-                                       R0 = c(0, 0, 0, 0, 0, 0, 0, 0),
-                                       beta = 0.2 / 12.11,
-                                       gamma_E = 0.05,
-                                       gamma_I = 0.1,
-                                       m = transmission,
-                                       N_age = N_age),
-                           time = 1,
-                           n_particles = 5L,
-                           n_threads = 1L,
-                           seed = 1L)
-
-
-#model$run(10)
-
-n_times <- 10000
-
-x <- array(NA, dim = c(model$info()$len, n_particles, n_times))
-
-# For loop to run the model iteratively
-for (t in seq_len(n_times)) {
-  x[ , , t] <- model$run(t)
-}
-time <- x[1, 1, ]
-x <- x[-1, , ]
-# Plotting the trajectories
-par(mfrow = c(2,4), oma=c(2,3,0,0))
-for (i in 1:N_age) {
-  par(mar = c(3, 4, 2, 0.5))
-  cols <- c(S = "#8c8cd9", I = "#cc0044", R = "#999966")
-  matplot(time, t(x[i + 3,, ]), type = "l", # Offset to access numbers in age compartment
-          xlab = "", ylab = "", yaxt="none", main = paste0("Age ", contact$demography$age.group[i]),
-          col = cols[["S"]], lty = 1, ylim=range(x[-1:-3,,]))
-  matlines(time, t(x[i + 3 + N_age, , ]), col = cols[["I"]], lty = 1)
-  matlines(time, t(x[i + 3 + 2*N_age, , ]), col = cols[["R"]], lty = 1)
-  legend("right", lwd = 1, col = cols, legend = names(cols), bty = "n")
-  axis(2, las =2)
-}
-mtext("Number of individuals", side=2,line=1, outer=T)
-mtext("Time", side = 1, line = 0, outer =T)
 
 
 
 
 ### now want to run the updated version with (non-age-strat) deaths
 
-
-seird <- odin.dust::odin_dust("inst/odin/simple_SEIR_odindust.R")
+devtools::load_all()
+seird <- model
 
 data(polymod, package = "socialmixr")
 age.limits = seq(0, 70, 10)

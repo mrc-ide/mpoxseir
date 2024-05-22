@@ -3,7 +3,7 @@ template <typename real_type, typename container>
 __host__ __device__ real_type odin_sum1(const container x, size_t from, size_t to);
 template <typename real_type, typename container>
 __host__ __device__ real_type odin_sum2(const container x, int from_i, int to_i, int from_j, int to_j, int dim_x_1);
-// [[dust::class(simple_SEIR_odindust)]]
+// [[dust::class(model)]]
 // [[dust::time_type(discrete)]]
 // [[dust::param(beta, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_zoonotic, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -22,7 +22,7 @@ __host__ __device__ real_type odin_sum2(const container x, int from_i, int to_i,
 // [[dust::param(N_age, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-class simple_SEIR_odindust {
+class model {
 public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
@@ -120,7 +120,7 @@ public:
     std::vector<real_type> p_SE;
     std::vector<real_type> s_ij;
   };
-  simple_SEIR_odindust(const dust::pars_type<simple_SEIR_odindust>& pars) :
+  model(const dust::pars_type<model>& pars) :
     shared(pars.shared), internal(pars.internal) {
   }
   size_t size() const {
@@ -453,10 +453,10 @@ inline cpp11::writable::integers integer_sequence(size_t from, size_t len) {
 }
 namespace dust {
 template<>
-dust::pars_type<simple_SEIR_odindust> dust_pars<simple_SEIR_odindust>(cpp11::list user) {
-  using real_type = typename simple_SEIR_odindust::real_type;
-  auto shared = std::make_shared<simple_SEIR_odindust::shared_type>();
-  simple_SEIR_odindust::internal_type internal;
+dust::pars_type<model> dust_pars<model>(cpp11::list user) {
+  using real_type = typename model::real_type;
+  auto shared = std::make_shared<model::shared_type>();
+  model::internal_type internal;
   shared->initial_time = 0;
   shared->beta = NA_REAL;
   shared->beta_zoonotic = NA_REAL;
@@ -575,11 +575,11 @@ dust::pars_type<simple_SEIR_odindust> dust_pars<simple_SEIR_odindust>(cpp11::lis
     shared->initial_S[i - 1] = shared->S0[i - 1];
   }
   shared->m = user_get_array_fixed<real_type, 2>(user, "m", shared->m, {shared->dim_m_1, shared->dim_m_2}, NA_REAL, NA_REAL);
-  return dust::pars_type<simple_SEIR_odindust>(shared, internal);
+  return dust::pars_type<model>(shared, internal);
 }
 template <>
-cpp11::sexp dust_info<simple_SEIR_odindust>(const dust::pars_type<simple_SEIR_odindust>& pars) {
-  const std::shared_ptr<const simple_SEIR_odindust::shared_type> shared = pars.shared;
+cpp11::sexp dust_info<model>(const dust::pars_type<model>& pars) {
+  const std::shared_ptr<const model::shared_type> shared = pars.shared;
   cpp11::writable::strings nms({"time", "S", "E1", "E2", "Ir", "Id", "R", "D"});
   cpp11::writable::list dim(8);
   dim[0] = cpp11::writable::integers({1});
