@@ -44,7 +44,7 @@ __host__ __device__ T odin_sign(T x) {
 // [[dust::param(Id0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(Ir0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(m, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(N_age, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(n_group, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(dt, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
@@ -125,7 +125,7 @@ public:
     real_type initial_S_tot;
     std::vector<real_type> Ir0;
     std::vector<real_type> m;
-    int N_age;
+    int n_group;
     int offset_variable_D;
     int offset_variable_E;
     int offset_variable_E1;
@@ -539,7 +539,7 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->gamma_I = NA_REAL;
   shared->gamma_Id = NA_REAL;
   shared->gamma_Ir = NA_REAL;
-  shared->N_age = NA_INTEGER;
+  shared->n_group = NA_INTEGER;
   shared->dt = 1;
   internal.initial_time = 0;
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
@@ -549,44 +549,44 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->gamma_I = user_get_scalar<real_type>(user, "gamma_I", shared->gamma_I, NA_REAL, NA_REAL);
   shared->gamma_Id = user_get_scalar<real_type>(user, "gamma_Id", shared->gamma_Id, NA_REAL, NA_REAL);
   shared->gamma_Ir = user_get_scalar<real_type>(user, "gamma_Ir", shared->gamma_Ir, NA_REAL, NA_REAL);
-  shared->N_age = user_get_scalar<int>(user, "N_age", shared->N_age, NA_INTEGER, NA_INTEGER);
-  shared->dim_CFR = shared->N_age;
-  shared->dim_D = shared->N_age;
-  shared->dim_D0 = shared->N_age;
-  shared->dim_delta_D = shared->N_age;
-  shared->dim_delta_E1 = shared->N_age;
-  shared->dim_delta_E2 = shared->N_age;
-  shared->dim_delta_Id = shared->N_age;
-  shared->dim_delta_Ir = shared->N_age;
-  shared->dim_delta_R = shared->N_age;
-  shared->dim_E = shared->N_age;
-  shared->dim_E1 = shared->N_age;
-  shared->dim_E10 = shared->N_age;
-  shared->dim_E2 = shared->N_age;
-  shared->dim_E20 = shared->N_age;
-  shared->dim_I = shared->N_age;
-  shared->dim_Id = shared->N_age;
-  shared->dim_Id0 = shared->N_age;
-  shared->dim_Ir = shared->N_age;
-  shared->dim_Ir0 = shared->N_age;
-  shared->dim_lambda = shared->N_age;
-  shared->dim_m_1 = shared->N_age;
-  shared->dim_m_2 = shared->N_age;
-  shared->dim_N = shared->N_age;
-  shared->dim_n_E1E2 = shared->N_age;
-  shared->dim_n_E2I = shared->N_age;
-  shared->dim_n_E2Id = shared->N_age;
-  shared->dim_n_E2Ir = shared->N_age;
-  shared->dim_n_IdD = shared->N_age;
-  shared->dim_n_IrR = shared->N_age;
-  shared->dim_n_SE1 = shared->N_age;
-  shared->dim_p_SE = shared->N_age;
-  shared->dim_R = shared->N_age;
-  shared->dim_R0 = shared->N_age;
-  shared->dim_S = shared->N_age;
-  shared->dim_s_ij_1 = shared->N_age;
-  shared->dim_s_ij_2 = shared->N_age;
-  shared->dim_S0 = shared->N_age;
+  shared->n_group = user_get_scalar<int>(user, "n_group", shared->n_group, NA_INTEGER, NA_INTEGER);
+  shared->dim_CFR = shared->n_group;
+  shared->dim_D = shared->n_group;
+  shared->dim_D0 = shared->n_group;
+  shared->dim_delta_D = shared->n_group;
+  shared->dim_delta_E1 = shared->n_group;
+  shared->dim_delta_E2 = shared->n_group;
+  shared->dim_delta_Id = shared->n_group;
+  shared->dim_delta_Ir = shared->n_group;
+  shared->dim_delta_R = shared->n_group;
+  shared->dim_E = shared->n_group;
+  shared->dim_E1 = shared->n_group;
+  shared->dim_E10 = shared->n_group;
+  shared->dim_E2 = shared->n_group;
+  shared->dim_E20 = shared->n_group;
+  shared->dim_I = shared->n_group;
+  shared->dim_Id = shared->n_group;
+  shared->dim_Id0 = shared->n_group;
+  shared->dim_Ir = shared->n_group;
+  shared->dim_Ir0 = shared->n_group;
+  shared->dim_lambda = shared->n_group;
+  shared->dim_m_1 = shared->n_group;
+  shared->dim_m_2 = shared->n_group;
+  shared->dim_N = shared->n_group;
+  shared->dim_n_E1E2 = shared->n_group;
+  shared->dim_n_E2I = shared->n_group;
+  shared->dim_n_E2Id = shared->n_group;
+  shared->dim_n_E2Ir = shared->n_group;
+  shared->dim_n_IdD = shared->n_group;
+  shared->dim_n_IrR = shared->n_group;
+  shared->dim_n_SE1 = shared->n_group;
+  shared->dim_p_SE = shared->n_group;
+  shared->dim_R = shared->n_group;
+  shared->dim_R0 = shared->n_group;
+  shared->dim_S = shared->n_group;
+  shared->dim_s_ij_1 = shared->n_group;
+  shared->dim_s_ij_2 = shared->n_group;
+  shared->dim_S0 = shared->n_group;
   shared->p_EE = 1 - dust::math::exp(- shared->gamma_E * shared->dt);
   shared->p_EI = 1 - dust::math::exp(- shared->gamma_I * shared->dt);
   shared->p_IdD = 1 - dust::math::exp(- shared->gamma_Id * shared->dt);

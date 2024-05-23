@@ -114,52 +114,52 @@ gamma_Id <- user()
 CFR[] <- user() #CFR
 
 #Number of age classes & number of transmissibility classes
-N_age <- user()
+n_group <- user()
 
 ##Dimensions of the different "vectors" here vectors stand for multi-dimensional arrays
-dim(N) <- N_age
-dim(S) <- N_age
-dim(S0) <- N_age
-dim(p_SE) <- N_age
-dim(n_SE1) <- N_age
+dim(N) <- n_group
+dim(S) <- n_group
+dim(S0) <- n_group
+dim(p_SE) <- n_group
+dim(n_SE1) <- n_group
 
-dim(E1) <- c(N_age)
-dim(E10) <- c(N_age)
-dim(E20) <- c(N_age)
-dim(delta_E1) <- c(N_age)
-dim(n_E1E2) <- c(N_age)
+dim(E1) <- c(n_group)
+dim(E10) <- c(n_group)
+dim(E20) <- c(n_group)
+dim(delta_E1) <- c(n_group)
+dim(n_E1E2) <- c(n_group)
 
-dim(E2) <- c(N_age)
-dim(delta_E2) <- c(N_age)
-dim(n_E2I) <- c(N_age)
+dim(E2) <- c(n_group)
+dim(delta_E2) <- c(n_group)
+dim(n_E2I) <- c(n_group)
 
-dim(n_E2Id) <- c(N_age)
-dim(n_E2Ir) <- c(N_age)
-dim(E) <- N_age
+dim(n_E2Id) <- c(n_group)
+dim(n_E2Ir) <- c(n_group)
+dim(E) <- n_group
 
-dim(Ir0) <- c(N_age)
-dim(Ir) <- c(N_age)
-dim(delta_Ir) <- c(N_age)
-dim(n_IrR) <- c(N_age)
+dim(Ir0) <- c(n_group)
+dim(Ir) <- c(n_group)
+dim(delta_Ir) <- c(n_group)
+dim(n_IrR) <- c(n_group)
 
-dim(Id0) <- c(N_age)
-dim(Id) <- c(N_age)
-dim(delta_Id) <- c(N_age)
-dim(n_IdD) <- c(N_age)
-dim(I) <- N_age
+dim(Id0) <- c(n_group)
+dim(Id) <- c(n_group)
+dim(delta_Id) <- c(n_group)
+dim(n_IdD) <- c(n_group)
+dim(I) <- n_group
 
-dim(R) <- c(N_age)
-dim(R0) <- c(N_age)
-dim(delta_R) <- c(N_age)
+dim(R) <- c(n_group)
+dim(R0) <- c(n_group)
+dim(delta_R) <- c(n_group)
 
-dim(D) <- c(N_age)
-dim(D0) <- c(N_age)
-dim(delta_D) <- c(N_age)
+dim(D) <- c(n_group)
+dim(D0) <- c(n_group)
+dim(delta_D) <- c(n_group)
 
-dim(lambda) <- N_age
-dim(m) <- c(N_age, N_age)
-dim(s_ij) <- c(N_age,N_age)
+dim(lambda) <- n_group
+dim(m) <- c(n_group, n_group)
+dim(s_ij) <- c(n_group,n_group)
 
-dim(CFR) <- c(N_age)
+dim(CFR) <- c(n_group)
 
 

@@ -29,7 +29,7 @@ model <- R6::R6Class(
      Id0 = list(has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE),
      Ir0 = list(has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE),
      m = list(has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE),
-     N_age = list(has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE),
+     n_group = list(has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE),
      R0 = list(has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE),
      S0 = list(has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE),
      dt = list(has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)),
