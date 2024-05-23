@@ -1,3 +1,4 @@
 library(testthat)
-library(squire)
-test_check("squire")
+library(mpoxseir)
+
+test_check("mpoxseir")
