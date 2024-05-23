@@ -17,9 +17,12 @@ LinkingTo:
 Suggests:
     odin.dust (>= 0.3.3),
     testthat (>= 3.0.0)
+Imports:
+    squire
 Config/testthat/edition: 3
 SystemRequirements: C++14
 Remotes:
     mrc-ide/dust,
     mrc-ide/mcstate,
     mrc-ide/odin.dust
+    mrc-ide/squire
