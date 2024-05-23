@@ -11,7 +11,7 @@ NULL
 ##' @param info The result of running the `$info()` method on an
 ##'   initialised [model]
 ##' @return A list with element `run`, indicating the locations of the
-##'   compartments used in [model_compare]
+##'   compartments used to compare
 ##' @export
 model_index <- function(info) {
   run <- c("cases", "deaths")
