@@ -51,7 +51,7 @@ m[, ] <- user()
 
 # Generating Force of Infection
 s_ij[, ] <- m[i, j] * I[j] # for susceptible age i, % contacts infectious age j
-lambda[] <- beta_h * sum(s_ij[i,]) + beta_z
+lambda[] <- beta_h * sum(s_ij[i,]) + beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
 n_SE1[] <- rbinom(S[i], p_SE[i])
@@ -106,7 +106,7 @@ D0[] <- user()
 
 ##Parameters
 beta_h <- user()
-beta_z <- user()
+beta_z[] <- user()
 gamma_E <- user()
 gamma_I <- user()
 gamma_Ir <- user()
@@ -159,6 +159,7 @@ dim(delta_D) <- c(n_group)
 dim(lambda) <- n_group
 dim(m) <- c(n_group, n_group)
 dim(s_ij) <- c(n_group,n_group)
+dim(beta_z) <- n_group
 
 dim(CFR) <- c(n_group)
 
