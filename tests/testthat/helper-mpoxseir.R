@@ -2,18 +2,18 @@
 reference_pars <- function() {
   dem_pars <- parameters_demographic()
   n_group <- dem_pars$n_group
-  E10 <- rep(0, n_group)
+  Ea0 <- rep(0, n_group)
   list(dt = 1,
        N = dem_pars$N,
-       S0 = dem_pars$N - E10,
-       E10 = E10,
-       E20 = rep(0, n_group),
+       S0 = dem_pars$N - Ea0,
+       Ea0 = Ea0,
+       Eb0 = rep(0, n_group),
        Ir0 = rep(0, n_group),
        Id0 = rep(0, n_group),
        R0 =  rep(0, n_group),
        D0 =  rep(0, n_group),
        beta_h = 0.2 / 12.11,
-       beta_z = 0.4 / 12.11,
+       beta_z = rep(0.4 / 12.11,n_group),
        gamma_E = 0.05,
        gamma_I = 0.1,
        gamma_Ir = 0.1,
@@ -25,7 +25,7 @@ reference_pars <- function() {
 
 reference_names <- function() {
   n_group <- parameters_demographic()$n_group
-  states <- c("S", "E1", "E2", "Ir", "Id", "R", "D")
+  states <- c("S", "Ea", "Eb", "Ir", "Id", "R", "D")
   list(
     states = paste0(rep(states, each = n_group), seq_len(n_group))
   )

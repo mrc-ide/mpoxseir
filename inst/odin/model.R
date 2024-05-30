@@ -13,21 +13,21 @@ update(time) <- (step + 1) * dt
 
 ## Core equations for transitions between compartments:
 # by age groups
-update(S[]) <- S[i] - n_SE1[i]
-update(E1[]) <- E1[i] + delta_E1[i]
-update(E2[]) <- E2[i] + delta_E2[i]
+update(S[]) <- S[i] - n_SEa[i]
+update(Ea[]) <- Ea[i] + delta_Ea[i]
+update(Eb[]) <- Eb[i] + delta_Eb[i]
 update(Ir[]) <- Ir[i] + delta_Ir[i]
 update(Id[]) <- Id[i] + delta_Id[i]
 update(R[]) <- R[i] + delta_R[i]
 update(D[]) <- D[i] + delta_D[i]
 
 ## Additional outputs
-update(E[]) <- E1[i] + E2[i]
+update(E[]) <- Ea[i] + Eb[i]
 update(I[]) <- Ir[i] + Id[i]
-update(N[]) <- S[i] + E1[i] + E2[i] + Ir[i] + Id[i] + R[i] + D[i]
+update(N[]) <- S[i] + Ea[i] + Eb[i] + Ir[i] + Id[i] + R[i] + D[i]
 
 is_same_week <- step %% steps_per_week > 0
-update(cases) <- cases * is_same_week + sum(n_SE1[])
+update(cases) <- cases * is_same_week + sum(n_SEa[])
 update(deaths) <- deaths * is_same_week + sum(n_IdD[])
 
 update(S_tot) <- sum(S[])
@@ -54,51 +54,51 @@ s_ij[, ] <- m[i, j] * I[j] # for susceptible age i, % contacts infectious age j
 lambda[] <- beta_h * sum(s_ij[i,]) + beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
-n_SE1[] <- rbinom(S[i], p_SE[i])
-n_E1E2[] <- rbinom(E1[i], p_EE)
-n_E2I[] <- rbinom(E2[i], p_EI)
-n_E2Id[] <- rbinom(n_E2I[i], CFR[i]) # Proportion of the infections that will die
-n_E2Ir[] <- n_E2I[i] - n_E2Id[i] # whatever infections don't die go to R
+n_SEa[] <- rbinom(S[i], p_SE[i])
+n_EaEb[] <- rbinom(Ea[i], p_EE)
+n_EbI[] <- rbinom(Eb[i], p_EI)
+n_EbId[] <- rbinom(n_EbI[i], CFR[i]) # Proportion of the infections that will die
+n_EbIr[] <- n_EbI[i] - n_EbId[i] # whatever infections don't die go to R
 
 n_IrR[] <- rbinom(Ir[i], p_IrR)
 n_IdD[] <- rbinom(Id[i], p_IdD)
 
 
 ## Calculate net change in each model state
-delta_E1[] <- n_SE1[i] - n_E1E2[i]
-delta_E2[] <- n_E1E2[i] - n_E2I[i]
-delta_Ir[] <- n_E2Ir[i] - n_IrR[i]
-delta_Id[] <- n_E2Id[i] - n_IdD[i]
+delta_Ea[] <- n_SEa[i] - n_EaEb[i]
+delta_Eb[] <- n_EaEb[i] - n_EbI[i]
+delta_Ir[] <- n_EbIr[i] - n_IrR[i]
+delta_Id[] <- n_EbId[i] - n_IdD[i]
 delta_R[] <- n_IrR[i]
 delta_D[] <- n_IdD[i]
 
 ## Initial states:
 initial(S[]) <- S0[i]
-initial(E1[]) <- E10[i]
-initial(E2[]) <- E20[i]
+initial(Ea[]) <- Ea0[i]
+initial(Eb[]) <- Eb0[i]
 initial(Ir[]) <- Ir0[i]
 initial(Id[]) <- Id0[i]
 initial(R[]) <- R0[i]
 initial(D[]) <- D0[i]
 
-initial(E[]) <- E10[i] + E20[i]
+initial(E[]) <- Ea0[i] + Eb0[i]
 initial(I[]) <- Ir0[i] + Id0[i]
-initial(N[]) <- S0[i] + E10[i] + E20[i] + Ir0[i] + Id0[i] + R0[i] + D0[i]
+initial(N[]) <- S0[i] + Ea0[i] + Eb0[i] + Ir0[i] + Id0[i] + R0[i] + D0[i]
 initial(cases) <- 0
 initial(deaths) <- 0
 
 initial(S_tot) <- sum(S0[])
-initial(E_tot) <- sum(E10[]) + sum(E20[])
+initial(E_tot) <- sum(Ea0[]) + sum(Eb0[])
 initial(I_tot) <- sum(Ir0[]) + sum(Id0[])
 initial(R_tot) <- sum(R0[])
 initial(D_tot) <- sum(D0[])
-initial(N_tot) <- sum(S0[]) + sum(E10[]) + sum(E20[]) + sum(Ir0[]) +
+initial(N_tot) <- sum(S0[]) + sum(Ea0[]) + sum(Eb0[]) + sum(Ir0[]) +
   sum(Id0[]) + sum(R0[]) + sum(D0[])
 
 ##Initial vectors
 S0[] <- user()
-E10[] <- user()
-E20[] <- user()
+Ea0[] <- user()
+Eb0[] <- user()
 Ir0[] <- user()
 Id0[] <- user()
 R0[] <- user()
@@ -121,20 +121,20 @@ dim(N) <- n_group
 dim(S) <- n_group
 dim(S0) <- n_group
 dim(p_SE) <- n_group
-dim(n_SE1) <- n_group
+dim(n_SEa) <- n_group
 
-dim(E1) <- c(n_group)
-dim(E10) <- c(n_group)
-dim(E20) <- c(n_group)
-dim(delta_E1) <- c(n_group)
-dim(n_E1E2) <- c(n_group)
+dim(Ea) <- c(n_group)
+dim(Ea0) <- c(n_group)
+dim(Eb0) <- c(n_group)
+dim(delta_Ea) <- c(n_group)
+dim(n_EaEb) <- c(n_group)
 
-dim(E2) <- c(n_group)
-dim(delta_E2) <- c(n_group)
-dim(n_E2I) <- c(n_group)
+dim(Eb) <- c(n_group)
+dim(delta_Eb) <- c(n_group)
+dim(n_EbI) <- c(n_group)
 
-dim(n_E2Id) <- c(n_group)
-dim(n_E2Ir) <- c(n_group)
+dim(n_EbId) <- c(n_group)
+dim(n_EbIr) <- c(n_group)
 dim(E) <- n_group
 
 dim(Ir0) <- c(n_group)
