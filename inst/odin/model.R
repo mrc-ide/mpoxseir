@@ -7,7 +7,10 @@ dt <- user(1)
 steps_per_week <- 7 / dt
 initial(time) <- step
 update(time) <- (step + 1) * dt
-#output(time) <- TRUE
+# output(time) <- TRUE
+
+# counter for weekly outputs
+is_same_week <- step %% steps_per_week > 0
 
 ## help page has a "total" set of eqs here eg. not split by age group
 
@@ -26,9 +29,15 @@ update(E[]) <- Ea[i] + Eb[i]
 update(I[]) <- Ir[i] + Id[i]
 update(N[]) <- S[i] + Ea[i] + Eb[i] + Ir[i] + Id[i] + R[i] + D[i]
 
-is_same_week <- step %% steps_per_week > 0
-update(cases) <- cases * is_same_week + sum(n_SEa[])
-update(deaths) <- deaths * is_same_week + sum(n_IdD[])
+## Weekly cases and deaths
+update(weekly_cases) <- weekly_cases * is_same_week + sum(n_SEa[])
+update(weekly_cases_00_04) <- weekly_cases_00_04 * is_same_week + n_SEa[1]
+update(weekly_cases_05_14) <- weekly_cases_05_14 * is_same_week + sum(n_SEa[2:3])
+update(weekly_cases_15) <- weekly_cases * is_same_week + sum(n_SEa[4:n_group])
+update(weekly_deaths) <- weekly_deaths * is_same_week + sum(n_IdD[])
+update(weekly_deaths_00_04) <- weekly_deaths_00_04 * is_same_week + n_IdD[1]
+update(weekly_deaths_05_14) <- weekly_deaths_05_14 * is_same_week + sum(n_IdD[2:3])
+update(weekly_deaths_15) <- weekly_deaths * is_same_week + sum(n_IdD[4:n_group])
 
 update(S_tot) <- sum(S[])
 update(E_tot) <- sum(E[])
@@ -36,6 +45,7 @@ update(I_tot) <- sum(I[])
 update(R_tot) <- sum(R[])
 update(D_tot) <- sum(D[])
 update(N_tot) <- sum(N[])
+
 
 ## Individual probabilities of transition:
 p_SE[] <- 1 - exp(-lambda[i] * dt) # S to E - age dependent
@@ -84,8 +94,6 @@ initial(D[]) <- D0[i]
 initial(E[]) <- Ea0[i] + Eb0[i]
 initial(I[]) <- Ir0[i] + Id0[i]
 initial(N[]) <- S0[i] + Ea0[i] + Eb0[i] + Ir0[i] + Id0[i] + R0[i] + D0[i]
-initial(cases) <- 0
-initial(deaths) <- 0
 
 initial(S_tot) <- sum(S0[])
 initial(E_tot) <- sum(Ea0[]) + sum(Eb0[])
@@ -94,6 +102,15 @@ initial(R_tot) <- sum(R0[])
 initial(D_tot) <- sum(D0[])
 initial(N_tot) <- sum(S0[]) + sum(Ea0[]) + sum(Eb0[]) + sum(Ir0[]) +
   sum(Id0[]) + sum(R0[]) + sum(D0[])
+
+initial(weekly_cases) <- 0
+initial(weekly_cases_00_04) <- 0
+initial(weekly_cases_05_14) <- 0
+initial(weekly_cases_15) <- 0
+initial(weekly_deaths) <- 0
+initial(weekly_deaths_00_04) <- 0
+initial(weekly_deaths_05_14) <- 0
+initial(weekly_deaths_15) <- 0
 
 ##Initial vectors
 S0[] <- user()
