@@ -51,6 +51,7 @@ m[, ,] <- user()
 
 # Generating Force of Infection
 s_ijk[, ,] <- m[i,j,k] * I[j,k] # for susceptible age i, % contacts infectious age k
+# does zoonotic spillover need to be stratified by vaccination as well?
 lambda[,] <- beta_h * sum(s_ijk[i, j, ]) + beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
@@ -158,8 +159,8 @@ dim(D0) <- c(n_group,n_vax)
 dim(delta_D) <- c(n_group,n_vax)
 
 dim(lambda) <- c(n_group,n_vax)
-dim(m) <- c(n_group, n_group,n_vax)
-dim(s_ijk) <- c(n_group,n_vax,n_vax)
+dim(m) <- c(n_group, n_group,n_vax) 
+dim(s_ijk) <- c(n_group,n_group,n_vax)
 dim(beta_z) <- c(n_group)
 
 dim(CFR) <- c(n_group,n_vax)
