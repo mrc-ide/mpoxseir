@@ -52,13 +52,13 @@ m[, ,] <- user()
 # Generating Force of Infection
 s_ijk[, ,] <- m[i,j,k] * I[j,k] # for susceptible age i, % contacts infectious age k
 # does zoonotic spillover need to be stratified by vaccination as well?
-lambda[,] <- beta_h * sum(s_ijk[i, j, ]) + beta_z[i]
+lambda[,] <- (beta_h * sum(s_ijk[i, j, ]) * (1 - ve_T[i,j]) ) + beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
-n_SEa[,] <- rbinom(S[i,j], p_SE[i,j])
+n_SEa[,] <- rbinom(S[i,j], (1-ve_I[i,j])*p_SE[i,j])
 n_EaEb[,] <- rbinom(Ea[i,j], p_EE)
 n_EbI[,] <- rbinom(Eb[i,j], p_EI)
-n_EbId[,] <- rbinom(n_EbI[i,j], CFR[i,j]) # Proportion of the infections that will die
+n_EbId[,] <- rbinom(n_EbI[i,j], CFR[i,j]) # Proportion of the infections that will die, impact of vaccination included already as part of inputs
 n_EbIr[,] <- n_EbI[i,j] - n_EbId[i,j] # whatever infections don't die go to R
 
 n_IrR[,] <- rbinom(Ir[i,j], p_IrR)
@@ -113,6 +113,10 @@ gamma_I <- user()
 gamma_Ir <- user()
 gamma_Id <- user()
 CFR[,] <- user() 
+#vaccine efficacy parameters
+ve_T[,] <- user()
+ve_I[,] <- user()
+#ve_D[,] <- user() # this is included as part of the CFR
 
 #Number of age classes & number of transmissibility classes
 n_vax <- user()
@@ -164,5 +168,9 @@ dim(s_ijk) <- c(n_group,n_group,n_vax)
 dim(beta_z) <- c(n_group)
 
 dim(CFR) <- c(n_group,n_vax)
+
+dim(ve_T) <- c(n_group,n_vax)
+dim(ve_I) <- c(n_group,n_vax)
+
 
 

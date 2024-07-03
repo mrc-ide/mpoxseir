@@ -23,6 +23,8 @@ reference_pars <- function() {
                       (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25),
                       (0.25*1) / c(seq(2.5, 77.5, 5), 25, 25)),
                     n_group,n_vax),
+       ve_T = matrix(0.90,n_group,n_vax),
+       ve_I = matrix(0.80,n_group,n_vax),
        m = dem_pars$m,
        n_group = n_group,
        n_vax = n_vax)
