@@ -15,7 +15,6 @@ reference_pars <- function() {
        beta_h = 0.2 / 12.11,
        beta_z = rep(0.4 / 12.11,n_group),
        gamma_E = 0.05,
-       gamma_I = 0.1,
        gamma_Ir = 0.1,
        gamma_Id = 0.05,
        CFR = 1 / c(seq(2.5, 77.5, 5), 25, 25),

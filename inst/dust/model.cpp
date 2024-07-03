@@ -31,43 +31,41 @@ __host__ __device__ T odin_sign(T x) {
 }
 // [[dust::class(model)]]
 // [[dust::time_type(discrete)]]
-// [[dust::param(beta_h, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(beta_z, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(CFR, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(D0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Ea0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Eb0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(gamma_E, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(gamma_I, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(gamma_Id, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(gamma_Ir, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Id0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Ir0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(m, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(n_group, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(CFR, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(D0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Ea0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Eb0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Id0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Ir0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(R0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(S0, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(beta_h, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(beta_z, has_default = TRUE, default_value = 0L, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(dt, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(gamma_E, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(gamma_Id, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(gamma_Ir, has_default = TRUE, default_value = 0L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(n_group, has_default = TRUE, default_value = 18L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 class model {
 public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
   using data_type = dust::no_data;
   struct shared_type {
-    real_type beta_h;
-    std::vector<real_type> beta_z;
     std::vector<real_type> CFR;
     std::vector<real_type> D0;
-    int dim_beta_z;
+    std::vector<real_type> Ea0;
+    std::vector<real_type> Eb0;
+    std::vector<real_type> Id0;
+    std::vector<real_type> Ir0;
+    std::vector<real_type> R0;
+    std::vector<real_type> S0;
+    real_type beta_h;
+    std::vector<real_type> beta_z;
     int dim_CFR;
     int dim_D;
     int dim_D0;
-    int dim_delta_D;
-    int dim_delta_Ea;
-    int dim_delta_Eb;
-    int dim_delta_Id;
-    int dim_delta_Ir;
-    int dim_delta_R;
     int dim_E;
     int dim_Ea;
     int dim_Ea0;
@@ -78,11 +76,22 @@ public:
     int dim_Id0;
     int dim_Ir;
     int dim_Ir0;
+    int dim_N;
+    int dim_R;
+    int dim_R0;
+    int dim_S;
+    int dim_S0;
+    int dim_beta_z;
+    int dim_delta_D;
+    int dim_delta_Ea;
+    int dim_delta_Eb;
+    int dim_delta_Id;
+    int dim_delta_Ir;
+    int dim_delta_R;
     int dim_lambda;
     int dim_m;
     int dim_m_1;
     int dim_m_2;
-    int dim_N;
     int dim_n_EaEb;
     int dim_n_EbI;
     int dim_n_EbId;
@@ -91,21 +100,13 @@ public:
     int dim_n_IrR;
     int dim_n_SEa;
     int dim_p_SE;
-    int dim_R;
-    int dim_R0;
-    int dim_S;
     int dim_s_ij;
     int dim_s_ij_1;
     int dim_s_ij_2;
-    int dim_S0;
     real_type dt;
-    std::vector<real_type> Ea0;
-    std::vector<real_type> Eb0;
     real_type gamma_E;
-    real_type gamma_I;
     real_type gamma_Id;
     real_type gamma_Ir;
-    std::vector<real_type> Id0;
     std::vector<real_type> initial_D;
     real_type initial_D_tot;
     std::vector<real_type> initial_E;
@@ -130,7 +131,6 @@ public:
     real_type initial_weekly_deaths_00_04;
     real_type initial_weekly_deaths_05_14;
     real_type initial_weekly_deaths_15;
-    std::vector<real_type> Ir0;
     std::vector<real_type> m;
     int n_group;
     int offset_variable_D;
@@ -146,8 +146,6 @@ public:
     real_type p_EI;
     real_type p_IdD;
     real_type p_IrR;
-    std::vector<real_type> R0;
-    std::vector<real_type> S0;
     real_type steps_per_week;
   };
   struct internal_type {
@@ -265,7 +263,7 @@ public:
     }
     for (int i = 1; i <= shared->dim_s_ij_1; ++i) {
       for (int j = 1; j <= shared->dim_s_ij_2; ++j) {
-        internal.s_ij[i - 1 + shared->dim_s_ij_1 * (j - 1)] = shared->m[shared->dim_m_1 * (j - 1) + i - 1] * I[j - 1];
+        internal.s_ij[i - 1 + shared->dim_s_ij_1 * (j - 1)] = shared->m[shared->dim_m_1 * (j - 1) + i - 1] * I[j - 1] / (real_type) N[j - 1];
       }
     }
     state_next[11] = weekly_deaths * is_same_week + odin_sum1<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD);
@@ -317,6 +315,15 @@ public:
     state_next[10] = weekly_cases * is_same_week + odin_sum1<real_type>(internal.n_SEa.data(), 3, shared->n_group);
     for (int i = 1; i <= shared->dim_Ea; ++i) {
       state_next[shared->offset_variable_Ea + i - 1] = Ea[i - 1] + internal.delta_Ea[i - 1];
+    }
+    const real_type time = state[0];
+    #ifdef _OPENMP
+      const bool dust_is_single_threaded = !omp_in_parallel();
+    #else
+      const bool dust_is_single_threaded = true;
+    #endif
+    if (dust_is_single_threaded) {
+      Rprintf("[%d] time: %.0f\n", step, time);
     }
   }
 private:
@@ -562,31 +569,22 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->initial_weekly_deaths_00_04 = 0;
   shared->initial_weekly_deaths_05_14 = 0;
   shared->initial_weekly_deaths_15 = 0;
-  shared->beta_h = NA_REAL;
-  shared->gamma_E = NA_REAL;
-  shared->gamma_I = NA_REAL;
-  shared->gamma_Id = NA_REAL;
-  shared->gamma_Ir = NA_REAL;
-  shared->n_group = NA_INTEGER;
+  shared->beta_h = 0;
   shared->dt = 1;
+  shared->gamma_E = 0;
+  shared->gamma_Id = 0;
+  shared->gamma_Ir = 0;
+  shared->n_group = 18;
   internal.initial_time = 0;
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
   shared->dt = user_get_scalar<real_type>(user, "dt", shared->dt, NA_REAL, NA_REAL);
   shared->gamma_E = user_get_scalar<real_type>(user, "gamma_E", shared->gamma_E, NA_REAL, NA_REAL);
-  shared->gamma_I = user_get_scalar<real_type>(user, "gamma_I", shared->gamma_I, NA_REAL, NA_REAL);
   shared->gamma_Id = user_get_scalar<real_type>(user, "gamma_Id", shared->gamma_Id, NA_REAL, NA_REAL);
   shared->gamma_Ir = user_get_scalar<real_type>(user, "gamma_Ir", shared->gamma_Ir, NA_REAL, NA_REAL);
   shared->n_group = user_get_scalar<int>(user, "n_group", shared->n_group, NA_INTEGER, NA_INTEGER);
-  shared->dim_beta_z = shared->n_group;
   shared->dim_CFR = shared->n_group;
   shared->dim_D = shared->n_group;
   shared->dim_D0 = shared->n_group;
-  shared->dim_delta_D = shared->n_group;
-  shared->dim_delta_Ea = shared->n_group;
-  shared->dim_delta_Eb = shared->n_group;
-  shared->dim_delta_Id = shared->n_group;
-  shared->dim_delta_Ir = shared->n_group;
-  shared->dim_delta_R = shared->n_group;
   shared->dim_E = shared->n_group;
   shared->dim_Ea = shared->n_group;
   shared->dim_Ea0 = shared->n_group;
@@ -597,10 +595,21 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->dim_Id0 = shared->n_group;
   shared->dim_Ir = shared->n_group;
   shared->dim_Ir0 = shared->n_group;
+  shared->dim_N = shared->n_group;
+  shared->dim_R = shared->n_group;
+  shared->dim_R0 = shared->n_group;
+  shared->dim_S = shared->n_group;
+  shared->dim_S0 = shared->n_group;
+  shared->dim_beta_z = shared->n_group;
+  shared->dim_delta_D = shared->n_group;
+  shared->dim_delta_Ea = shared->n_group;
+  shared->dim_delta_Eb = shared->n_group;
+  shared->dim_delta_Id = shared->n_group;
+  shared->dim_delta_Ir = shared->n_group;
+  shared->dim_delta_R = shared->n_group;
   shared->dim_lambda = shared->n_group;
   shared->dim_m_1 = shared->n_group;
   shared->dim_m_2 = shared->n_group;
-  shared->dim_N = shared->n_group;
   shared->dim_n_EaEb = shared->n_group;
   shared->dim_n_EbI = shared->n_group;
   shared->dim_n_EbId = shared->n_group;
@@ -609,17 +618,21 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->dim_n_IrR = shared->n_group;
   shared->dim_n_SEa = shared->n_group;
   shared->dim_p_SE = shared->n_group;
-  shared->dim_R = shared->n_group;
-  shared->dim_R0 = shared->n_group;
-  shared->dim_S = shared->n_group;
   shared->dim_s_ij_1 = shared->n_group;
   shared->dim_s_ij_2 = shared->n_group;
-  shared->dim_S0 = shared->n_group;
-  shared->p_EE = 1 - dust::math::exp(- shared->gamma_E * shared->dt);
-  shared->p_EI = 1 - dust::math::exp(- shared->gamma_I * shared->dt);
+  shared->p_EE = 1 - dust::math::exp(- shared->gamma_E / (real_type) 2 * shared->dt);
+  shared->p_EI = 1 - dust::math::exp(- shared->gamma_E / (real_type) 2 * shared->dt);
   shared->p_IdD = 1 - dust::math::exp(- shared->gamma_Id * shared->dt);
   shared->p_IrR = 1 - dust::math::exp(- shared->gamma_Ir * shared->dt);
   shared->steps_per_week = 7 / (real_type) shared->dt;
+  shared->CFR = user_get_array_fixed<real_type, 1>(user, "CFR", shared->CFR, {shared->dim_CFR}, NA_REAL, NA_REAL);
+  shared->D0 = user_get_array_fixed<real_type, 1>(user, "D0", shared->D0, {shared->dim_D0}, NA_REAL, NA_REAL);
+  shared->Ea0 = user_get_array_fixed<real_type, 1>(user, "Ea0", shared->Ea0, {shared->dim_Ea0}, NA_REAL, NA_REAL);
+  shared->Eb0 = user_get_array_fixed<real_type, 1>(user, "Eb0", shared->Eb0, {shared->dim_Eb0}, NA_REAL, NA_REAL);
+  shared->Id0 = user_get_array_fixed<real_type, 1>(user, "Id0", shared->Id0, {shared->dim_Id0}, NA_REAL, NA_REAL);
+  shared->Ir0 = user_get_array_fixed<real_type, 1>(user, "Ir0", shared->Ir0, {shared->dim_Ir0}, NA_REAL, NA_REAL);
+  shared->R0 = user_get_array_fixed<real_type, 1>(user, "R0", shared->R0, {shared->dim_R0}, NA_REAL, NA_REAL);
+  shared->S0 = user_get_array_fixed<real_type, 1>(user, "S0", shared->S0, {shared->dim_S0}, NA_REAL, NA_REAL);
   internal.delta_D = std::vector<real_type>(shared->dim_delta_D);
   internal.delta_Ea = std::vector<real_type>(shared->dim_delta_Ea);
   internal.delta_Eb = std::vector<real_type>(shared->dim_delta_Eb);
@@ -646,14 +659,8 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   internal.n_SEa = std::vector<real_type>(shared->dim_n_SEa);
   internal.p_SE = std::vector<real_type>(shared->dim_p_SE);
   shared->beta_z = user_get_array_fixed<real_type, 1>(user, "beta_z", shared->beta_z, {shared->dim_beta_z}, NA_REAL, NA_REAL);
-  shared->CFR = user_get_array_fixed<real_type, 1>(user, "CFR", shared->CFR, {shared->dim_CFR}, NA_REAL, NA_REAL);
-  shared->D0 = user_get_array_fixed<real_type, 1>(user, "D0", shared->D0, {shared->dim_D0}, NA_REAL, NA_REAL);
   shared->dim_m = shared->dim_m_1 * shared->dim_m_2;
   shared->dim_s_ij = shared->dim_s_ij_1 * shared->dim_s_ij_2;
-  shared->Ea0 = user_get_array_fixed<real_type, 1>(user, "Ea0", shared->Ea0, {shared->dim_Ea0}, NA_REAL, NA_REAL);
-  shared->Eb0 = user_get_array_fixed<real_type, 1>(user, "Eb0", shared->Eb0, {shared->dim_Eb0}, NA_REAL, NA_REAL);
-  shared->Id0 = user_get_array_fixed<real_type, 1>(user, "Id0", shared->Id0, {shared->dim_Id0}, NA_REAL, NA_REAL);
-  shared->Ir0 = user_get_array_fixed<real_type, 1>(user, "Ir0", shared->Ir0, {shared->dim_Ir0}, NA_REAL, NA_REAL);
   shared->offset_variable_D = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
   shared->offset_variable_E = shared->dim_D + shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
   shared->offset_variable_Ea = shared->dim_S + 15;
@@ -663,8 +670,6 @@ dust::pars_type<model> dust_pars<model>(cpp11::list user) {
   shared->offset_variable_Ir = shared->dim_Ea + shared->dim_Eb + shared->dim_S + 15;
   shared->offset_variable_N = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
   shared->offset_variable_R = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_S + 15;
-  shared->R0 = user_get_array_fixed<real_type, 1>(user, "R0", shared->R0, {shared->dim_R0}, NA_REAL, NA_REAL);
-  shared->S0 = user_get_array_fixed<real_type, 1>(user, "S0", shared->S0, {shared->dim_S0}, NA_REAL, NA_REAL);
   internal.s_ij = std::vector<real_type>(shared->dim_s_ij);
   for (int i = 1; i <= shared->dim_D; ++i) {
     shared->initial_D[i - 1] = shared->D0[i - 1];

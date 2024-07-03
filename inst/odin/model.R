@@ -49,8 +49,8 @@ update(N_tot) <- sum(N[])
 
 ## Individual probabilities of transition:
 p_SE[] <- 1 - exp(-lambda[i] * dt) # S to E - age dependent
-p_EE <- 1 - exp(-gamma_E * dt) # progression through latent period
-p_EI <- 1 - exp(-gamma_I * dt) # progression to infection
+p_EE <- 1 - exp(-gamma_E / 2 * dt) # progression through latent period
+p_EI <- 1 - exp(-gamma_E / 2 * dt) # progression to infection
 p_IrR <- 1 - exp(-gamma_Ir * dt) # progression through infectious period to recovery
 p_IdD <- 1 - exp(-gamma_Id * dt) # progression through infectious period to death
 
@@ -60,7 +60,7 @@ p_IdD <- 1 - exp(-gamma_Id * dt) # progression through infectious period to deat
 m[, ] <- user()
 
 # Generating Force of Infection
-s_ij[, ] <- m[i, j] * I[j] # for susceptible age i, % contacts infectious age j
+s_ij[, ] <- m[i, j] * I[j] / N[j] # for susceptible age i, % contacts infectious age j
 lambda[] <- beta_h * sum(s_ij[i,]) + beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
@@ -113,25 +113,24 @@ initial(weekly_deaths_05_14) <- 0
 initial(weekly_deaths_15) <- 0
 
 ##Initial vectors
-S0[] <- user()
-Ea0[] <- user()
-Eb0[] <- user()
-Ir0[] <- user()
-Id0[] <- user()
-R0[] <- user()
-D0[] <- user()
+S0[] <- user(0)
+Ea0[] <- user(0)
+Eb0[] <- user(0)
+Ir0[] <- user(0)
+Id0[] <- user(0)
+R0[] <- user(0)
+D0[] <- user(0)
 
 ##Parameters
-beta_h <- user()
-beta_z[] <- user()
-gamma_E <- user()
-gamma_I <- user()
-gamma_Ir <- user()
-gamma_Id <- user()
-CFR[] <- user() #CFR
+beta_h <- user(0)
+beta_z[] <- user(0)
+gamma_E <- user(0)
+gamma_Ir <- user(0)
+gamma_Id <- user(0)
+CFR[] <- user(0) #CFR
 
 #Number of age classes & number of transmissibility classes
-n_group <- user()
+n_group <- user(18)
 
 ##Dimensions of the different "vectors" here vectors stand for multi-dimensional arrays
 dim(N) <- n_group
@@ -179,5 +178,27 @@ dim(s_ij) <- c(n_group,n_group)
 dim(beta_z) <- n_group
 
 dim(CFR) <- c(n_group)
+print( "time: {time; .0f}")
+## Likelihood - switch off data streams where unused
+# cases <- data()
+# deaths <- data()
+#
+# data_weekly_cases_00_04 <- data()
+# data_weekly_cases_05_14 <- data()
+# data_weekly_cases_15 <- data()
+#
+# data_weekly_deaths_00_04 <- data()
+# data_weekly_deaths_05_14 <- data()
+# data_weekly_deaths_15 <- data()
 
-
+# Overall
+# compare(weekly_cases)  ~ poisson(cases)
+# compare(weekly_deaths) ~ poisson(deaths)
+# By age
+# compare(weekly_cases_00_04)  ~ poisson(data_weekly_cases_00_04)
+# compare(weekly_cases_05_14)  ~ poisson(data_weekly_cases_05_14)
+# compare(weekly_cases_15)     ~ poisson(data_weekly_cases_15)
+#
+# compare(weekly_deaths_00_04) ~ poisson(data_weekly_deaths_00_04)
+# compare(weekly_deaths_05_14) ~ poisson(data_weekly_deaths_05_14)
+# compare(weekly_deaths_15)    ~ poisson(data_weekly_deaths_15)

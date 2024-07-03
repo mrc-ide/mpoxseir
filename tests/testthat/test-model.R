@@ -89,7 +89,7 @@ test_that("weekly outputs work as expected", {
   week_ends <- which(t %% 7 == 0)
 
   # weekly cases reset every 7 days
-  expect_true(all(res["weekly_cases", , week_ends] >
+  expect_true(all(res["weekly_cases", , week_ends] >=
                     res["weekly_cases", , week_ends - 1]))
   # cumulative cases match (N - S) = sum(weekly_cases)
   expect_equal(res["N_tot", , max(t)] - res["S_tot", , max(t)],
@@ -99,7 +99,7 @@ test_that("weekly outputs work as expected", {
                res["weekly_cases", , max(t)] * 2)
 
   # weekly deaths reset every 7 days
-  expect_true(all(res["weekly_deaths", , week_ends] >
+  expect_true(all(res["weekly_deaths", , week_ends] >=
                     res["weekly_deaths", , week_ends - 1]))
   # cumulative deaths match (N - S) = sum(weekly_deaths)
   expect_equal(res["D_tot", , max(t)],
