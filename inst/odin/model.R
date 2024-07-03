@@ -116,7 +116,7 @@ CFR[,] <- user()
 #vaccine efficacy parameters
 ve_T[,] <- user()
 ve_I[,] <- user()
-#ve_D[,] <- user() # this is included as part of the CFR
+#ve_D[,] <- user() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
 n_vax <- user()
