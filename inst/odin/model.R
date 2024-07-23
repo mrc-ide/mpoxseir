@@ -9,10 +9,34 @@ initial(time) <- step
 update(time) <- (step + 1) * dt
 #output(time) <- TRUE
 
-## help page has a "total" set of eqs here eg. not split by age group
+## Vaccination
+## specify the number of vaccinations that happen daily per age group and vaccine strata (n_vax: vaccine strata, n_vaccination: new vaccinations given where column j represents individuals leaving that strata)
+n_vaccination[,] <- user()
+# at a given prespecified time we give N number of doses - Lilith see note on dimensionality please towards end of script (not yet accounting for time)
+n_vaccination_allocation_SER[] <- user() #det calc of where the vaccines go to in terms of S,Ea,Eb,R, but could also be used as vector of probs for a multinomial draw - will need to be updated when do Erlangs
+
+
+# didn't like basically every operator I tried to use for logic here
+# delta_n_vaccination[,] <- if(j==1) -n_vaccination[i,j] else if(j==c(2:(n_vax-1))) -n_vaccination[i,j] + n_vaccination[i,j-1] else if(j==n_vax) n_vaccination[i,j-1] else 0
+
+## calculate net vaccination change for relevant classes (S,Ea,Eb,R)
+delta_S_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[1]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[1]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[1]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[1]) 
+
+delta_Ea_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[2]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[2]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[2]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[2]) 
+
+delta_Eb_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[3]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[3]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[3]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[3]) 
+
+delta_R_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[4]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[4]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[4]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[4]) 
+
+## update states to reflect vaccination
+update(S[,]) <- S[i,j] + delta_S_n_vaccination[i,j]
+update(Ea[,]) <- Ea[i,j] + delta_Ea_n_vaccination[i,j]
+update(Eb[,]) <- Eb[i,j] + delta_Eb_n_vaccination[i,j]
+update(R[,]) <- R[i,j] + delta_R_n_vaccination[i,j]
+
 
 ## Core equations for transitions between compartments:
-# by age groups
+# by age groups and vaccination class 
 update(S[,]) <- S[i,j] - n_SEa[i,j]
 update(Ea[,]) <- Ea[i,j] + delta_Ea[i,j]
 update(Eb[,]) <- Eb[i,j] + delta_Eb[i,j]
@@ -52,7 +76,7 @@ m[, ,] <- user()
 # Generating Force of Infection
 s_ijk[, ,] <- m[i,j,k] * I[j,k] # for susceptible age i, % contacts infectious age k
 # does zoonotic spillover need to be stratified by vaccination as well?
-lambda[,] <- (beta_h * sum(s_ijk[i, j, ]) * (1 - ve_T[i,j]) ) + beta_z[i]
+lambda[,] <- (beta_h * sum(s_ijk[i, j, ]) * (1 - ve_T[i,j]))+ beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
 n_SEa[,] <- rbinom(S[i,j], (1-ve_I[i,j])*p_SE[i,j])
@@ -172,5 +196,10 @@ dim(CFR) <- c(n_group,n_vax)
 dim(ve_T) <- c(n_group,n_vax)
 dim(ve_I) <- c(n_group,n_vax)
 
+dim(n_vaccination) <- c(n_group,n_vax) ##Lilith, the idea is that column j corresponds to the number of people leaving that class (e.g. going from unvaccinated to 1st dose). This makes the last column a dummy variable because it doesn't seem to like a dimension with n_vax-1
+dim(delta_S_n_vaccination) <- c(n_group,n_vax) 
+dim(delta_Ea_n_vaccination) <- c(n_group,n_vax) 
+dim(delta_Eb_n_vaccination) <- c(n_group,n_vax) 
+dim(delta_R_n_vaccination) <- c(n_group,n_vax) 
 
-
+dim(n_vaccination_allocation_SER) <- 4L
