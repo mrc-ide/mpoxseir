@@ -20,6 +20,7 @@ n_vaccination_allocation_SER[] <- user() #det calc of where the vaccines go to i
 # delta_n_vaccination[,] <- if(j==1) -n_vaccination[i,j] else if(j==c(2:(n_vax-1))) -n_vaccination[i,j] + n_vaccination[i,j-1] else if(j==n_vax) n_vaccination[i,j-1] else 0
 
 ## calculate net vaccination change for relevant classes (S,Ea,Eb,R)
+## need to add logic to say can only move if there is enough people in the strata to do so
 delta_S_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[1]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[1]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[1]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[1]) 
 
 delta_Ea_n_vaccination[,] <- if(j==1) -round(n_vaccination[i,j]*n_vaccination_allocation_SER[2]) else if(j==n_vax) round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[2]) else -round(n_vaccination[i,j]*n_vaccination_allocation_SER[2]) + round(n_vaccination[i,j-1]*n_vaccination_allocation_SER[2]) 
