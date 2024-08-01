@@ -4,7 +4,16 @@ reference_pars <- function() {
   n_group <- dem_pars$n_group
   n_vax <- dem_pars$n_vax
   Ea0 <- matrix(0, n_group, n_vax)
-  list(dt = 1,
+  vaccination_campaign_length <- 10
+  n_vaccination <- array(5,
+                        dim=c(n_group,
+                              n_vax,
+                              (vaccination_campaign_length)
+                        ))
+  n_vaccination[,,vaccination_campaign_length] <- 0
+  n_vaccination[,n_vax,] <- 0
+  
+  out <- list(dt = 1,
        N = dem_pars$N,
        S0 = dem_pars$N - Ea0,
        Ea0 = Ea0,
@@ -27,8 +36,19 @@ reference_pars <- function() {
        ve_I = matrix(0.80,n_group,n_vax),
        m = dem_pars$m,
        n_group = n_group,
-       n_vax = n_vax)
+       n_vax = n_vax,
+       n_vaccination_allocation_SER = c(0.85,0.05,0.05,0.05),
+       vaccination_campaign_length = vaccination_campaign_length,
+       n_vaccination = n_vaccination
+       )
+  
+  if(sum(out$n_vaccination_allocation_SER)!=1){
+    stop("Entries in n_vaccination_allocation_SER must sum to 1.")
+  }
+  
+  return(out)
 }
+
 
 reference_names <- function() {
   n_group <- parameters_demographic()$n_group
