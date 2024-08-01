@@ -9,45 +9,81 @@ initial(time) <- step
 update(time) <- (step + 1) * dt
 #output(time) <- TRUE
 
-## Vaccination
+#### Vaccination
+
 ## specify the number of vaccinations that happen daily per age group and vaccine strata (n_vax: vaccine strata, n_vaccination: new vaccinations given where column j represents individuals leaving that strata)
 n_vaccination[,,] <- user()
-# at a given prespecified time we give N number of doses - Lilith see note on dimensionality please towards end of script (not yet accounting for time)
-# time working solution: we set up a big array for every time point that is defaulted to 0 and then we just change the entries that we want to, so this means that this step takes place every time. But this could be very inefficient so can replace in future if a big problem?
+# at a given prespecified time we give N number of doses - Lilith see note on dimensionality please towards end of script 
+# time working solution: we set up a big array for every time point that is defaulted to 0 and then we just change the entries that we want to, so this means that this step takes place every time. But this could be very inefficient so can replace in future if needed?
 
 n_vaccination_allocation_SER[] <- user() #det calc of where the vaccines go to in terms of S,Ea,Eb,R, but could also be used as vector of probs for a multinomial draw - will need to be updated when do Erlangs
 
-
-## code from https://github.com/mrc-ide/gasworks/blob/ce197d380e91bde536835cb9da3b09df784bb64f/inst/odin/model.R#L11 re vaccination
-n_vaccination_t[,,] <- if (as.integer(step) >= vaccination_campaign_length)
+## code adapted from https://github.com/mrc-ide/gasworks/blob/ce197d380e91bde536835cb9da3b09df784bb64f/inst/odin/model.R#L11 re vaccination
+## with this we need to ensure n_vaccination final time step is all 0 - done outside of the model in pre-processing
+n_vaccination_t[,] <- if (as.integer(step) >= (vaccination_campaign_length))
   n_vaccination[i,j,vaccination_campaign_length] else n_vaccination[i,j,step]
 
+## need to check that we have the capacity to vaccinate according to the schedule in n_vaccination_t
+## first see what the allocation is across the classes 
+n_vaccination_t_S[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[1])
+n_vaccination_t_Ea[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[2])
+n_vaccination_t_Eb[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[3])
+n_vaccination_t_R[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[4])
+
+## set equal to number of person in class if the proposed vaccination number is higher
+n_vaccination_t_S[,] <- if(abs(n_vaccination_t_S[i,j])>=S[i,j]) S[i,j] else n_vaccination_t_S[i,j]
+n_vaccination_t_Ea[,] <- if(abs(n_vaccination_t_Ea[i,j])>=Ea[i,j]) Ea[i,j] else n_vaccination_t_Ea[i,j]
+n_vaccination_t_Eb[,] <- if(abs(n_vaccination_t_Eb[i,j])>=Eb[i,j]) Eb[i,j] else n_vaccination_t_Eb[i,j]
+n_vaccination_t_R[,] <- if(abs(n_vaccination_t_R[i,j])>=R[i,j]) R[i,j] else n_vaccination_t_R[i,j]
 
 ## calculate net vaccination change for relevant classes (S,Ea,Eb,R)
-## need to add logic to say can only move if there is enough people in the strata to do so
-delta_S_n_vaccination[,] <- if(j==1) -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[1]) else if(j==n_vax) round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[1]) else -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[1]) + round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[1]) 
+## logic here depends on vaccine class you are in (e.g. can only increase through j)
+delta_S_n_vaccination[,] <- if(j==1) (n_vaccination_t_S[i,j]) else if(j==n_vax) (n_vaccination_t_S[i,j-1]) else (n_vaccination_t_S[i,j] + n_vaccination_t_S[i,j-1]) 
 
-delta_Ea_n_vaccination[,] <- if(j==1) -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[2]) else if(j==n_vax) round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[2]) else -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[2]) + round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[2]) 
+delta_Ea_n_vaccination[,] <- if(j==1) (n_vaccination_t_Ea[i,j]) else if(j==n_vax) (n_vaccination_t_Ea[i,j-1]) else (n_vaccination_t_Ea[i,j] + n_vaccination_t_Ea[i,j-1]) 
 
-delta_Eb_n_vaccination[,] <- if(j==1) -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[3]) else if(j==n_vax) round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[3]) else -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[3]) + round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[3]) 
+delta_Eb_n_vaccination[,] <- if(j==1) (n_vaccination_t_Eb[i,j]) else if(j==n_vax) (n_vaccination_t_Eb[i,j-1]) else (n_vaccination_t_Eb[i,j] + n_vaccination_t_Eb[i,j-1]) 
 
-delta_R_n_vaccination[,] <- if(j==1) -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[4]) else if(j==n_vax) round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[4]) else -round(n_vaccination_t[i,j,step]*n_vaccination_allocation_SER[4]) + round(n_vaccination_t[i,j-1,step]*n_vaccination_allocation_SER[4]) 
+delta_R_n_vaccination[,] <- if(j==1) (n_vaccination_t_R[i,j]) else if(j==n_vax) (n_vaccination_t_R[i,j-1]) else (n_vaccination_t_R[i,j] + n_vaccination_t_R[i,j-1]) 
+
+
+# ## calculate net vaccination change for relevant classes (S,Ea,Eb,R)
+# ## logic here depends on vaccine class you are in (e.g. can only increase through j)
+# delta_S_n_vaccination[,] <- if(j==1) (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[1])) else if(j==n_vax) (round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[1])) else (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[1]) + round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[1])) 
+# 
+# delta_Ea_n_vaccination[,] <- if(j==1) (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[2])) else if(j==n_vax) (round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[2])) else (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[2]) + round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[2]))
+# 
+# delta_Eb_n_vaccination[,] <- if(j==1) (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[3])) else if(j==n_vax) (round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[3])) else (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[3]) + round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[3])) 
+# 
+# delta_R_n_vaccination[,] <- if(j==1) (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[4])) else if(j==n_vax) (round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[4])) else (-round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[4]) + round(n_vaccination_t[i,j-1]*n_vaccination_allocation_SER[4]))
+
+# ## Logic in case number to be vaccinated exceeds number of people in compartment: set to the number of people in the compartment if planned vaccination exceeds this number 
+# delta_S_n_vaccination[,] <- if(delta_S_n_vaccination[i,j]>=S[i,j]) S[i,j] else delta_S_n_vaccination[i,j]
+# 
+# delta_Ea_n_vaccination[,] <- if(delta_Ea_n_vaccination[i,j]>=Ea[i,j]) Ea[i,j] else delta_Ea_n_vaccination[i,j]
+# 
+# delta_Eb_n_vaccination[,] <- if(delta_Eb_n_vaccination[i,j]>=Eb[i,j]) Eb[i,j] else delta_Eb_n_vaccination[i,j]
+# 
+# delta_R_n_vaccination[,] <- if(delta_R_n_vaccination[i,j]>=R[i,j]) R[i,j] else delta_R_n_vaccination[i,j]
+
 
 ## update states to reflect vaccination
-update(S[,]) <- S[i,j] + delta_S_n_vaccination[i,j]
-update(Ea[,]) <- Ea[i,j] + delta_Ea_n_vaccination[i,j]
-update(Eb[,]) <- Eb[i,j] + delta_Eb_n_vaccination[i,j]
-update(R[,]) <- R[i,j] + delta_R_n_vaccination[i,j]
+update(S_after_vax[,]) <- S[i,j] + delta_S_n_vaccination[i,j]
+update(Ea_after_vax[,]) <- Ea[i,j] + delta_Ea_n_vaccination[i,j]
+update(Eb_after_vax[,]) <- Eb[i,j] + delta_Eb_n_vaccination[i,j]
+update(R_after_vax[,]) <- R[i,j] + delta_R_n_vaccination[i,j]
 
+## end of vaccination section
 
 ## Core equations for transitions between compartments:
 # by age groups and vaccination class 
-update(S[,]) <- S[i,j] - n_SEa[i,j]
-update(Ea[,]) <- Ea[i,j] + delta_Ea[i,j]
-update(Eb[,]) <- Eb[i,j] + delta_Eb[i,j]
+# after vaccination has taken place
+update(S[,]) <- S_after_vax[i,j] - n_SEa[i,j]
+update(Ea[,]) <- Ea_after_vax[i,j] + delta_Ea[i,j]
+update(Eb[,]) <- Eb_after_vax[i,j] + delta_Eb[i,j]
 update(Ir[,]) <- Ir[i,j] + delta_Ir[i,j]
 update(Id[,]) <- Id[i,j] + delta_Id[i,j]
-update(R[,]) <- R[i,j] + delta_R[i,j]
+update(R[,]) <- R_after_vax[i,j] + delta_R[i,j]
 update(D[,]) <- D[i,j] + delta_D[i,j]
 
 ## Additional outputs
@@ -84,9 +120,9 @@ s_ijk[, ,] <- m[i,j,k] * I[j,k] # for susceptible age i, % contacts infectious a
 lambda[,] <- (beta_h * sum(s_ijk[i, j, ]) * (1 - ve_T[i,j]))+ beta_z[i]
 
 ## Draws from binomial distributions for numbers changing between compartments:
-n_SEa[,] <- rbinom(S[i,j], (1-ve_I[i,j])*p_SE[i,j])
-n_EaEb[,] <- rbinom(Ea[i,j], p_EE)
-n_EbI[,] <- rbinom(Eb[i,j], p_EI)
+n_SEa[,] <- rbinom(S_after_vax[i,j], (1-ve_I[i,j])*p_SE[i,j])
+n_EaEb[,] <- rbinom(Ea_after_vax[i,j], p_EE)
+n_EbI[,] <- rbinom(Eb_after_vax[i,j], p_EI)
 n_EbId[,] <- rbinom(n_EbI[i,j], CFR[i,j]) # Proportion of the infections that will die, impact of vaccination included already as part of inputs
 n_EbIr[,] <- n_EbI[i,j] - n_EbId[i,j] # whatever infections don't die go to R
 
@@ -110,6 +146,11 @@ initial(Ir[,]) <- Ir0[i,j]
 initial(Id[,]) <- Id0[i,j]
 initial(R[,]) <- R0[i,j]
 initial(D[,]) <- D0[i,j]
+
+initial(S_after_vax[,]) <- S0[i,j]
+initial(Ea_after_vax[,]) <- Ea0[i,j]
+initial(Eb_after_vax[,]) <- Eb0[i,j]
+initial(R_after_vax[,]) <- R0[i,j]
 
 initial(E[,]) <- Ea0[i,j] + Eb0[i,j]
 initial(I[,]) <- Ir0[i,j] + Id0[i,j]
@@ -154,17 +195,20 @@ n_group <- user()
 ##Dimensions of the different "vectors" here vectors stand for multi-dimensional arrays
 dim(N) <- c(n_group,n_vax) 
 dim(S) <- c(n_group,n_vax)
+dim(S_after_vax) <- c(n_group,n_vax)
 dim(S0) <- c(n_group,n_vax)
 dim(p_SE) <- c(n_group,n_vax)
 dim(n_SEa) <- c(n_group,n_vax)
 
 dim(Ea) <- c(n_group,n_vax)
+dim(Ea_after_vax) <- c(n_group,n_vax)
 dim(Ea0) <- c(n_group,n_vax)
 dim(Eb0) <- c(n_group,n_vax)
 dim(delta_Ea) <- c(n_group,n_vax)
 dim(n_EaEb) <- c(n_group,n_vax)
 
 dim(Eb) <- c(n_group,n_vax)
+dim(Eb_after_vax) <- c(n_group,n_vax)
 dim(delta_Eb) <- c(n_group,n_vax)
 dim(n_EbI) <- c(n_group,n_vax)
 
@@ -184,6 +228,7 @@ dim(n_IdD) <- c(n_group,n_vax)
 dim(I) <- c(n_group,n_vax)
 
 dim(R) <- c(n_group,n_vax)
+dim(R_after_vax) <- c(n_group,n_vax)
 dim(R0) <- c(n_group,n_vax)
 dim(delta_R) <- c(n_group,n_vax)
 
@@ -205,11 +250,18 @@ vaccination_campaign_length <- user()
 #dim(vaccination_campaign_length) <- 1L
 
 dim(n_vaccination) <- c(n_group,n_vax,vaccination_campaign_length) ##Lilith, the idea is that column j corresponds to the number of people leaving that class (e.g. going from unvaccinated to 1st dose). This makes the last column a dummy variable because it doesn't seem to like a dimension of (n_vax-1). And then dimension 3 corresponds to time
-dim(n_vaccination_t) <- c(n_group,n_vax,vaccination_campaign_length)
+dim(n_vaccination_t) <- c(n_group,n_vax)
+
+dim(n_vaccination_t_S) <- c(n_group,n_vax)
+dim(n_vaccination_t_Ea) <- c(n_group,n_vax)
+dim(n_vaccination_t_Eb) <- c(n_group,n_vax)
+dim(n_vaccination_t_R) <- c(n_group,n_vax)
+
+
 
 dim(delta_S_n_vaccination) <- c(n_group,n_vax) 
 dim(delta_Ea_n_vaccination) <- c(n_group,n_vax) 
 dim(delta_Eb_n_vaccination) <- c(n_group,n_vax) 
 dim(delta_R_n_vaccination) <- c(n_group,n_vax) 
 
-dim(n_vaccination_allocation_SER) <- 4L
+dim(n_vaccination_allocation_SER) <- 4L # need to be updated when implement Erlangs
