@@ -5,7 +5,7 @@ reference_pars <- function() {
   n_vax <- dem_pars$n_vax
   Ea0 <- matrix(0, n_group, n_vax)
   vaccination_campaign_length <- 10
-  n_vaccination <- array(5,
+  n_vaccination <- array(1000,
                         dim=c(n_group,
                               n_vax,
                               (vaccination_campaign_length)
