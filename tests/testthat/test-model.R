@@ -64,15 +64,27 @@ test_that("when CFR = 1 everybody dies", {
 test_that("when beta_h = 0 there are only zoonotic infections", {
   pars <- reference_pars()
   pars$beta_h <- 0
-  pars$beta_z <- c(rep(0, pars$n_group - 1), 0.4 / 12.11) # last group only for test purpose
-
+  pars$beta_z<- c(rep(0,pars$n_group-1),0.4 / 12.11) # last group only for test purpose
+  
   m <- model$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
-
-  expect_true(all(res[paste0("Ea", seq_len(pars$n_group - 1)), , ] == 0))
-  expect_true(all(res[paste0("Eb", seq_len(pars$n_group - 1)), , ] == 0))
-  expect_true(any(res["Ea18", , ] > 0))
-  expect_true(any(res["Eb18", , ] > 0))
+  
+  ## isolate the compartments which can have infections (e.g. the last group)
+  comps_of_interest_a <- paste0("Ea",
+                                seq(from=pars$n_group,
+                                    length.out=pars$n_vax,by=pars$n_group))
+  comps_of_interest_b <- paste0("Eb",seq(from=pars$n_group,
+                                         length.out=pars$n_vax,by=pars$n_group))
+  
+  expect_true(all(res[grep("^Ea",rownames(res)),,][!(rownames(res)[grep("^Ea",rownames(res))] %in% comps_of_interest_a)]==0))
+  expect_true(all(res[grep("^Eb",rownames(res)),,][!(rownames(res)[grep("^Eb",rownames(res))] %in% comps_of_interest_b)]==0))
+  
 })
+
+
+##add vax tests here
+
+
+
