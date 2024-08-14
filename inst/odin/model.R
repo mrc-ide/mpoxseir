@@ -86,7 +86,8 @@ update(I_tot) <- sum(I[,])
 update(R_tot) <- sum(R[,])
 update(D_tot) <- sum(D[,])
 update(N_tot) <- sum(N[,])
-
+update(vax_tot[]) <- sum(N[, j])
+dim(vax_tot) <- n_vax
 # update(S_after_vax_tot) <- sum(S_after_vax[,])
 # update(Ea_after_vax_tot) <- sum(Ea_after_vax[,])
 # update(Eb_after_vax_tot) <- sum(Eb_after_vax[,])
