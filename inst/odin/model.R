@@ -19,12 +19,12 @@ n_vaccination_allocation_SER[] <- user() #det calc of where the vaccines go to i
 ## with this we need to ensure n_vaccination final time step is all 0 - done outside of the model in pre-processing
 n_vaccination_t[,] <- if (as.integer(time) >= (vaccination_campaign_length))
   n_vaccination[i,j,vaccination_campaign_length] else n_vaccination[i,j,time]
-
+n_eligible[] <- S[i, 1] + Ea[i, 1] + Eb[i, 1] + R[i, 1]
 ## first allocate across the classes 
-n_vaccination_t_S[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[1])
-n_vaccination_t_Ea[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[2])
-n_vaccination_t_Eb[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[3])
-n_vaccination_t_R[,] <- round(n_vaccination_t[i,j]*n_vaccination_allocation_SER[4])
+n_vaccination_t_S[,]   <- min(round(n_vaccination_t[i,j] * S[i, 1] / n_eligible[i]), S[i, 1])
+n_vaccination_t_Ea[,] <- min(round(n_vaccination_t[i,j] * Ea[i, 1] / n_eligible[i]), Ea[i, 1])
+n_vaccination_t_Eb[,] <- min(round(n_vaccination_t[i,j] * Eb[i, 1] / n_eligible[i]), Eb[i, 1])
+n_vaccination_t_R[,]   <- min(round(n_vaccination_t[i,j] * R[i, 1] / n_eligible[i]), R[i, 1])
 
 ## need to check that we have the capacity to vaccinate according to the schedule in n_vaccination_t
 ## set equal to number of person in class if the proposed vaccination number is higher
