@@ -88,21 +88,7 @@ update(D_tot) <- sum(D[,])
 update(N_tot) <- sum(N[,])
 update(vax_tot[]) <- sum(N[, j])
 dim(vax_tot) <- n_vax
-# update(S_after_vax_tot) <- sum(S_after_vax[,])
-# update(Ea_after_vax_tot) <- sum(Ea_after_vax[,])
-# update(Eb_after_vax_tot) <- sum(Eb_after_vax[,])
-# update(R_after_vax_tot) <- sum(R_after_vax[,])
 
-# ## troubleshooting
-# update(S_tot_test) <- sum(S[,]) + sum(delta_S_n_vaccination[,]) - sum(n_SEa[,])
-# update(Ea_tot_test) <- sum(Ea[,]) + sum(delta_Ea_n_vaccination[,]) + sum(delta_Ea[,])
-# update(Eb_tot_test) <- sum(Eb[,]) + sum(delta_Eb_n_vaccination[,]) + sum(delta_Eb[,])
-# update(Ir_tot_test) <- sum(Ir[,]) + sum(delta_Ir[,])
-# update(Id_tot_test) <- sum(Id[,]) + sum(delta_Id[,])
-# update(R_tot_test) <- sum(R[,]) + sum(delta_R_n_vaccination[,]) + sum(delta_R[,])
-# update(D_tot_test) <- sum(D[,])  + sum(delta_D[,])
-# 
-# update(N_tot_test) <- (S_tot_test + Ea_tot_test + Eb_tot_test + Ir_tot_test + Id_tot_test + R_tot_test + D_tot_test) 
 
 
 
