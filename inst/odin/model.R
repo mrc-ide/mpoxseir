@@ -19,10 +19,10 @@ n_vaccination_t[,] <- if (as.integer(time) >= (vaccination_campaign_length))
 n_eligible[] <- S[i,1] + Ea[i,1] + Eb[i,1] + R[i,1]
 
 ## first allocate across the classes
-n_vaccination_t_S[,] <- min(round(n_vaccination_t[i,j]*S[i,1]/n_eligible[i]),S[i,j])
-n_vaccination_t_Ea[,] <- min(round(n_vaccination_t[i,j]*Ea[i,1]/n_eligible[i]),Ea[i,j])
-n_vaccination_t_Eb[,] <- min(round(n_vaccination_t[i,j]*Eb[i,1]/n_eligible[i]),Eb[i,j])
-n_vaccination_t_R[,] <- min(round(n_vaccination_t[i,j]*R[i,1]/n_eligible[i]),R[i,j])
+n_vaccination_t_S[,] <- min(floor(n_vaccination_t[i,j]*S[i,1]/n_eligible[i]),S[i,j])
+n_vaccination_t_Ea[,] <- min(floor(n_vaccination_t[i,j]*Ea[i,1]/n_eligible[i]),Ea[i,j])
+n_vaccination_t_Eb[,] <- min(floor(n_vaccination_t[i,j]*Eb[i,1]/n_eligible[i]),Eb[i,j])
+n_vaccination_t_R[,] <- min(floor(n_vaccination_t[i,j]*R[i,1]/n_eligible[i]),R[i,j])
 
 ## need to check that we have the capacity to vaccinate according to the schedule in n_vaccination_t
 ## set equal to number of person in class if the proposed vaccination number is higher
@@ -78,6 +78,7 @@ update(I_tot) <- sum(I[,])
 update(R_tot) <- sum(R[,])
 update(D_tot) <- sum(D[,])
 update(N_tot) <- sum(N[,])
+update(total_vax) <- total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R
 
 
 ## Individual probabilities of transition:
@@ -143,6 +144,7 @@ initial(R_tot) <- sum(R0[,])
 initial(D_tot) <- sum(D0[,])
 initial(N_tot) <- sum(S0[,]) + sum(Ea0[,]) + sum(Eb0[,]) + sum(Ir0[,]) +
   sum(Id0[,]) + sum(R0[,]) + sum(D0[,])
+initial(total_vax) <- 0
 
 ##Initial vectors
 S0[,] <- user()
