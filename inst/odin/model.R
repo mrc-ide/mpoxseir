@@ -24,13 +24,6 @@ n_vaccination_t_Ea[,] <- min(floor(n_vaccination_t[i,j]*Ea[i,1]/n_eligible[i]),E
 n_vaccination_t_Eb[,] <- min(floor(n_vaccination_t[i,j]*Eb[i,1]/n_eligible[i]),Eb[i,j])
 n_vaccination_t_R[,] <- min(floor(n_vaccination_t[i,j]*R[i,1]/n_eligible[i]),R[i,j])
 
-## need to check that we have the capacity to vaccinate according to the schedule in n_vaccination_t
-## set equal to number of person in class if the proposed vaccination number is higher
-#n_vaccination_t_S[,] <- if(n_vaccination_t_S[i,j]>=S[i,j]) S[i,j] else n_vaccination_t_S[i,j]
-#n_vaccination_t_Ea[,] <- if(n_vaccination_t_Ea[i,j]>=Ea[i,j]) Ea[i,j] else n_vaccination_t_Ea[i,j]
-#n_vaccination_t_Eb[,] <- if(n_vaccination_t_Eb[i,j]>=Eb[i,j]) Eb[i,j] else n_vaccination_t_Eb[i,j]
-#n_vaccination_t_R[,] <- if(n_vaccination_t_R[i,j]>=R[i,j]) R[i,j] else n_vaccination_t_R[i,j]
-
 ## calculate net vaccination change for relevant classes (S,Ea,Eb,R)
 ## logic here depends on vaccine class you are in (e.g. can only increase through j)
 delta_S_n_vaccination[,] <- if(j==1) (-n_vaccination_t_S[i,j]) else if(j==n_vax) (n_vaccination_t_S[i,j-1]) else (-n_vaccination_t_S[i,j] + n_vaccination_t_S[i,j-1])
@@ -163,6 +156,7 @@ gamma_I <- user()
 gamma_Ir <- user()
 gamma_Id <- user()
 CFR[,] <- user()
+
 #vaccine efficacy parameters
 ve_T[] <- user()
 ve_I[] <- user()
@@ -175,20 +169,17 @@ n_group <- user()
 ##Dimensions of the different "vectors" here vectors stand for multi-dimensional arrays
 dim(N) <- c(n_group,n_vax)
 dim(S) <- c(n_group,n_vax)
-#dim(S_after_vax) <- c(n_group,n_vax)
 dim(S0) <- c(n_group,n_vax)
 dim(p_SE) <- c(n_group,n_vax)
 dim(n_SEa) <- c(n_group,n_vax)
 
 dim(Ea) <- c(n_group,n_vax)
-#dim(Ea_after_vax) <- c(n_group,n_vax)
 dim(Ea0) <- c(n_group,n_vax)
 dim(Eb0) <- c(n_group,n_vax)
 dim(delta_Ea) <- c(n_group,n_vax)
 dim(n_EaEb) <- c(n_group,n_vax)
 
 dim(Eb) <- c(n_group,n_vax)
-#dim(Eb_after_vax) <- c(n_group,n_vax)
 dim(delta_Eb) <- c(n_group,n_vax)
 dim(n_EbI) <- c(n_group,n_vax)
 
@@ -208,7 +199,6 @@ dim(n_IdD) <- c(n_group,n_vax)
 dim(I) <- c(n_group,n_vax)
 
 dim(R) <- c(n_group,n_vax)
-#dim(R_after_vax) <- c(n_group,n_vax)
 dim(R0) <- c(n_group,n_vax)
 dim(delta_R) <- c(n_group,n_vax)
 
@@ -246,4 +236,3 @@ dim(delta_R_n_vaccination) <- c(n_group,n_vax)
 
 dim(n_eligible) <- c(n_group)
 
-#dim(n_vaccination_allocation_SER) <- 4L # need to be updated when implement Erlangs
