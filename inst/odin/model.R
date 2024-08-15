@@ -90,15 +90,16 @@ p_IdD <- 1 - exp(-gamma_Id * dt) # progression through infectious period to deat
 #Compute the force of infection
 
 #  Mixing Matrix
-m[, ,] <- user()
+m[,] <- user()
+I_infectious[, ] <- I[i, j] * (1 - ve_T[j]) # I adjusted for reduced transmissibility
 
+prop_infectious[] <- sum(I_infectious[i, ]) / sum(N[i, ])
 # Generating Force of Infection
-s_ijk[, ,] <- m[i,j,k] * I[j,k] # for susceptible age i, % contacts infectious age k
-# does zoonotic spillover need to be stratified by vaccination as well?
-lambda[,] <- (beta_h * sum(s_ijk[i, j, ]) * (1 - ve_T[i,j]))+ beta_z[i]
+s_ij[, ] <- m[i, j] * prop_infectious[j] # for susceptible age i, % contacts infectious age j
+lambda[,] <- ((beta_h * sum(s_ij[i, ])) + beta_z[i]) * (1-ve_I[j])
 
 ## Draws from binomial distributions for numbers changing between compartments accounting for vaccination:
-n_SEa[,] <- rbinom(S[i,j] + delta_S_n_vaccination[i,j], (1-ve_I[i,j])*p_SE[i,j])
+n_SEa[,] <- rbinom(S[i,j] + delta_S_n_vaccination[i,j], p_SE[i,j])
 n_EaEb[,] <- rbinom(Ea[i,j] +delta_Ea_n_vaccination[i,j], p_EE)
 n_EbI[,] <- rbinom(Eb[i,j] +delta_Eb_n_vaccination[i,j], p_EI)
 n_EbId[,] <- rbinom(n_EbI[i,j], CFR[i,j]) # Proportion of the infections that will die, impact of vaccination included already as part of inputs
@@ -161,8 +162,8 @@ gamma_Ir <- user()
 gamma_Id <- user()
 CFR[,] <- user()
 #vaccine efficacy parameters
-ve_T[,] <- user()
-ve_I[,] <- user()
+ve_T[] <- user()
+ve_I[] <- user()
 #ve_D[,] <- user() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
@@ -214,14 +215,16 @@ dim(D0) <- c(n_group,n_vax)
 dim(delta_D) <- c(n_group,n_vax)
 
 dim(lambda) <- c(n_group,n_vax)
-dim(m) <- c(n_group, n_group,n_vax)
-dim(s_ijk) <- c(n_group,n_group,n_vax)
+dim(m) <- c(n_group, n_group)
+dim(I_infectious) <- c(n_group, n_vax)
+dim(prop_infectious) <- c(n_group)
+dim(s_ij) <- c(n_group,n_group)
 dim(beta_z) <- c(n_group)
 
 dim(CFR) <- c(n_group,n_vax)
 
-dim(ve_T) <- c(n_group,n_vax)
-dim(ve_I) <- c(n_group,n_vax)
+dim(ve_T) <- c(n_vax)
+dim(ve_I) <- c(n_vax)
 
 vaccination_campaign_length <- user()
 #dim(vaccination_campaign_length) <- 1L
