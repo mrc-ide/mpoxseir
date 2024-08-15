@@ -21,16 +21,8 @@ parameters_demographic <- function() {
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
   N_PBS <- round(p_PBS * N_15_49)
 
-  N_i <- c(N_age - N_SW - N_PBS, sum(N_SW), sum(N_PBS))
+  N <- c(N_age - N_SW - N_PBS, sum(N_SW), sum(N_PBS))
 
-  # add in number of vaccine classes - 1st pass to get working but don't want hard coded
-  n_vax <- 3
-  
-  ## Initialise with no one vaccinated 
-  N <-  matrix(c(N_i,
-                 rep(0,length(N_i)*(n_vax-1))),
-         length(N_i),n_vax)
-  
   # Set up mixing matrix
   # Squire gives unbalanced per-capita daily rates, we need to
   # 1. scale these by the population size to get total daily contacts between
@@ -90,21 +82,14 @@ parameters_demographic <- function() {
   # Convert to per-capita rates by dividing by population
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
-  m_i <- M / N_i
-  
-  ## vaccination
-  ## replicate this across the vaccine dimensions
-  m <- array(rep(m_i),dim=c(n_group,n_group,n_vax))
-  
-  nms_group_vax <- rep(c(age_bins$label, "SW", "PBS"),n_vax)
-  
-  
+  m <- M / N
+
   list(
     n_group = n_group,
-    N0 = setNames(N, nms_group_vax),
+    N0 = setNames(N, nms_group),
     m = m,
     total_contacts = M,
-    n_vax = n_vax
+    n_vax = 2
   )
 }
 
