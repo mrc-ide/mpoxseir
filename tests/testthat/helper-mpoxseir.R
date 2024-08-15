@@ -4,6 +4,8 @@ reference_pars <- function() {
   n_group <- dem_pars$n_group
   n_vax <- dem_pars$n_vax
   Ea0 <- matrix(0, n_group, n_vax)
+  S0 <- Ea0
+  S0[,1] <- dem_pars$N
   vaccination_campaign_length <- 10
   n_vaccination <- array(1000,
                         dim=c(n_group,
@@ -12,10 +14,10 @@ reference_pars <- function() {
                         ))
   n_vaccination[,,vaccination_campaign_length] <- 0
   n_vaccination[,n_vax,] <- 0
-  
+
   out <- list(dt = 1,
        N = dem_pars$N,
-       S0 = dem_pars$N - Ea0,
+       S0 = S0,
        Ea0 = Ea0,
        Eb0 = matrix(0, n_group, n_vax),
        Ir0 = matrix(0, n_group, n_vax),
@@ -29,23 +31,22 @@ reference_pars <- function() {
        gamma_Ir = 0.1,
        gamma_Id = 0.05,
        CFR = matrix(c(1 / c(seq(2.5, 77.5, 5), 25, 25),
-                      (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25),
-                      (0.25*1) / c(seq(2.5, 77.5, 5), 25, 25)),
+                      (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25)),
                     n_group,n_vax),
-       ve_T = matrix(0.90,n_group,n_vax),
-       ve_I = matrix(0.80,n_group,n_vax),
+       ve_T = c(0,0.9),
+       ve_I = c(0,0.8),
        m = dem_pars$m,
        n_group = n_group,
        n_vax = n_vax,
-       n_vaccination_allocation_SER = c(0.85,0.05,0.05,0.05),
+       #n_vaccination_allocation_SER = c(0.85,0.05,0.05,0.05),
        vaccination_campaign_length = vaccination_campaign_length,
        n_vaccination = n_vaccination
        )
-  
-  if(sum(out$n_vaccination_allocation_SER)!=1){
-    stop("Entries in n_vaccination_allocation_SER must sum to 1.")
-  }
-  
+#
+#   if(sum(out$n_vaccination_allocation_SER)!=1){
+#     stop("Entries in n_vaccination_allocation_SER must sum to 1.")
+#   }
+
   return(out)
 }
 
