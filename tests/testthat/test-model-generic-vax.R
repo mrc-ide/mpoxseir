@@ -1,8 +1,10 @@
+model_generic_vax <- odin.dust::odin_dust("inst/odin/model-generic-vax.R")
+
 test_that("run is equal to reference", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
   nms <- reference_names()
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -15,11 +17,11 @@ test_that("run is equal to reference", {
 
 
 test_that("when beta_h = beta_z = 0 there are no new infections", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
   pars$beta_h <- 0
   pars$beta_z<- rep(0,pars$n_group)
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -29,10 +31,10 @@ test_that("when beta_h = beta_z = 0 there are no new infections", {
 })
 
 test_that("when CFR = 0 nobody dies", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
   pars$CFR[] <- 0
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -45,10 +47,10 @@ test_that("when CFR = 0 nobody dies", {
 })
 
 test_that("when CFR = 1 everybody dies", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
   pars$CFR[] <- 1
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -62,11 +64,11 @@ test_that("when CFR = 1 everybody dies", {
 
 
 test_that("when beta_h = 0 there are only zoonotic infections", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
   pars$beta_h <- 0
   pars$beta_z<- c(rep(0,pars$n_group-1),0.4 / 12.11) # last group only for test purpose
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -86,9 +88,9 @@ test_that("when beta_h = 0 there are only zoonotic infections", {
 })
 
 test_that("when n_vaccination>0, vaccinations are given", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -129,9 +131,9 @@ test_that("when n_vaccination>0, vaccinations are given", {
 
 
 test_that("when time is after vaccination_campaign_length, no vaccines are given", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
@@ -143,9 +145,9 @@ test_that("when time is after vaccination_campaign_length, no vaccines are given
 
 
 test_that("the vaccines given do not exceed the total set out in the strategy", {
-  pars <- reference_pars()
+  pars <- reference_pars_generic_vax()
 
-  m <- model$new(pars, 1, 3, seed = 1)
+  m <- model_generic_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))

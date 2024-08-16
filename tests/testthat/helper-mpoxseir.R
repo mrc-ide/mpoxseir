@@ -1,5 +1,5 @@
 
-reference_pars <- function() {
+reference_pars_generic_vax <- function() {
   dem_pars <- parameters_demographic()
   n_group <- dem_pars$n_group
   n_vax <- dem_pars$n_vax
