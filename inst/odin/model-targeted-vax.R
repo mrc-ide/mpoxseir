@@ -56,43 +56,25 @@ n_eligible[] <- (S[i,1] + Ea[i,1] + Eb[i,1] + R[i,1])*prioritisation_strategy[i,
 dim(n_eligible) <- c(n_group)
 
 
-## ideally wanted to do multinomial (so binomial in odin.dust) to allocate the vaccines to account for any small rounding errors
-# ## first allocate across the classes
-# ## suspectibles
-# SER_allocation_t[1] <- rbinom(sum(daily_doses_t[,]),
-#                               S[i,1]*prioritisation_strategy[i,prioritisation_step]/n_eligible[i])
-# ## Ea
-# SER_allocation_t[2] <- rbinom(sum(daily_doses_t[,])-SER_allocation_t[1],
-#                               Ea[i,1]*prioritisation_strategy[i,prioritisation_step]/n_eligible[i])
-# ##Eb
-# SER_allocation_t[3] <- rbinom(sum(daily_doses_t[,])-SER_allocation_t[1]-SER_allocation_t[2],
-#                               Eb[i,1]*prioritisation_strategy[i,prioritisation_step]/n_eligible[i])
-# ## leftovers to R
-# SER_allocation_t[4] <- sum(daily_doses_t[,])-SER_allocation_t[1]-SER_allocation_t[2] - SER_allocation_t[3]
-# dim(SER_allocation_t) <- 4L
-
-
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy and across S, E, R
 ## daily_doses_t should be a vector and not summed over when accounting for more than just vaccinated and unvaccinated (and then the columns of S etc. would also need to be expanded )
+## hacky fix for now to only allocate a dose
 n_vaccination_t_S[,] <- 0
 n_vaccination_t_Ea[,] <- 0
 n_vaccination_t_Eb[,] <- 0
 n_vaccination_t_R[,] <- 0
 
-# n_vaccination_t_S[,] <- if(j==1) min(floor((sum(daily_doses_t[,]) * S[i,1] * prioritisation_strategy[i,prioritisation_step])/n_eligible[i]),
-#                             S[i,j]) else 0
-
 n_vaccination_t_S[,1] <- min(floor((daily_doses_t[1,j] * S[i,1] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
                                S[i,1])
 
-n_vaccination_t_Ea[,1] <- min(floor((daily_doses_t[1,j] * Ea[i,j] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
-                              Ea[i,j])
+n_vaccination_t_Ea[,1] <- min(floor((daily_doses_t[1,j] * Ea[i,1] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
+                              Ea[i,1])
 
-n_vaccination_t_Eb[,1] <- min(floor((daily_doses_t[1,j] * Eb[i,j] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
-                              Eb[i,j])
+n_vaccination_t_Eb[,1] <- min(floor((daily_doses_t[1,j] * Eb[i,1] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
+                              Eb[i,1])
 
-n_vaccination_t_R[,1] <- min(floor((daily_doses_t[1,j] * R[i,j] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
-                             R[i,j])
+n_vaccination_t_R[,1] <- min(floor((daily_doses_t[1,j] * R[i,1] * prioritisation_strategy[i,prioritisation_step])/sum(n_eligible[])),
+                             R[i,1])
 
 ## net vaccination change for relevant classes (S,Ea,Eb,R)
 ## logic here depends on vaccine class you are in (e.g. can only increase through j)
