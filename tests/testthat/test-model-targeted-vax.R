@@ -161,3 +161,21 @@ test_that("the vaccines given do not exceed the total set out in the strategy", 
 })
 
 
+test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", {
+  pars <- reference_pars_targeted_vax()
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  if(all(res["prioritisation_step",,]==1)){
+    expect_true(all(res[paste0("S",(pars$n_group+4):(2*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Ea",(pars$n_group+4):(2*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Eb",(pars$n_group+4):(2*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("R",(pars$n_group+4):(2*pars$n_group)),,]==0))
+  }
+
+})
+
+
