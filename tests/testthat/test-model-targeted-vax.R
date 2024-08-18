@@ -178,4 +178,19 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
 
 })
 
+test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
+  pars <- reference_pars_targeted_vax()
+  pars$vaccine_uptake <- pars$vaccine_uptake*0.5
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  # doses given out should be roughly half of those allocated (roughly comes from rounding due to lack of multinomial)
+  expect_true(all(res["total_vax",,max(t)]<=0.5*sum(pars$daily_doses)))
+
+
+})
+
 
