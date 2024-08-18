@@ -101,7 +101,8 @@ reference_pars_targeted_vax <- function() {
               daily_doses = daily_doses,
               N_prioritisation_steps = N_prioritisation_steps,
               prioritisation_strategy = prioritisation_strategy,
-              vaccination_coverage_target = vaccination_coverage_target
+              vaccination_coverage_target = vaccination_coverage_target,
+              vaccine_uptake = rep(1,n_group)
   )
 
   return(out)
