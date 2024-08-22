@@ -236,9 +236,19 @@ public:
     real_type gamma_Ir;
     std::vector<real_type> Id0;
     real_type initial_cases;
+    real_type initial_cases_0_5;
+    real_type initial_cases_15_plus;
+    real_type initial_cases_5_15;
+    real_type initial_cases_PBS;
+    real_type initial_cases_SW;
     std::vector<real_type> initial_D;
     real_type initial_D_tot;
     real_type initial_deaths;
+    real_type initial_deaths_0_5;
+    real_type initial_deaths_15_plus;
+    real_type initial_deaths_5_15;
+    real_type initial_deaths_PBS;
+    real_type initial_deaths_SW;
     std::vector<real_type> initial_E;
     real_type initial_E_tot;
     std::vector<real_type> initial_Ea;
@@ -324,27 +334,37 @@ public:
     shared(pars.shared), internal(pars.internal) {
   }
   size_t size() const {
-    return shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_N + shared->dim_R + shared->dim_S + 15;
+    return shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_N + shared->dim_R + shared->dim_S + 25;
   }
   std::vector<real_type> initial(size_t step, rng_state_type& rng_state) {
-    std::vector<real_type> state(shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_N + shared->dim_R + shared->dim_S + 15);
+    std::vector<real_type> state(shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_N + shared->dim_R + shared->dim_S + 25);
     internal.initial_time = step;
     state[0] = internal.initial_time;
     state[1] = shared->initial_prioritisation_step;
     state[2] = shared->initial_cases;
     state[3] = shared->initial_deaths;
-    state[4] = shared->initial_vax_given_S;
-    state[5] = shared->initial_vax_given_Ea;
-    state[6] = shared->initial_vax_given_Eb;
-    state[7] = shared->initial_vax_given_R;
-    state[8] = shared->initial_S_tot;
-    state[9] = shared->initial_E_tot;
-    state[10] = shared->initial_I_tot;
-    state[11] = shared->initial_R_tot;
-    state[12] = shared->initial_D_tot;
-    state[13] = shared->initial_N_tot;
-    state[14] = shared->initial_total_vax;
-    std::copy(shared->initial_S.begin(), shared->initial_S.end(), state.begin() + 15);
+    state[4] = shared->initial_cases_0_5;
+    state[5] = shared->initial_cases_5_15;
+    state[6] = shared->initial_cases_15_plus;
+    state[7] = shared->initial_cases_PBS;
+    state[8] = shared->initial_cases_SW;
+    state[9] = shared->initial_deaths_0_5;
+    state[10] = shared->initial_deaths_5_15;
+    state[11] = shared->initial_deaths_15_plus;
+    state[12] = shared->initial_deaths_PBS;
+    state[13] = shared->initial_deaths_SW;
+    state[14] = shared->initial_vax_given_S;
+    state[15] = shared->initial_vax_given_Ea;
+    state[16] = shared->initial_vax_given_Eb;
+    state[17] = shared->initial_vax_given_R;
+    state[18] = shared->initial_S_tot;
+    state[19] = shared->initial_E_tot;
+    state[20] = shared->initial_I_tot;
+    state[21] = shared->initial_R_tot;
+    state[22] = shared->initial_D_tot;
+    state[23] = shared->initial_N_tot;
+    state[24] = shared->initial_total_vax;
+    std::copy(shared->initial_S.begin(), shared->initial_S.end(), state.begin() + 25);
     std::copy(shared->initial_Ea.begin(), shared->initial_Ea.end(), state.begin() + shared->offset_variable_Ea);
     std::copy(shared->initial_Eb.begin(), shared->initial_Eb.end(), state.begin() + shared->offset_variable_Eb);
     std::copy(shared->initial_Ir.begin(), shared->initial_Ir.end(), state.begin() + shared->offset_variable_Ir);
@@ -359,11 +379,11 @@ public:
   void update(size_t step, const real_type * state, rng_state_type& rng_state, real_type * state_next) {
     const real_type time = state[0];
     const real_type prioritisation_step = state[1];
-    const real_type vax_given_S = state[4];
-    const real_type vax_given_Ea = state[5];
-    const real_type vax_given_Eb = state[6];
-    const real_type vax_given_R = state[7];
-    const real_type * S = state + 15;
+    const real_type vax_given_S = state[14];
+    const real_type vax_given_Ea = state[15];
+    const real_type vax_given_Eb = state[16];
+    const real_type vax_given_R = state[17];
+    const real_type * S = state + 25;
     const real_type * Ea = state + shared->offset_variable_Ea;
     const real_type * Eb = state + shared->offset_variable_Eb;
     const real_type * Ir = state + shared->offset_variable_Ir;
@@ -375,31 +395,31 @@ public:
     const real_type * N = state + shared->offset_variable_N;
     const real_type cases = state[2];
     const real_type deaths = state[3];
-    const real_type total_vax = state[14];
+    const real_type total_vax = state[24];
     state_next[0] = (step + 1) * shared->dt;
-    state_next[14] = total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R;
+    state_next[24] = total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R;
     real_type is_same_week = fmodr<real_type>(step, shared->steps_per_week) > 0;
-    state_next[12] = odin_sum2<real_type>(D, 0, shared->dim_D_1, 0, shared->dim_D_2, shared->dim_D_1);
+    state_next[22] = odin_sum2<real_type>(D, 0, shared->dim_D_1, 0, shared->dim_D_2, shared->dim_D_1);
     for (int i = 1; i <= shared->dim_E_1; ++i) {
       for (int j = 1; j <= shared->dim_E_2; ++j) {
         state_next[shared->offset_variable_E + i - 1 + shared->dim_E_1 * (j - 1)] = Ea[shared->dim_Ea_1 * (j - 1) + i - 1] + Eb[shared->dim_Eb_1 * (j - 1) + i - 1];
       }
     }
-    state_next[9] = odin_sum2<real_type>(E, 0, shared->dim_E_1, 0, shared->dim_E_2, shared->dim_E_1);
+    state_next[19] = odin_sum2<real_type>(E, 0, shared->dim_E_1, 0, shared->dim_E_2, shared->dim_E_1);
     for (int i = 1; i <= shared->dim_I_1; ++i) {
       for (int j = 1; j <= shared->dim_I_2; ++j) {
         state_next[shared->offset_variable_I + i - 1 + shared->dim_I_1 * (j - 1)] = Ir[shared->dim_Ir_1 * (j - 1) + i - 1] + Id[shared->dim_Id_1 * (j - 1) + i - 1];
       }
     }
-    state_next[10] = odin_sum2<real_type>(I, 0, shared->dim_I_1, 0, shared->dim_I_2, shared->dim_I_1);
+    state_next[20] = odin_sum2<real_type>(I, 0, shared->dim_I_1, 0, shared->dim_I_2, shared->dim_I_1);
     for (int i = 1; i <= shared->dim_N_1; ++i) {
       for (int j = 1; j <= shared->dim_N_2; ++j) {
         state_next[shared->offset_variable_N + i - 1 + shared->dim_N_1 * (j - 1)] = S[shared->dim_S_1 * (j - 1) + i - 1] + Ea[shared->dim_Ea_1 * (j - 1) + i - 1] + Eb[shared->dim_Eb_1 * (j - 1) + i - 1] + Ir[shared->dim_Ir_1 * (j - 1) + i - 1] + Id[shared->dim_Id_1 * (j - 1) + i - 1] + R[shared->dim_R_1 * (j - 1) + i - 1] + D[shared->dim_D_1 * (j - 1) + i - 1];
       }
     }
-    state_next[13] = odin_sum2<real_type>(N, 0, shared->dim_N_1, 0, shared->dim_N_2, shared->dim_N_1);
-    state_next[11] = odin_sum2<real_type>(R, 0, shared->dim_R_1, 0, shared->dim_R_2, shared->dim_R_1);
-    state_next[8] = odin_sum2<real_type>(S, 0, shared->dim_S_1, 0, shared->dim_S_2, shared->dim_S_1);
+    state_next[23] = odin_sum2<real_type>(N, 0, shared->dim_N_1, 0, shared->dim_N_2, shared->dim_N_1);
+    state_next[21] = odin_sum2<real_type>(R, 0, shared->dim_R_1, 0, shared->dim_R_2, shared->dim_R_1);
+    state_next[18] = odin_sum2<real_type>(S, 0, shared->dim_S_1, 0, shared->dim_S_2, shared->dim_S_1);
     for (int i = 1; i <= shared->dim_daily_doses_t_1; ++i) {
       for (int j = 1; j <= shared->dim_daily_doses_t_2; ++j) {
         internal.daily_doses_t[i - 1 + shared->dim_daily_doses_t_1 * (j - 1)] = (static_cast<int>(time) >= (shared->vaccination_campaign_length) ? shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + shared->vaccination_campaign_length - 1] : shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + time - 1]);
@@ -483,6 +503,11 @@ public:
       }
     }
     state_next[3] = deaths * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[9] = cases * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[11] = cases * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[10] = cases * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[12] = cases * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[13] = cases * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     for (int i = 1; i <= shared->dim_delta_Ea_n_vaccination_1; ++i) {
       for (int j = 1; j <= shared->dim_delta_Ea_n_vaccination_2; ++j) {
         internal.delta_Ea_n_vaccination[i - 1 + shared->dim_delta_Ea_n_vaccination_1 * (j - 1)] = (j == 1 ? (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1]) : (j == shared->n_vax ? (internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1]) : (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1] + internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1])));
@@ -514,10 +539,10 @@ public:
       }
     }
     state_next[1] = (odin_sum2<real_type>(internal.target_met_t.data(), 0, shared->dim_target_met_t_1, 0, shared->dim_target_met_t_2, shared->dim_target_met_t_1) == shared->n_group ? prioritisation_step + 1 : prioritisation_step);
-    state_next[5] = odin_sum2<real_type>(internal.n_vaccination_t_Ea.data(), 0, shared->dim_n_vaccination_t_Ea_1, 0, shared->dim_n_vaccination_t_Ea_2, shared->dim_n_vaccination_t_Ea_1);
-    state_next[6] = odin_sum2<real_type>(internal.n_vaccination_t_Eb.data(), 0, shared->dim_n_vaccination_t_Eb_1, 0, shared->dim_n_vaccination_t_Eb_2, shared->dim_n_vaccination_t_Eb_1);
-    state_next[7] = odin_sum2<real_type>(internal.n_vaccination_t_R.data(), 0, shared->dim_n_vaccination_t_R_1, 0, shared->dim_n_vaccination_t_R_2, shared->dim_n_vaccination_t_R_1);
-    state_next[4] = odin_sum2<real_type>(internal.n_vaccination_t_S.data(), 0, shared->dim_n_vaccination_t_S_1, 0, shared->dim_n_vaccination_t_S_2, shared->dim_n_vaccination_t_S_1);
+    state_next[15] = odin_sum2<real_type>(internal.n_vaccination_t_Ea.data(), 0, shared->dim_n_vaccination_t_Ea_1, 0, shared->dim_n_vaccination_t_Ea_2, shared->dim_n_vaccination_t_Ea_1);
+    state_next[16] = odin_sum2<real_type>(internal.n_vaccination_t_Eb.data(), 0, shared->dim_n_vaccination_t_Eb_1, 0, shared->dim_n_vaccination_t_Eb_2, shared->dim_n_vaccination_t_Eb_1);
+    state_next[17] = odin_sum2<real_type>(internal.n_vaccination_t_R.data(), 0, shared->dim_n_vaccination_t_R_1, 0, shared->dim_n_vaccination_t_R_2, shared->dim_n_vaccination_t_R_1);
+    state_next[14] = odin_sum2<real_type>(internal.n_vaccination_t_S.data(), 0, shared->dim_n_vaccination_t_S_1, 0, shared->dim_n_vaccination_t_S_2, shared->dim_n_vaccination_t_S_1);
     for (int i = 1; i <= shared->dim_lambda_1; ++i) {
       for (int j = 1; j <= shared->dim_lambda_2; ++j) {
         internal.lambda[i - 1 + shared->dim_lambda_1 * (j - 1)] = ((shared->beta_h * odin_sum2<real_type>(internal.s_ij.data(), i - 1, i, 0, shared->dim_s_ij_2, shared->dim_s_ij_1)) + shared->beta_z[i - 1]) * (1 - shared->ve_I[j - 1]);
@@ -584,6 +609,11 @@ public:
       }
     }
     state_next[2] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[4] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[6] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[5] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[7] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[8] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     for (int i = 1; i <= shared->dim_Id_1; ++i) {
       for (int j = 1; j <= shared->dim_Id_2; ++j) {
         state_next[shared->offset_variable_Id + i - 1 + shared->dim_Id_1 * (j - 1)] = Id[shared->dim_Id_1 * (j - 1) + i - 1] + internal.delta_Id[shared->dim_delta_Id_1 * (j - 1) + i - 1];
@@ -591,7 +621,7 @@ public:
     }
     for (int i = 1; i <= shared->dim_S_1; ++i) {
       for (int j = 1; j <= shared->dim_S_2; ++j) {
-        state_next[15 + i - 1 + shared->dim_S_1 * (j - 1)] = S[shared->dim_S_1 * (j - 1) + i - 1] + internal.delta_S_n_vaccination[shared->dim_delta_S_n_vaccination_1 * (j - 1) + i - 1] - internal.n_SEa[shared->dim_n_SEa_1 * (j - 1) + i - 1];
+        state_next[25 + i - 1 + shared->dim_S_1 * (j - 1)] = S[shared->dim_S_1 * (j - 1) + i - 1] + internal.delta_S_n_vaccination[shared->dim_delta_S_n_vaccination_1 * (j - 1) + i - 1] - internal.n_SEa[shared->dim_n_SEa_1 * (j - 1) + i - 1];
       }
     }
     for (int i = 1; i <= shared->dim_Ea_1; ++i) {
@@ -841,7 +871,17 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   auto shared = std::make_shared<model_targeted_vax::shared_type>();
   model_targeted_vax::internal_type internal;
   shared->initial_cases = 0;
+  shared->initial_cases_0_5 = 0;
+  shared->initial_cases_15_plus = 0;
+  shared->initial_cases_5_15 = 0;
+  shared->initial_cases_PBS = 0;
+  shared->initial_cases_SW = 0;
   shared->initial_deaths = 0;
+  shared->initial_deaths_0_5 = 0;
+  shared->initial_deaths_15_plus = 0;
+  shared->initial_deaths_5_15 = 0;
+  shared->initial_deaths_PBS = 0;
+  shared->initial_deaths_SW = 0;
   shared->initial_prioritisation_step = 1;
   shared->initial_total_vax = 0;
   shared->initial_vax_given_Ea = 0;
@@ -1080,15 +1120,15 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->Id0 = user_get_array_fixed<real_type, 2>(user, "Id0", shared->Id0, {shared->dim_Id0_1, shared->dim_Id0_2}, NA_REAL, NA_REAL);
   shared->Ir0 = user_get_array_fixed<real_type, 2>(user, "Ir0", shared->Ir0, {shared->dim_Ir0_1, shared->dim_Ir0_2}, NA_REAL, NA_REAL);
   shared->m = user_get_array_fixed<real_type, 2>(user, "m", shared->m, {shared->dim_m_1, shared->dim_m_2}, NA_REAL, NA_REAL);
-  shared->offset_variable_D = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
-  shared->offset_variable_E = shared->dim_D + shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
-  shared->offset_variable_Ea = shared->dim_S + 15;
-  shared->offset_variable_Eb = shared->dim_Ea + shared->dim_S + 15;
-  shared->offset_variable_I = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
-  shared->offset_variable_Id = shared->dim_Ea + shared->dim_Eb + shared->dim_Ir + shared->dim_S + 15;
-  shared->offset_variable_Ir = shared->dim_Ea + shared->dim_Eb + shared->dim_S + 15;
-  shared->offset_variable_N = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 15;
-  shared->offset_variable_R = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_S + 15;
+  shared->offset_variable_D = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 25;
+  shared->offset_variable_E = shared->dim_D + shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 25;
+  shared->offset_variable_Ea = shared->dim_S + 25;
+  shared->offset_variable_Eb = shared->dim_Ea + shared->dim_S + 25;
+  shared->offset_variable_I = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 25;
+  shared->offset_variable_Id = shared->dim_Ea + shared->dim_Eb + shared->dim_Ir + shared->dim_S + 25;
+  shared->offset_variable_Ir = shared->dim_Ea + shared->dim_Eb + shared->dim_S + 25;
+  shared->offset_variable_N = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 25;
+  shared->offset_variable_R = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_S + 25;
   shared->prioritisation_strategy = user_get_array_fixed<real_type, 2>(user, "prioritisation_strategy", shared->prioritisation_strategy, {shared->dim_prioritisation_strategy_1, shared->dim_prioritisation_strategy_2}, NA_REAL, NA_REAL);
   shared->R0 = user_get_array_fixed<real_type, 2>(user, "R0", shared->R0, {shared->dim_R0_1, shared->dim_R0_2}, NA_REAL, NA_REAL);
   shared->S0 = user_get_array_fixed<real_type, 2>(user, "S0", shared->S0, {shared->dim_S0_1, shared->dim_S0_2}, NA_REAL, NA_REAL);
@@ -1154,8 +1194,8 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
 template <>
 cpp11::sexp dust_info<model_targeted_vax>(const dust::pars_type<model_targeted_vax>& pars) {
   const std::shared_ptr<const model_targeted_vax::shared_type> shared = pars.shared;
-  cpp11::writable::strings nms({"time", "prioritisation_step", "cases", "deaths", "vax_given_S", "vax_given_Ea", "vax_given_Eb", "vax_given_R", "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot", "total_vax", "S", "Ea", "Eb", "Ir", "Id", "R", "D", "E", "I", "N"});
-  cpp11::writable::list dim(25);
+  cpp11::writable::strings nms({"time", "prioritisation_step", "cases", "deaths", "cases_0_5", "cases_5_15", "cases_15_plus", "cases_PBS", "cases_SW", "deaths_0_5", "deaths_5_15", "deaths_15_plus", "deaths_PBS", "deaths_SW", "vax_given_S", "vax_given_Ea", "vax_given_Eb", "vax_given_R", "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot", "total_vax", "S", "Ea", "Eb", "Ir", "Id", "R", "D", "E", "I", "N"});
+  cpp11::writable::list dim(35);
   dim[0] = cpp11::writable::integers({1});
   dim[1] = cpp11::writable::integers({1});
   dim[2] = cpp11::writable::integers({1});
@@ -1171,18 +1211,28 @@ cpp11::sexp dust_info<model_targeted_vax>(const dust::pars_type<model_targeted_v
   dim[12] = cpp11::writable::integers({1});
   dim[13] = cpp11::writable::integers({1});
   dim[14] = cpp11::writable::integers({1});
-  dim[15] = cpp11::writable::integers({shared->dim_S_1, shared->dim_S_2});
-  dim[16] = cpp11::writable::integers({shared->dim_Ea_1, shared->dim_Ea_2});
-  dim[17] = cpp11::writable::integers({shared->dim_Eb_1, shared->dim_Eb_2});
-  dim[18] = cpp11::writable::integers({shared->dim_Ir_1, shared->dim_Ir_2});
-  dim[19] = cpp11::writable::integers({shared->dim_Id_1, shared->dim_Id_2});
-  dim[20] = cpp11::writable::integers({shared->dim_R_1, shared->dim_R_2});
-  dim[21] = cpp11::writable::integers({shared->dim_D_1, shared->dim_D_2});
-  dim[22] = cpp11::writable::integers({shared->dim_E_1, shared->dim_E_2});
-  dim[23] = cpp11::writable::integers({shared->dim_I_1, shared->dim_I_2});
-  dim[24] = cpp11::writable::integers({shared->dim_N_1, shared->dim_N_2});
+  dim[15] = cpp11::writable::integers({1});
+  dim[16] = cpp11::writable::integers({1});
+  dim[17] = cpp11::writable::integers({1});
+  dim[18] = cpp11::writable::integers({1});
+  dim[19] = cpp11::writable::integers({1});
+  dim[20] = cpp11::writable::integers({1});
+  dim[21] = cpp11::writable::integers({1});
+  dim[22] = cpp11::writable::integers({1});
+  dim[23] = cpp11::writable::integers({1});
+  dim[24] = cpp11::writable::integers({1});
+  dim[25] = cpp11::writable::integers({shared->dim_S_1, shared->dim_S_2});
+  dim[26] = cpp11::writable::integers({shared->dim_Ea_1, shared->dim_Ea_2});
+  dim[27] = cpp11::writable::integers({shared->dim_Eb_1, shared->dim_Eb_2});
+  dim[28] = cpp11::writable::integers({shared->dim_Ir_1, shared->dim_Ir_2});
+  dim[29] = cpp11::writable::integers({shared->dim_Id_1, shared->dim_Id_2});
+  dim[30] = cpp11::writable::integers({shared->dim_R_1, shared->dim_R_2});
+  dim[31] = cpp11::writable::integers({shared->dim_D_1, shared->dim_D_2});
+  dim[32] = cpp11::writable::integers({shared->dim_E_1, shared->dim_E_2});
+  dim[33] = cpp11::writable::integers({shared->dim_I_1, shared->dim_I_2});
+  dim[34] = cpp11::writable::integers({shared->dim_N_1, shared->dim_N_2});
   dim.names() = nms;
-  cpp11::writable::list index(25);
+  cpp11::writable::list index(35);
   index[0] = cpp11::writable::integers({1});
   index[1] = cpp11::writable::integers({2});
   index[2] = cpp11::writable::integers({3});
@@ -1198,16 +1248,26 @@ cpp11::sexp dust_info<model_targeted_vax>(const dust::pars_type<model_targeted_v
   index[12] = cpp11::writable::integers({13});
   index[13] = cpp11::writable::integers({14});
   index[14] = cpp11::writable::integers({15});
-  index[15] = integer_sequence(16, shared->dim_S);
-  index[16] = integer_sequence(shared->offset_variable_Ea + 1, shared->dim_Ea);
-  index[17] = integer_sequence(shared->offset_variable_Eb + 1, shared->dim_Eb);
-  index[18] = integer_sequence(shared->offset_variable_Ir + 1, shared->dim_Ir);
-  index[19] = integer_sequence(shared->offset_variable_Id + 1, shared->dim_Id);
-  index[20] = integer_sequence(shared->offset_variable_R + 1, shared->dim_R);
-  index[21] = integer_sequence(shared->offset_variable_D + 1, shared->dim_D);
-  index[22] = integer_sequence(shared->offset_variable_E + 1, shared->dim_E);
-  index[23] = integer_sequence(shared->offset_variable_I + 1, shared->dim_I);
-  index[24] = integer_sequence(shared->offset_variable_N + 1, shared->dim_N);
+  index[15] = cpp11::writable::integers({16});
+  index[16] = cpp11::writable::integers({17});
+  index[17] = cpp11::writable::integers({18});
+  index[18] = cpp11::writable::integers({19});
+  index[19] = cpp11::writable::integers({20});
+  index[20] = cpp11::writable::integers({21});
+  index[21] = cpp11::writable::integers({22});
+  index[22] = cpp11::writable::integers({23});
+  index[23] = cpp11::writable::integers({24});
+  index[24] = cpp11::writable::integers({25});
+  index[25] = integer_sequence(26, shared->dim_S);
+  index[26] = integer_sequence(shared->offset_variable_Ea + 1, shared->dim_Ea);
+  index[27] = integer_sequence(shared->offset_variable_Eb + 1, shared->dim_Eb);
+  index[28] = integer_sequence(shared->offset_variable_Ir + 1, shared->dim_Ir);
+  index[29] = integer_sequence(shared->offset_variable_Id + 1, shared->dim_Id);
+  index[30] = integer_sequence(shared->offset_variable_R + 1, shared->dim_R);
+  index[31] = integer_sequence(shared->offset_variable_D + 1, shared->dim_D);
+  index[32] = integer_sequence(shared->offset_variable_E + 1, shared->dim_E);
+  index[33] = integer_sequence(shared->offset_variable_I + 1, shared->dim_I);
+  index[34] = integer_sequence(shared->offset_variable_N + 1, shared->dim_N);
   index.names() = nms;
   size_t len = shared->offset_variable_N + shared->dim_N;
   using namespace cpp11::literals;

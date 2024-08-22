@@ -84,18 +84,18 @@ ggplot(multiple_model_outputs, aes(x = time, y = value, col = factor(replicate))
 # CFR = par$CFR        
 # m = par$m          
 # n_vax = par$n_vax                       
-daily_doses = par$daily_doses                 
-N_prioritisation_steps = par$N_prioritisation_steps      
-prioritisation_strategy = par$prioritisation_strategy      
-vaccination_coverage_target = par$vaccination_coverage_target 
-vaccine_uptake = par$vaccine_uptake              
-ve_T = par$ve_T                        
-ve_I = par$ve_I                        
-vaccination_campaign_length = par$vaccination_campaign_length 
-dt = par$dt 
-runtime = par$runtime 
-particles = par$particles
-threads = par$threads
-seed = par$seed
-deterministic = par$deterministic
-outputs_retained <- c("cases", "deaths")
+# daily_doses = par$daily_doses                 
+# N_prioritisation_steps = par$N_prioritisation_steps      
+# prioritisation_strategy = par$prioritisation_strategy      
+# vaccination_coverage_target = par$vaccination_coverage_target 
+# vaccine_uptake = par$vaccine_uptake              
+# ve_T = par$ve_T                        
+# ve_I = par$ve_I                        
+# vaccination_campaign_length = par$vaccination_campaign_length 
+# dt = par$dt 
+# runtime = par$runtime 
+# particles = par$particles
+# threads = par$threads
+# seed = par$seed
+# deterministic = par$deterministic
+# outputs_retained <- c("cases", "deaths")

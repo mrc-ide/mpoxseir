@@ -3,6 +3,7 @@
 export(default_params)
 export(model)
 export(model_index)
+export(parameters_demographic)
 export(run_mpoxSEIR_targetedVax_multiple)
 export(run_mpoxSEIR_targetedVax_single)
 export(transform_params)

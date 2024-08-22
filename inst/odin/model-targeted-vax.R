@@ -125,7 +125,18 @@ update(N[,]) <- S[i,j] + Ea[i,j] + Eb[i,j] + Ir[i,j] + Id[i,j] + R[i,j] + D[i,j]
 
 is_same_week <- step %% steps_per_week > 0
 update(cases) <- cases * is_same_week + sum(n_SEa[,])
+update(cases_0_5) <- cases * is_same_week + sum(n_SEa[1,])
+update(cases_5_15) <- cases * is_same_week + sum(n_SEa[2:3,])
+update(cases_15_plus) <- cases * is_same_week + sum(n_SEa[4:16,])
+update(cases_PBS) <- cases * is_same_week + sum(n_SEa[17,])
+update(cases_SW) <- cases * is_same_week + sum(n_SEa[18,])
+
 update(deaths) <- deaths * is_same_week + sum(n_IdD[,])
+update(deaths_0_5) <- cases * is_same_week + sum(n_IdD[1,])
+update(deaths_5_15) <- cases * is_same_week + sum(n_IdD[2:3,])
+update(deaths_15_plus) <- cases * is_same_week + sum(n_IdD[4:16,])
+update(deaths_PBS) <- cases * is_same_week + sum(n_IdD[17,])
+update(deaths_SW) <- cases * is_same_week + sum(n_IdD[18,])
 
 update(S_tot) <- sum(S[,])
 update(E_tot) <- sum(E[,])
@@ -186,6 +197,17 @@ initial(I[,]) <- Ir0[i,j] + Id0[i,j]
 initial(N[,]) <- S0[i,j] + Ea0[i,j] + Eb0[i,j] + Ir0[i,j] + Id0[i,j] + R0[i,j] + D0[i,j]
 initial(cases) <- 0
 initial(deaths) <- 0
+
+initial(cases_0_5) <- 0
+initial(cases_5_15) <- 0
+initial(cases_15_plus) <- 0
+initial(cases_PBS) <- 0
+initial(cases_SW) <- 0
+initial(deaths_0_5) <- 0
+initial(deaths_5_15) <- 0
+initial(deaths_15_plus) <- 0
+initial(deaths_PBS) <- 0
+initial(deaths_SW) <- 0
 
 initial(vax_given_S) <- 0
 initial(vax_given_Ea) <- 0
