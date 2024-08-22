@@ -3,6 +3,7 @@
 #' @importFrom stats setNames
 #' @importFrom squire get_population
 #' @importFrom squire get_mixing_matrix
+#' @export
 parameters_demographic <- function() {
   age_bins <- get_age_bins()
 
