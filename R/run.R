@@ -96,6 +96,7 @@ transform_params <- function(
               m = m))
 }
 
+# Run the model with single set of parameter values
 #' @export
 run_mpoxSEIR_targetedVax_single <- function(
     
@@ -132,12 +133,13 @@ run_mpoxSEIR_targetedVax_single <- function(
     vaccination_campaign_length, ## length of the vaccination campaign (in timesteps NOT days - CHECK WITH RUTH THIS IS RIGHT)
     
     ## Model simulation related parameters
-    dt = 1, 
+    dt = 0.5, 
     runtime = 150, 
     particles = 1,
     threads = 1,
     seed = 42,
-    deterministic = TRUE
+    deterministic = TRUE,
+    outputs_retained
 ) {
   
   ########################
@@ -176,13 +178,34 @@ run_mpoxSEIR_targetedVax_single <- function(
   
   ## Running the model
   output <- mod$simulate(1:runtime)
-  output2 <- mod$transform_variables(output)
   
+  ## Postprocessing of model output - subsetting relevant outputs to retain 
+  indices <- mod$info()$index
+  if (any(!outputs_retained %in% names(indices))) {
+    stop("outputs_retained must be in the named outputs of transformed model output")
+  }
+  indices_keep <- unlist(indices[which(names(indices) %in% outputs_retained)])
+  output2 <- output[indices_keep, , ,drop = FALSE]
+  
+  ## Postprocessing of model output - creating tidy dataframe of outputs
+  dimnames(output2) <- list(
+    Output = names(indices_keep),
+    Replicate = 1:particles,
+    Timestep = dt * (1:runtime))
+  grid <- list(state = dimnames(output2)[[1]] %||% seq_len(dim(output2)[1]),
+               replicate = dimnames(output2)[[2]] %||% seq_len(dim(output2)[2]),
+               time = dimnames(output2)[[3]] %||% seq_len(dim(output2)[3]))
+  state <- output2
+  ret <- do.call(expand.grid, grid)
+  ret$time <- as.numeric(ret$time)
+  ret$value <- c(state)
+
   ## Returning the output
-  return(output2)
+  return(ret)
   
 }
 
+# Run multiple iterations of the model with different parameter values
 #' @export
 run_mpoxSEIR_targetedVax_multiple <- function(beta_z_max,
                                               R0_hh,
@@ -236,7 +259,17 @@ run_mpoxSEIR_targetedVax_multiple <- function(beta_z_max,
                                             particles = fixed_params$particles,
                                             threads = fixed_params$threads,
                                             seed = fixed_params$seed,
-                                            deterministic = fixed_params$deterministic)
-    })
-  return(output_list)
+                                            deterministic = fixed_params$deterministic,
+                                            outputs_retained = fixed_params$outputs_retained)
+    
+    # Appending the parameters used in this particular simulation to the output
+    temp$parameter_set_index <- i
+    temp$beta_z_max <- current_beta_z_max
+    temp$R0_sw_st <- current_R0_sw_st
+    temp$R0_hh <- current_R0_hh
+    temp$ve_Is <- current_ve_I
+    temp
+  })
+  
+  return(data.table::rbindlist(output_list))
 }
