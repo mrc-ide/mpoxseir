@@ -1,5 +1,6 @@
+## NOTE THAT THESE NEED UPDATING IN A MAJOR WAY
 #' @export
-default_params <- function() {
+default_params <- function(overrides = list()) {
   
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
@@ -45,6 +46,19 @@ default_params <- function() {
                      daily_doses = matrix(rep(1, vaccination_campaign_length * n_vax),
                                           nrow = vaccination_campaign_length, ncol = n_vax))
   
+  # Ensure overridden parameters are passed as a list
+  if (!is.list(overrides)) {
+    stop('overrides must be a list')
+  }
+  
+  # Override parameter values in the overrides input
+  for (name in names(overrides)) {
+    if (!(name %in% names(params_list))) {
+      stop(paste('unknown parameter', name, sep=' '))
+    }
+    params_list[[name]] <- overrides[[name]]
+  }
+  
   return(params_list)
 }
 
@@ -68,7 +82,7 @@ transform_params <- function(
 ) {
 
   
-  # 1) Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
+  # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
   if (dim(CFR)[2] > 1) {
     CFR <- CFR[, 1]
   }
@@ -77,10 +91,10 @@ transform_params <- function(
   index_gen_pop <- 1:(m_dim-2) ## Get indices of mixing matrix for general pop (those we assume hh transmission predominates)
   beta_h <- R0_hh / Re(eigen(m[index_gen_pop, index_gen_pop] * duration_infectious_by_age[index_gen_pop])$values[1]) ## Calculate beta_household given R0, mixing matrix and duration of infectiousness
   
-  # 2) Converting the relative risk age-spline to the age-specific beta_z
+  # Converting the relative risk age-spline to the age-specific beta_z
   beta_z <- RR_z * beta_z_max
   
-  # 3) Converting the inputted R0_sw_st into the rates required for the mixing matrix
+  # Converting the inputted R0_sw_st into the rates required for the mixing matrix
   index_SW <- which(colnames(m) == "SW")
   index_PBS <- which(colnames(m) == "PBS") 
   N_SW <- S0[index_SW] + Ea0[index_SW] + Eb0[index_SW] + Ir0[index_SW] + Id0[index_SW] + R0[index_SW] + D0[index_SW]
