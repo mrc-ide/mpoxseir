@@ -6,7 +6,7 @@ Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
              person("Ruth", "McCabe", role = c("aut")),
              person("Imperial College of Science, Technology and Medicine",
                     role = "cph"))
-Description: Stochastic compartmental model of mpox transmission in odin.dust
+Description: Stochastic compartmental model of mpox transmission in odin.dust.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

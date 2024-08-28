@@ -1,4 +1,4 @@
-model_generic_vax <- odin.dust::odin_dust("inst/odin/model-generic-vax.R")
+
 
 test_that("run is equal to reference", {
   pars <- reference_pars_generic_vax()

@@ -1,5 +1,3 @@
-model_targeted_vax <- odin.dust::odin_dust("inst/odin/model-targeted-vax.R")
-
 test_that("run is equal to reference", {
   pars <- reference_pars_targeted_vax()
   nms <- reference_names()
