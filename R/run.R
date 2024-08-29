@@ -40,7 +40,7 @@ parameters_fixed <- function(overrides = list()) {
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
     RR_z = c(0.977, 1, 0.444, rep(0.078, n_group - 3)), # Jezek 1988 zoonotic + Jezek 1987
-    gamma_E = 1 / 8,  # WHO Shiny - Kröger et al (clade II)
+    gamma_E = 1 / 8,  # WHO Shiny - Kröger et al (clade II) (RM comment: propose 1/7 based on Besombes et al. on 29 clade I patients)
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
     CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = TRUE),
