@@ -140,8 +140,7 @@ run_mpoxSEIR_targetedVax_single <- function(
     n_threads = 1,
     seed = 42,
     deterministic = TRUE,
-    outputs_retained = NULL,
-) {
+    outputs_retained = NULL) {
 
   ########################
   ### checks to go here
