@@ -88,6 +88,10 @@ parameters_demographic <- function() {
   # proportion of susceptibles estimated to have smallpox vaccine
   sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
 
+  # province populations
+  province_pop = list("equateur" = 1712000,
+                      "sudkivu" = 6565000)
+
 
   list(
     n_group = n_group,
@@ -95,7 +99,8 @@ parameters_demographic <- function() {
     m = m,
     total_contacts = M,
     n_vax = 2,
-    sus_prop = sus_prop
+    sus_prop = sus_prop,
+    province_pop = province_pop
   )
 }
 
