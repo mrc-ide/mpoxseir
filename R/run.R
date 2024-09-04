@@ -96,6 +96,8 @@ transform_params <- function(
   # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 
   ## Calc. duration of infectiousness by age, weighted by disease severity
+  ## We assume here that the R0 calculation that duration_infectious_by_age is used in
+  ## is based on duration_infectious_by_age in unvaccinated individuals (i.e. with the unvaxxed CFR)
   if (pars$n_vax > 1) {
     duration_infectious_by_age <-
       pars$CFR[, 1] * (1 / pars$gamma_Id) + (1 - pars$CFR[, 1]) * (1 / pars$gamma_Ir)
@@ -109,6 +111,8 @@ transform_params <- function(
   idx_gen_pop <- seq_len(nrow(age_groups))
 
   ## Calculate beta_household given R0, mixing matrix and duration of infectiousness
+  ## Note this isn't quite correct and we need to sort this
+  ## We should be include household contacts of PBS and SWs
   pars$beta_h <- pars$R0_hh / Re(eigen(pars$m[idx_gen_pop, idx_gen_pop] * duration_infectious_by_age[idx_gen_pop])$values[1])
 
   # Converting the relative risk age-spline to the age-specific beta_z
