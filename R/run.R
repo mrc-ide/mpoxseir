@@ -1,12 +1,12 @@
 
 #' @export
-parameters_fixed <- function(overrides = list()) {
+parameters_fixed <- function(N, overrides = list()) {
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
-  N0 <- demographic_params$N0
+  N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0))
   N_prioritisation_steps <- 1
 
   # seed infections
@@ -80,10 +80,11 @@ parameters_fixed <- function(overrides = list()) {
 transform_params <- function(
     beta_z_max,  ## zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
     R0_hh,       ## R0 for household transmission (used to calculate beta_h)
-    R0_sw_st    ## R0 for sex workers to people who buy sex
+    R0_sw_st,    ## R0 for sex workers to people who buy sex
+    N
 ) {
 
-  pars <- parameters_fixed()
+  pars <- parameters_fixed(N = N)
   nms_group <- names(pars$N0)
 
   # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
@@ -119,7 +120,10 @@ transform_params <- function(
 # Run the model with single set of parameter values
 #' @export
 run_mpoxSEIR_targetedVax_single <- function(
+  
+    N,       # population size to run the model with
     n_weeks, # number of weeks to run for
+    
     ## Transmission related parameters
     R0_hh,      ## R0 for the household
     R0_sw_st,   ## R0 for sex workers to people who buy sex
@@ -151,7 +155,8 @@ run_mpoxSEIR_targetedVax_single <- function(
   ## Transforming inputted parameters into those required for model running
   pars <- transform_params(beta_z_max = beta_z_max,
                            R0_hh = R0_hh,
-                           R0_sw_st = R0_sw_st)
+                           R0_sw_st = R0_sw_st,
+                           N = N)
 
   ## Setting up the model with the inputted parameters
   mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
@@ -177,7 +182,6 @@ run_mpoxSEIR_targetedVax_single <- function(
   indices_keep <- unlist(indices[which(names(indices) %in% outputs_retained)])
 
   ## Postprocessing of model output - creating tidy dataframe of outputs
-
   grid <- list(state = outputs_retained,
                replicate = seq_len(n_particles),
                time = output_times)
@@ -191,6 +195,7 @@ run_mpoxSEIR_targetedVax_single <- function(
 # Run multiple iterations of the model with different parameter values
 #' @export
 run_mpoxSEIR_targetedVax_multiple <- function(
+    N,
     n_weeks,
     beta_z_max,
     R0_hh,
@@ -225,6 +230,7 @@ run_mpoxSEIR_targetedVax_multiple <- function(
                  R0_hh = R0_hh,
                  R0_sw_st = R0_sw_st,
                  MoreArgs = list(
+                   N = N,                               ## size of the population to run the model with
                    n_weeks = n_weeks,
                    n_vax = n_vax,                       ## number of vaccination compartments (integer, basis for an additional dimension in odin states)
                    daily_doses = daily_doses,                 ## the daily number of doses administered (matrix of vaccination_campaign_length * number of vaccination compartments)
