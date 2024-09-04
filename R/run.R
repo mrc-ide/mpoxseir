@@ -44,7 +44,7 @@ parameters_fixed <- function(N, overrides = list()) {
     gamma_E = 1 / 8,  # WHO Shiny - Kröger et al (clade II) (RM comment: propose 1/7 based on Besombes et al. on 29 clade I patients)
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
-    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = TRUE),
+    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
     m = demographic_params$m,
     # dt = 0.5,
     # runtime = 150,
@@ -86,7 +86,12 @@ transform_params <- function(
 
   pars <- parameters_fixed(N = N)
   nms_group <- names(pars$N0)
-
+  
+  ## Updating values in pars with parameters passed into transform_params 
+  pars$beta_z_max <- beta_z_max
+  pars$R0_hh <- R0_hh
+  pars$R0_sw_st <- R0_sw_st
+  
   # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 
   ## Calc. duration of infectiousness by age, weighted by disease severity
