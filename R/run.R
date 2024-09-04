@@ -96,8 +96,13 @@ transform_params <- function(
   # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 
   ## Calc. duration of infectiousness by age, weighted by disease severity
-  duration_infectious_by_age <-
-    pars$CFR * (1 / pars$gamma_Id) + (1 - pars$CFR) * (1 / pars$gamma_Ir)
+  if (pars$n_vax > 1) {
+    duration_infectious_by_age <-
+      pars$CFR[, 1] * (1 / pars$gamma_Id) + (1 - pars$CFR[, 1]) * (1 / pars$gamma_Ir)
+  } else{
+    duration_infectious_by_age <-
+      pars$CFR * (1 / pars$gamma_Id) + (1 - pars$CFR) * (1 / pars$gamma_Ir)
+  }
 
   ## Get indices of mixing matrix for general pop (those we assume hh transmission predominates)
   age_groups <- get_age_bins()
