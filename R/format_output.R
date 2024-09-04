@@ -1,5 +1,7 @@
 ## functions to format model output for plotting and analysis
 
+## dependencies: tidyverse; plyr
+
 format_output <- function(m,res){
 
   res_rn <- rename_cols_rows(m,res)
