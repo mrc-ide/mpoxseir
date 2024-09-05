@@ -133,12 +133,12 @@ update(cases_PBS) <- cases_PBS * is_same_week + sum(n_SEa[17,])
 update(cases_SW) <- cases_SW * is_same_week + sum(n_SEa[18,])
 
 # cumulative cases
-update(cases_cumulative) <- cases + sum(n_SEa[,])
-update(cases_cumulative_0_5) <- cases_0_5 + sum(n_SEa[1,])
-update(cases_cumulative_05_15) <- cases_05_15 + sum(n_SEa[2:3,])
-update(cases_cumulative_15_plus) <- cases_15_plus + sum(n_SEa[4:16,])
-update(cases_cumulative_PBS) <- cases_PBS + sum(n_SEa[17,])
-update(cases_cumulative_SW) <- cases_SW + sum(n_SEa[18,])
+update(cases_cumulative) <- cases_cumulative + sum(n_SEa[,])
+update(cases_cumulative_0_5) <- cases_cumulative_0_5 + sum(n_SEa[1,])
+update(cases_cumulative_05_15) <- cases_cumulative_05_15 + sum(n_SEa[2:3,])
+update(cases_cumulative_15_plus) <- cases_cumulative_15_plus + sum(n_SEa[4:16,])
+update(cases_cumulative_PBS) <- cases_cumulative_PBS + sum(n_SEa[17,])
+update(cases_cumulative_SW) <- cases_cumulative_SW + sum(n_SEa[18,])
 
 # weekly deaths
 update(deaths) <- deaths * is_same_week + sum(n_IdD[,])
@@ -149,12 +149,12 @@ update(deaths_PBS) <- deaths_PBS * is_same_week + sum(n_IdD[17,])
 update(deaths_SW) <- deaths_SW * is_same_week + sum(n_IdD[18,])
 
 # cumulative deaths
-update(deaths_cumulative) <- deaths + sum(n_IdD[,])
-update(deaths_cumulative_0_5) <- deaths_0_5 + sum(n_IdD[1,])
-update(deaths_cumulative_05_15) <- deaths_05_15 + sum(n_IdD[2:3,])
-update(deaths_cumulative_15_plus) <- deaths_15_plus + sum(n_IdD[4:16,])
-update(deaths_cumulative_PBS) <- deaths_PBS + sum(n_IdD[17,])
-update(deaths_cumulative_SW) <- deaths_SW + sum(n_IdD[18,])
+update(deaths_cumulative) <- deaths_cumulative + sum(n_IdD[,])
+update(deaths_cumulative_0_5) <- deaths_cumulative_0_5 + sum(n_IdD[1,])
+update(deaths_cumulative_05_15) <- deaths_cumulative_05_15 + sum(n_IdD[2:3,])
+update(deaths_cumulative_15_plus) <- deaths_cumulative_15_plus + sum(n_IdD[4:16,])
+update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + sum(n_IdD[17,])
+update(deaths_cumulative_SW) <- deaths_cumulative_SW + sum(n_IdD[18,])
 
 
 update(S_tot) <- sum(S[,])
@@ -176,12 +176,13 @@ p_IdD <- 1 - exp(-gamma_Id * dt) # progression through infectious period to deat
 #Compute the force of infection
 
 #  Mixing Matrix
-m[,] <- user()
+m_gen_pop[,] <- user()
+m_sex[,] <- user()
 I_infectious[, ] <- I[i, j] * (1 - ve_T[j]) # I adjusted for reduced transmissibility
 
 prop_infectious[] <- sum(I_infectious[i, ]) / sum(N[i, ])
 # Generating Force of Infection
-s_ij[, ] <- m[i, j] * prop_infectious[j] # for susceptible age i, % contacts infectious age j
+s_ij[, ] <- m_gen[i, j] * prop_infectious[j] # for susceptible age i, % contacts infectious age j
 lambda[,] <- ((beta_h * sum(s_ij[i, ])) + beta_z[i]) * (1-ve_I[j])
 
 ## Draws from binomial distributions for numbers changing between compartments accounting for vaccination:
@@ -323,7 +324,8 @@ dim(D0) <- c(n_group,n_vax)
 dim(delta_D) <- c(n_group,n_vax)
 
 dim(lambda) <- c(n_group,n_vax)
-dim(m) <- c(n_group, n_group)
+dim(m_gen_pop) <- c(n_group, n_group)
+dim(m_sex) <- c(n_group, n_group)
 dim(I_infectious) <- c(n_group, n_vax)
 dim(prop_infectious) <- c(n_group)
 dim(s_ij) <- c(n_group,n_group)
