@@ -57,6 +57,7 @@ reference_pars_targeted_vax <- function() {
   Ea0 <- matrix(0, n_group, n_vax)
   S0 <- Ea0
   S0[,1] <- dem_pars$N
+  dem_pars$m_sex["SW","PBS"] <- dem_pars$m_sex["PBS","SW"] <- max(dem_pars$m_gen_pop)
 
   vaccination_campaign_length <- 10
   daily_doses <- matrix(c(rep(1000,vaccination_campaign_length),
