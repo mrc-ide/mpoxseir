@@ -182,8 +182,9 @@ I_infectious[, ] <- I[i, j] * (1 - ve_T[j]) # I adjusted for reduced transmissib
 
 prop_infectious[] <- sum(I_infectious[i, ]) / sum(N[i, ])
 # Generating Force of Infection
-s_ij[, ] <- m_gen[i, j] * prop_infectious[j] # for susceptible age i, % contacts infectious age j
-lambda[,] <- ((beta_h * sum(s_ij[i, ])) + beta_z[i]) * (1-ve_I[j])
+s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j] # for susceptible age i, % contacts infectious age j
+s_ij_sex[,] <- m_sex[i, j] * prop_infectious[j] # as above but for the sexual contacts only
+lambda[,] <- ((beta_h * sum(s_ij_gen_pop[i, ])) + (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1-ve_I[j])
 
 ## Draws from binomial distributions for numbers changing between compartments accounting for vaccination:
 n_SEa[,] <- rbinom(S[i,j] + delta_S_n_vaccination[i,j], p_SE[i,j])
@@ -267,6 +268,7 @@ D0[,] <- user()
 
 ##Parameters
 beta_h <- user()
+beta_s <- user()
 beta_z[] <- user()
 gamma_E <- user()
 # gamma_I <- user()
@@ -328,7 +330,8 @@ dim(m_gen_pop) <- c(n_group, n_group)
 dim(m_sex) <- c(n_group, n_group)
 dim(I_infectious) <- c(n_group, n_vax)
 dim(prop_infectious) <- c(n_group)
-dim(s_ij) <- c(n_group,n_group)
+dim(s_ij_gen_pop) <- c(n_group,n_group)
+dim(s_ij_sex) <- c(n_group,n_group)
 dim(beta_z) <- c(n_group)
 
 dim(CFR) <- c(n_group,n_vax)
