@@ -14,9 +14,10 @@ test_that("run is equal to reference", {
 })
 
 
-test_that("when beta_h = beta_z = 0 there are no new infections", {
+test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
+  pars$beta_s <- 0
   pars$beta_z<- rep(0,pars$n_group)
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
@@ -61,9 +62,10 @@ test_that("when CFR = 1 everybody dies", {
 })
 
 
-test_that("when beta_h = 0 there are only zoonotic infections", {
+test_that("when beta_h = 0 and beta_s=0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
+  pars$beta_s <- 0
   pars$beta_z<- c(rep(0,pars$n_group-1),0.4 / 12.11) # last group only for test purpose
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
