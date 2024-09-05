@@ -88,22 +88,28 @@ test_that("when beta_h = 0 and beta_s=0 there are only zoonotic infections", {
 })
 
 
-test_that("when beta_h = 0 and beta_z=0 there are still infections from sexual contact", {
+test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_z<- rep(0,pars$n_group)
   # need to seed infections as so low otherwise
-  pars$Ir0[,1] <- pars$Ir0[,1] + 1
-  pars$Id0[,1] <- pars$Id0[,1] + 1
-  pars$S0[,1] <- pars$S0[,1] - pars$Id0[,1] - pars$Ir0[,1]
+  pars$Ir0[17:18,1] <- pars$Ir0[17:18,1] + 1
+  pars$Id0[17:18,1] <- pars$Id0[17:18,1] + 1
+  pars$S0[17:18,1] <- pars$S0[17:18,1] - pars$Id0[17:18,1] - pars$Ir0[17:18,1]
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
-  t <- seq(1, 21)
+  t <- seq(1, 50) # run for longer to ensure infections in PBS
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  ## should have cases
-  expect_true(all(res["cases_cumulative",,max(t)]>0))
+  ## should have cases in CSW and PBS
+  expect_true(all(res["cases_cumulative_PBS",,max(t)]>0))
+  expect_true(all(res["cases_cumulative_SW",,max(t)]>0))
+
+  ## shouldn't have cases in the age groups
+  expect_true(all(res["cases_cumulative_0_5",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_05_15",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_15_plus",,max(t)]==0))
 
   ## make sure population size continues behaving
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
