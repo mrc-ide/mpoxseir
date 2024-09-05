@@ -171,8 +171,7 @@ run_mpoxSEIR_targetedVax_single <- function(
   transform_params <- create_transform_params(N = N, overrides = list())
   pars <- transform_params(beta_z_max = beta_z_max,
                            R0_hh = R0_hh,
-                           R0_sw_st = R0_sw_st,
-                           N = N)
+                           R0_sw_st = R0_sw_st)
 
   ## Setting up the model with the inputted parameters
   mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
