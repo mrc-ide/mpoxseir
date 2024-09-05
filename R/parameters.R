@@ -49,6 +49,17 @@ parameters_demographic <- function() {
   p_KP <- p_SW + p_PBS
   p <- c(1 - p_KP, p_SW, p_PBS)
 
+  # Split contact matrix by all 6 combinations of contact between groups
+  M_gen_pop <- M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
+  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW
+  M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
+  M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
+  M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
+  M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
+
+  ## check matrices are decomposed properly
+  sum(M_gen_pop + M_gen_PBS + M_gen_SW + M_SW_SW + M_PBS_PBS + M_SW_PBS - M_age)
+
   marginalise <- function(M) (rowSums(M) + diag(M)) / 2
 
   n_age <- length(N_age)
@@ -58,28 +69,27 @@ parameters_demographic <- function() {
 
 
   ### General population
-  M_gen_pop <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
-  M_gen_pop[idx_age, idx_age] <-  M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
-  m_gen_pop <- M_gen_pop / N ## dividing by the total N here rather than for just age without adjustment for KPs
+  # Construct new contact matrix including groups
+  M_all <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
+  M_all[idx_age, idx_age] <- M_gen_pop
+  M_all["SW", idx_age] <- M_all[idx_age, "SW"] <- marginalise(M_gen_SW)
+  M_all["PBS", idx_age] <- M_all[idx_age, "PBS"] <- marginalise(M_gen_PBS)
 
-  ### Sexual contact
+  M_all["SW", "SW"] <- sum(marginalise(M_SW_SW))
+  M_all["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
+  M_all["SW", "PBS"] <- M_all["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
 
-  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW
-  M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
-  M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
-  M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
-  M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
+  # check that total contacts are the same as original
+  sum(marginalise(M_all)) - sum(marginalise(M_age)) ## check total number of contacts
 
-  M_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
+  # Convert to per-capita rates by dividing by population
+  # Resulting matrix is Asymmetric c_ij != c_ji
+  # BUT total number of contacts i->j and j->i is balanced
+  m_all <- M_all / N
 
-  M_sex["SW", idx_age] <- M_sex[idx_age, "SW"] <- marginalise(M_gen_SW)
-  M_sex["PBS", idx_age] <- M_sex[idx_age, "PBS"] <- marginalise(M_gen_PBS)
 
-  M_sex["SW", "SW"] <- sum(marginalise(M_SW_SW))
-  M_sex["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
-  M_sex["SW", "PBS"] <- M_sex["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
-
-  m_sex <- M_sex / N
+  ## set up sexual contact matrix for parameterisation in transform function
+  m_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
 
   # proportion of susceptibles estimated to have smallpox vaccine
   sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
@@ -92,10 +102,10 @@ parameters_demographic <- function() {
   list(
     n_group = n_group,
     N0 = setNames(N, nms_group),
-    m_gen_pop = m_gen_pop,
+    m_gen_pop = m_all,
     m_sex = m_sex,
-    total_contacts_gen_pop = M_gen_pop,
-    total_contacts_sex = M_sex,
+    total_contacts_gen_pop = M_all,
+    #total_contacts_sex = M_sex,
     n_vax = 2,
     sus_prop = sus_prop,
     province_pop = province_pop
