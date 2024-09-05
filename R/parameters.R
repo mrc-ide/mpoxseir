@@ -24,13 +24,20 @@ parameters_demographic <- function() {
 
   N <- c(N_age - N_SW - N_PBS, sum(N_SW), sum(N_PBS))
 
-  # Set up mixing matrix
+  # Set up mixing matrices: 1) general population and 2) sexual contact
   # Squire gives unbalanced per-capita daily rates, we need to
   # 1. scale these by the population size to get total daily contacts between
   #    age group i and age group j
   # 2. balance the matrix so total contacts i->j == j->i
   # 3. add in non-age groups (SW + PBS) and attribute contacts
   # 4. convert back to rates
+
+  m_age <- squire::get_mixing_matrix(country)
+  M_raw <- t(t(m_age) * N_age) # total daily contacts in population
+
+  ## balance the matrix so M[i,j] == M[j,i]
+  M_age <- (M_raw + t(M_raw)) / 2
+
   m_age <- squire::get_mixing_matrix(country)
   M_raw <- t(t(m_age) * N_age) # total daily contacts in population
 
@@ -45,20 +52,8 @@ parameters_demographic <- function() {
   M1 <- M_age * outer(idx_15_49, idx_15_49, FUN = "xor") # only 1 could be KP
   M2 <- M_age * outer(idx_15_49, idx_15_49) # both could be KP
 
-
   p_KP <- p_SW + p_PBS
   p <- c(1 - p_KP, p_SW, p_PBS)
-
-  # Split contact matrix by all 6 combinations of contact between groups
-  M_gen_pop <- M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
-  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW
-  M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
-  M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
-  M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
-  M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
-
-  ## check matrices are decomposed properly
-  sum(M_gen_pop + M_gen_PBS + M_gen_SW + M_SW_SW + M_PBS_PBS + M_SW_PBS - M_age)
 
   marginalise <- function(M) (rowSums(M) + diag(M)) / 2
 
@@ -67,23 +62,30 @@ parameters_demographic <- function() {
   n_group <- n_age + 2
   nms_group <- c(age_bins$label, "SW", "PBS")
 
-  # Construct new contact matrix including groups
-  M <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
-  M[idx_age, idx_age] <- M_gen_pop
-  M["SW", idx_age] <- M[idx_age, "SW"] <- marginalise(M_gen_SW)
-  M["PBS", idx_age] <- M[idx_age, "PBS"] <- marginalise(M_gen_PBS)
 
-  M["SW", "SW"] <- sum(marginalise(M_SW_SW))
-  M["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
-  M["SW", "PBS"] <- M["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
+  ### General population
+  M_gen_pop <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
+  M_gen_pop[idx_age, idx_age] <-  M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
+  m_gen_pop <- M_gen_pop / N ## dividing by the total N here rather than for just age without adjustment for KPs
 
-  # check that total contacts are the same as original
-  sum(marginalise(M)) - sum(marginalise(M_age)) ## check total number of contacts
+  ### Sexual contact
 
-  # Convert to per-capita rates by dividing by population
-  # Resulting matrix is Asymmetric c_ij != c_ji
-  # BUT total number of contacts i->j and j->i is balanced
-  m <- M / N
+  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW
+  M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
+  M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
+  M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
+  M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
+
+  M_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
+
+  M_sex["SW", idx_age] <- M_sex[idx_age, "SW"] <- marginalise(M_gen_SW)
+  M_sex["PBS", idx_age] <- M_sex[idx_age, "PBS"] <- marginalise(M_gen_PBS)
+
+  M_sex["SW", "SW"] <- sum(marginalise(M_SW_SW))
+  M_sex["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
+  M_sex["SW", "PBS"] <- M_sex["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
+
+  m_sex <- M_sex / N
 
   # proportion of susceptibles estimated to have smallpox vaccine
   sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
@@ -96,8 +98,10 @@ parameters_demographic <- function() {
   list(
     n_group = n_group,
     N0 = setNames(N, nms_group),
-    m = m,
-    total_contacts = M,
+    m_gen_pop = m_gen_pop,
+    m_sex = m_sex,
+    total_contacts_gen_pop = M_gen_pop,
+    total_contacts_sex = M_sex,
     n_vax = 2,
     sus_prop = sus_prop,
     province_pop = province_pop
