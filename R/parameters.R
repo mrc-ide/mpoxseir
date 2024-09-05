@@ -38,12 +38,6 @@ parameters_demographic <- function() {
   ## balance the matrix so M[i,j] == M[j,i]
   M_age <- (M_raw + t(M_raw)) / 2
 
-  m_age <- squire::get_mixing_matrix(country)
-  M_raw <- t(t(m_age) * N_age) # total daily contacts in population
-
-  ## balance the matrix so M[i,j] == M[j,i]
-  M_age <- (M_raw + t(M_raw)) / 2
-
   # Need to split total contacts i->j by gen pop / SW / PBS
   # assume homogenous mixing in day-to-day contacts (will add sex in fitting)
 
