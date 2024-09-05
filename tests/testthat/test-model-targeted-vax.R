@@ -87,6 +87,32 @@ test_that("when beta_h = 0 and beta_s=0 there are only zoonotic infections", {
 
 })
 
+
+test_that("when beta_h = 0 and beta_z=0 there are still infections from sexual contact", {
+  pars <- reference_pars_targeted_vax()
+  pars$beta_h <- 0
+  pars$beta_z<- rep(0,pars$n_group)
+  # need to seed infections as so low otherwise
+  pars$Ir0[,1] <- pars$Ir0[,1] + 1
+  pars$Id0[,1] <- pars$Id0[,1] + 1
+  pars$S0[,1] <- pars$S0[,1] - pars$Id0[,1] - pars$Ir0[,1]
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  ## should have cases
+  expect_true(all(res["cases_cumulative",,max(t)]>0))
+
+  ## make sure population size continues behaving
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
+
+})
+
+
+
+
 test_that("when n_vaccination>0, vaccinations are given", {
   pars <- reference_pars_targeted_vax()
 
@@ -192,5 +218,8 @@ test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
 
 
 })
+
+
+
 
 
