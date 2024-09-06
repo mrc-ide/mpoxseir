@@ -120,9 +120,10 @@ create_transform_params <- function(N, overrides = list()) {
     N_PBS <- pars$N0[idx_PBS]
     
     m_sw_pbs <- (pars$R0_sw_st / duration_infectious_by_age[idx_SW])
-    m_pbs_sw <- m_sw_pbs  * (N_SW / N_PBS) / pars$beta_h
+    m_pbs_sw <- m_sw_pbs  * (N_SW / N_PBS)
     pars$m_sex[idx_SW, idx_PBS] <- m_sw_pbs
     pars$m_sex[idx_PBS, idx_SW] <- m_pbs_sw
+    pars$beta_s <- 1
     
     pars
     
