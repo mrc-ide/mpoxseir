@@ -93,12 +93,14 @@ create_transform_params <- function(N, overrides = list()) {
     ## Calc. duration of infectiousness by age, weighted by disease severity
     ## We assume here that the R0 calculation that duration_infectious_by_age is used in
     ## is based on duration_infectious_by_age in unvaccinated individuals (i.e. with the unvaxxed CFR)
+    k <- 1 # number of compartments per infectious disease state
+    dt <- 1 # timestep
     if (pars$n_vax > 1) {
       duration_infectious_by_age <-
-        pars$CFR[, 1] * (1 / pars$gamma_Id) + (1 - pars$CFR[, 1]) * (1 / pars$gamma_Ir)
+        pars$CFR[, 1] * ((k * dt) /(1 - exp(-pars$gamma_Id * dt))) + (1 - pars$CFR[, 1]) * ((k * dt) /(1 - exp(-pars$gamma_Ir * dt)))
     } else{
       duration_infectious_by_age <-
-        pars$CFR * (1 / pars$gamma_Id) + (1 - pars$CFR) * (1 / pars$gamma_Ir)
+        pars$CFR * ((k * dt) /(1 - exp(-pars$gamma_Id * dt))) + (1 - pars$CFR) * ((k * dt) /(1 - exp(-pars$gamma_Ir * dt)))
     }
     
     ## Get indices of mixing matrix for general pop (those we assume hh transmission predominates)
