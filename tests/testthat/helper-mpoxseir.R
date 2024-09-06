@@ -27,7 +27,7 @@ reference_pars_generic_vax <- function() {
        beta_h = 0.2 / 12.11,
        beta_z = rep(0.4 / 12.11, n_group),
        gamma_E = 0.05,
-       gamma_I = 0.1,
+       #gamma_I = 0.1,
        gamma_Ir = 0.1,
        gamma_Id = 0.05,
        CFR = matrix(c(1 / c(seq(2.5, 77.5, 5), 25, 25),
@@ -57,6 +57,7 @@ reference_pars_targeted_vax <- function() {
   Ea0 <- matrix(0, n_group, n_vax)
   S0 <- Ea0
   S0[,1] <- dem_pars$N
+  dem_pars$m_sex["SW","PBS"] <- dem_pars$m_sex["PBS","SW"] <- max(dem_pars$m_gen_pop)
 
   vaccination_campaign_length <- 10
   daily_doses <- matrix(c(rep(1000,vaccination_campaign_length),
@@ -83,6 +84,7 @@ reference_pars_targeted_vax <- function() {
               R0 =  matrix(0, n_group, n_vax),
               D0 =  matrix(0, n_group, n_vax),
               beta_h = 0.2 / 12.11,
+              beta_s = 0.2 / 12.11,
               beta_z = rep(0.4 / 12.11, n_group),
               gamma_E = 0.05,
               gamma_I = 0.1,
@@ -93,7 +95,8 @@ reference_pars_targeted_vax <- function() {
                            n_group,n_vax),
               ve_T = c(0,0.9),
               ve_I = c(0,0.8),
-              m = dem_pars$m,
+              m_gen_pop = dem_pars$m_gen_pop,
+              m_sex = dem_pars$m_sex,
               n_group = n_group,
               n_vax = n_vax,
               #n_vaccination_allocation_SER = c(0.85,0.05,0.05,0.05),

@@ -24,13 +24,14 @@ parameters_demographic <- function() {
 
   N <- c(N_age - N_SW - N_PBS, sum(N_SW), sum(N_PBS))
 
-  # Set up mixing matrix
+  # Set up mixing matrices: 1) general population and 2) sexual contact
   # Squire gives unbalanced per-capita daily rates, we need to
   # 1. scale these by the population size to get total daily contacts between
   #    age group i and age group j
   # 2. balance the matrix so total contacts i->j == j->i
   # 3. add in non-age groups (SW + PBS) and attribute contacts
   # 4. convert back to rates
+
   m_age <- squire::get_mixing_matrix(country)
   M_raw <- t(t(m_age) * N_age) # total daily contacts in population
 
@@ -44,7 +45,6 @@ parameters_demographic <- function() {
   M0 <- M_age * outer(!idx_15_49, !idx_15_49) # neither could be KP
   M1 <- M_age * outer(idx_15_49, idx_15_49, FUN = "xor") # only 1 could be KP
   M2 <- M_age * outer(idx_15_49, idx_15_49) # both could be KP
-
 
   p_KP <- p_SW + p_PBS
   p <- c(1 - p_KP, p_SW, p_PBS)
@@ -67,23 +67,29 @@ parameters_demographic <- function() {
   n_group <- n_age + 2
   nms_group <- c(age_bins$label, "SW", "PBS")
 
-  # Construct new contact matrix including groups
-  M <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
-  M[idx_age, idx_age] <- M_gen_pop
-  M["SW", idx_age] <- M[idx_age, "SW"] <- marginalise(M_gen_SW)
-  M["PBS", idx_age] <- M[idx_age, "PBS"] <- marginalise(M_gen_PBS)
 
-  M["SW", "SW"] <- sum(marginalise(M_SW_SW))
-  M["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
-  M["SW", "PBS"] <- M["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
+  ### General population
+  # Construct new contact matrix including groups
+  M_all <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
+  M_all[idx_age, idx_age] <- M_gen_pop
+  M_all["SW", idx_age] <- M_all[idx_age, "SW"] <- marginalise(M_gen_SW)
+  M_all["PBS", idx_age] <- M_all[idx_age, "PBS"] <- marginalise(M_gen_PBS)
+
+  M_all["SW", "SW"] <- sum(marginalise(M_SW_SW))
+  M_all["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
+  M_all["SW", "PBS"] <- M_all["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
 
   # check that total contacts are the same as original
-  sum(marginalise(M)) - sum(marginalise(M_age)) ## check total number of contacts
+  sum(marginalise(M_all)) - sum(marginalise(M_age)) ## check total number of contacts
 
   # Convert to per-capita rates by dividing by population
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
-  m <- M / N
+  m_all <- M_all / N
+
+
+  ## set up sexual contact matrix for parameterisation in transform function
+  m_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
 
   # proportion of susceptibles estimated to have smallpox vaccine
   sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
@@ -96,8 +102,10 @@ parameters_demographic <- function() {
   list(
     n_group = n_group,
     N0 = setNames(N, nms_group),
-    m = m,
-    total_contacts = M,
+    m_gen_pop = m_all,
+    m_sex = m_sex,
+    total_contacts_gen_pop = M_all,
+    #total_contacts_sex = M_sex,
     n_vax = 2,
     sus_prop = sus_prop,
     province_pop = province_pop

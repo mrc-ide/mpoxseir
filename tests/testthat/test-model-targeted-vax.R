@@ -14,9 +14,10 @@ test_that("run is equal to reference", {
 })
 
 
-test_that("when beta_h = beta_z = 0 there are no new infections", {
+test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
+  pars$beta_s <- 0
   pars$beta_z<- rep(0,pars$n_group)
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
@@ -61,9 +62,10 @@ test_that("when CFR = 1 everybody dies", {
 })
 
 
-test_that("when beta_h = 0 there are only zoonotic infections", {
+test_that("when beta_h = 0 and beta_s=0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
+  pars$beta_s <- 0
   pars$beta_z<- c(rep(0,pars$n_group-1),0.4 / 12.11) # last group only for test purpose
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
@@ -84,6 +86,38 @@ test_that("when beta_h = 0 there are only zoonotic infections", {
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
 
 })
+
+
+test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
+  pars <- reference_pars_targeted_vax()
+  pars$beta_h <- 0
+  pars$beta_z<- rep(0,pars$n_group)
+  # need to seed infections as so low otherwise
+  pars$Ir0[17:18,1] <- pars$Ir0[17:18,1] + 1
+  pars$Id0[17:18,1] <- pars$Id0[17:18,1] + 1
+  pars$S0[17:18,1] <- pars$S0[17:18,1] - pars$Id0[17:18,1] - pars$Ir0[17:18,1]
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 50) # run for longer to ensure infections in PBS
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  ## should have cases in CSW and PBS
+  expect_true(all(res["cases_cumulative_PBS",,max(t)]>0))
+  expect_true(all(res["cases_cumulative_SW",,max(t)]>0))
+
+  ## shouldn't have cases in the age groups
+  expect_true(all(res["cases_cumulative_0_5",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_05_15",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_15_plus",,max(t)]==0))
+
+  ## make sure population size continues behaving
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
+
+})
+
+
+
 
 test_that("when n_vaccination>0, vaccinations are given", {
   pars <- reference_pars_targeted_vax()
@@ -190,5 +224,8 @@ test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
 
 
 })
+
+
+
 
 
