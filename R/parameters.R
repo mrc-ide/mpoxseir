@@ -114,6 +114,7 @@ parameters_demographic <- function() {
 
 ## We always use these age bands, so rather than detect them, we will
 ## check that things conform to them.
+#' @export
 get_age_bins <- function() {
   end <- c(seq(4, 75, by = 5), 100)
   start <- c(0, end[-length(end)] + 1L)
