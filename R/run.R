@@ -14,7 +14,7 @@ parameters_fixed <- function(N, overrides = list()) {
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
 
   # CFR from Whittles 2024, 5-year bands to 40
-  age_bins <- mpoxseir:::get_age_bins()
+  age_bins <- get_age_bins()
   CFR <- rep(0, n_group)
   names(CFR) <- names(demographic_params$N0)
   CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
@@ -46,7 +46,8 @@ parameters_fixed <- function(N, overrides = list()) {
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
     CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
-    m = demographic_params$m,
+    m_sex = demographic_params$m_sex,
+    m_gen_pop = demographic_params$m_gen_pop,
     prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
     vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
     vaccine_uptake = rep(0.8, n_group),
@@ -101,13 +102,13 @@ create_transform_params <- function(N, overrides = list()) {
     }
     
     ## Get indices of mixing matrix for general pop (those we assume hh transmission predominates)
-    age_groups <- mpoxseir:::get_age_bins()
+    age_groups <- get_age_bins()
     idx_gen_pop <- seq_len(nrow(age_groups))
     
     ## Calculate beta_household given R0, mixing matrix and duration of infectiousness
     ## Note this isn't quite correct and we need to sort this
     ## We should be include household contacts of PBS and SWs
-    pars$beta_h <- pars$R0_hh / Re(eigen(pars$m[idx_gen_pop, idx_gen_pop] * duration_infectious_by_age[idx_gen_pop])$values[1])
+    pars$beta_h <- pars$R0_hh / Re(eigen(pars$m_gen_pop * duration_infectious_by_age)$values[1])
     
     # Converting the relative risk age-spline to the age-specific beta_z
     pars$beta_z <- pars$RR_z * pars$beta_z_max
@@ -118,10 +119,10 @@ create_transform_params <- function(N, overrides = list()) {
     N_SW <- pars$N0[idx_SW]
     N_PBS <- pars$N0[idx_PBS]
     
-    m_sw_pbs <- (pars$R0_sw_st / duration_infectious_by_age[idx_SW]) / pars$beta_h # multiplied by beta_h within in the model
-    m_pbs_sw <- m_sw_pbs  * (N_SW / N_PBS) / pars$beta_h  # multiplied by beta_h within in the model
-    pars$m[idx_SW, idx_PBS] <- m_sw_pbs
-    pars$m[idx_PBS, idx_SW] <- m_pbs_sw
+    m_sw_pbs <- (pars$R0_sw_st / duration_infectious_by_age[idx_SW])
+    m_pbs_sw <- m_sw_pbs  * (N_SW / N_PBS) / pars$beta_h
+    pars$m_sex[idx_SW, idx_PBS] <- m_sw_pbs
+    pars$m_sex[idx_PBS, idx_SW] <- m_pbs_sw
     
     pars
     
