@@ -36,27 +36,27 @@ __host__ __device__ T odin_sign(T x) {
 }
 // [[dust::class(model_targeted_vax)]]
 // [[dust::time_type(discrete)]]
+// [[dust::param(CFR, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(D0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Ea0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Eb0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Id0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(Ir0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(N_prioritisation_steps, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_h, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_s, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_z, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(CFR, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(D0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(daily_doses, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Ea0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Eb0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(gamma_E, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(gamma_Id, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(gamma_Ir, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Id0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(Ir0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(m_gen_pop, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(m_sex, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(n_group, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(N_prioritisation_steps, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(n_vax, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(prioritisation_strategy, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
-// [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vaccination_campaign_length, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vaccination_coverage_target, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(vaccine_uptake, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
@@ -69,22 +69,77 @@ public:
   using rng_state_type = dust::random::generator<real_type>;
   using data_type = dust::no_data;
   struct shared_type {
+    std::vector<real_type> CFR;
+    std::vector<real_type> D0;
+    std::vector<real_type> Ea0;
+    std::vector<real_type> Eb0;
+    std::vector<real_type> Id0;
+    std::vector<real_type> Ir0;
+    int N_prioritisation_steps;
+    std::vector<real_type> R0;
+    std::vector<real_type> S0;
     real_type beta_h;
     real_type beta_s;
     std::vector<real_type> beta_z;
-    std::vector<real_type> CFR;
-    std::vector<real_type> D0;
     std::vector<real_type> daily_doses;
-    int dim_beta_z;
     int dim_CFR;
     int dim_CFR_1;
     int dim_CFR_2;
     int dim_D;
-    int dim_D_1;
-    int dim_D_2;
     int dim_D0;
     int dim_D0_1;
     int dim_D0_2;
+    int dim_D_1;
+    int dim_D_2;
+    int dim_E;
+    int dim_E_1;
+    int dim_E_2;
+    int dim_Ea;
+    int dim_Ea0;
+    int dim_Ea0_1;
+    int dim_Ea0_2;
+    int dim_Ea_1;
+    int dim_Ea_2;
+    int dim_Eb;
+    int dim_Eb0;
+    int dim_Eb0_1;
+    int dim_Eb0_2;
+    int dim_Eb_1;
+    int dim_Eb_2;
+    int dim_I;
+    int dim_I_1;
+    int dim_I_2;
+    int dim_I_infectious;
+    int dim_I_infectious_1;
+    int dim_I_infectious_2;
+    int dim_Id;
+    int dim_Id0;
+    int dim_Id0_1;
+    int dim_Id0_2;
+    int dim_Id_1;
+    int dim_Id_2;
+    int dim_Ir;
+    int dim_Ir0;
+    int dim_Ir0_1;
+    int dim_Ir0_2;
+    int dim_Ir_1;
+    int dim_Ir_2;
+    int dim_N;
+    int dim_N_1;
+    int dim_N_2;
+    int dim_R;
+    int dim_R0;
+    int dim_R0_1;
+    int dim_R0_2;
+    int dim_R_1;
+    int dim_R_2;
+    int dim_S;
+    int dim_S0;
+    int dim_S0_1;
+    int dim_S0_2;
+    int dim_S_1;
+    int dim_S_2;
+    int dim_beta_z;
     int dim_daily_doses;
     int dim_daily_doses_1;
     int dim_daily_doses_2;
@@ -121,39 +176,6 @@ public:
     int dim_delta_S_n_vaccination;
     int dim_delta_S_n_vaccination_1;
     int dim_delta_S_n_vaccination_2;
-    int dim_E;
-    int dim_E_1;
-    int dim_E_2;
-    int dim_Ea;
-    int dim_Ea_1;
-    int dim_Ea_2;
-    int dim_Ea0;
-    int dim_Ea0_1;
-    int dim_Ea0_2;
-    int dim_Eb;
-    int dim_Eb_1;
-    int dim_Eb_2;
-    int dim_Eb0;
-    int dim_Eb0_1;
-    int dim_Eb0_2;
-    int dim_I;
-    int dim_I_1;
-    int dim_I_2;
-    int dim_I_infectious;
-    int dim_I_infectious_1;
-    int dim_I_infectious_2;
-    int dim_Id;
-    int dim_Id_1;
-    int dim_Id_2;
-    int dim_Id0;
-    int dim_Id0_1;
-    int dim_Id0_2;
-    int dim_Ir;
-    int dim_Ir_1;
-    int dim_Ir_2;
-    int dim_Ir0;
-    int dim_Ir0_1;
-    int dim_Ir0_2;
     int dim_lambda;
     int dim_lambda_1;
     int dim_lambda_2;
@@ -163,9 +185,6 @@ public:
     int dim_m_sex;
     int dim_m_sex_1;
     int dim_m_sex_2;
-    int dim_N;
-    int dim_N_1;
-    int dim_N_2;
     int dim_n_EaEb;
     int dim_n_EaEb_1;
     int dim_n_EaEb_2;
@@ -178,7 +197,6 @@ public:
     int dim_n_EbIr;
     int dim_n_EbIr_1;
     int dim_n_EbIr_2;
-    int dim_n_eligible;
     int dim_n_IdD;
     int dim_n_IdD_1;
     int dim_n_IdD_2;
@@ -188,6 +206,7 @@ public:
     int dim_n_SEa;
     int dim_n_SEa_1;
     int dim_n_SEa_2;
+    int dim_n_eligible;
     int dim_n_vaccination_t_Ea;
     int dim_n_vaccination_t_Ea_1;
     int dim_n_vaccination_t_Ea_2;
@@ -207,24 +226,12 @@ public:
     int dim_prioritisation_strategy_1;
     int dim_prioritisation_strategy_2;
     int dim_prop_infectious;
-    int dim_R;
-    int dim_R_1;
-    int dim_R_2;
-    int dim_R0;
-    int dim_R0_1;
-    int dim_R0_2;
-    int dim_S;
-    int dim_S_1;
-    int dim_S_2;
     int dim_s_ij_gen_pop;
     int dim_s_ij_gen_pop_1;
     int dim_s_ij_gen_pop_2;
     int dim_s_ij_sex;
     int dim_s_ij_sex_1;
     int dim_s_ij_sex_2;
-    int dim_S0;
-    int dim_S0_1;
-    int dim_S0_2;
     int dim_target_met_t;
     int dim_target_met_t_1;
     int dim_target_met_t_2;
@@ -238,38 +245,11 @@ public:
     int dim_ve_I;
     int dim_ve_T;
     real_type dt;
-    std::vector<real_type> Ea0;
-    std::vector<real_type> Eb0;
     real_type gamma_E;
     real_type gamma_Id;
     real_type gamma_Ir;
-    std::vector<real_type> Id0;
-    real_type initial_cases;
-    real_type initial_cases_0_5;
-    real_type initial_cases_05_15;
-    real_type initial_cases_15_plus;
-    real_type initial_cases_cumulative;
-    real_type initial_cases_cumulative_0_5;
-    real_type initial_cases_cumulative_05_15;
-    real_type initial_cases_cumulative_15_plus;
-    real_type initial_cases_cumulative_PBS;
-    real_type initial_cases_cumulative_SW;
-    real_type initial_cases_PBS;
-    real_type initial_cases_SW;
     std::vector<real_type> initial_D;
     real_type initial_D_tot;
-    real_type initial_deaths;
-    real_type initial_deaths_0_5;
-    real_type initial_deaths_05_15;
-    real_type initial_deaths_15_plus;
-    real_type initial_deaths_cumulative;
-    real_type initial_deaths_cumulative_0_5;
-    real_type initial_deaths_cumulative_05_15;
-    real_type initial_deaths_cumulative_15_plus;
-    real_type initial_deaths_cumulative_PBS;
-    real_type initial_deaths_cumulative_SW;
-    real_type initial_deaths_PBS;
-    real_type initial_deaths_SW;
     std::vector<real_type> initial_E;
     real_type initial_E_tot;
     std::vector<real_type> initial_Ea;
@@ -280,21 +260,43 @@ public:
     std::vector<real_type> initial_Ir;
     std::vector<real_type> initial_N;
     real_type initial_N_tot;
-    real_type initial_prioritisation_step;
     std::vector<real_type> initial_R;
     real_type initial_R_tot;
     std::vector<real_type> initial_S;
     real_type initial_S_tot;
+    real_type initial_cases;
+    real_type initial_cases_05_15;
+    real_type initial_cases_0_5;
+    real_type initial_cases_15_plus;
+    real_type initial_cases_PBS;
+    real_type initial_cases_SW;
+    real_type initial_cases_cumulative;
+    real_type initial_cases_cumulative_05_15;
+    real_type initial_cases_cumulative_0_5;
+    real_type initial_cases_cumulative_15_plus;
+    real_type initial_cases_cumulative_PBS;
+    real_type initial_cases_cumulative_SW;
+    real_type initial_deaths;
+    real_type initial_deaths_05_15;
+    real_type initial_deaths_0_5;
+    real_type initial_deaths_15_plus;
+    real_type initial_deaths_PBS;
+    real_type initial_deaths_SW;
+    real_type initial_deaths_cumulative;
+    real_type initial_deaths_cumulative_05_15;
+    real_type initial_deaths_cumulative_0_5;
+    real_type initial_deaths_cumulative_15_plus;
+    real_type initial_deaths_cumulative_PBS;
+    real_type initial_deaths_cumulative_SW;
+    real_type initial_prioritisation_step;
     real_type initial_total_vax;
     real_type initial_vax_given_Ea;
     real_type initial_vax_given_Eb;
     real_type initial_vax_given_R;
     real_type initial_vax_given_S;
-    std::vector<real_type> Ir0;
     std::vector<real_type> m_gen_pop;
     std::vector<real_type> m_sex;
     int n_group;
-    int N_prioritisation_steps;
     int n_vax;
     int offset_variable_D;
     int offset_variable_E;
@@ -310,8 +312,6 @@ public:
     real_type p_IdD;
     real_type p_IrR;
     std::vector<real_type> prioritisation_strategy;
-    std::vector<real_type> R0;
-    std::vector<real_type> S0;
     real_type steps_per_week;
     int vaccination_campaign_length;
     std::vector<real_type> vaccination_coverage_target;
@@ -320,6 +320,7 @@ public:
     std::vector<real_type> ve_T;
   };
   struct internal_type {
+    std::vector<real_type> I_infectious;
     std::vector<real_type> daily_doses_t;
     std::vector<real_type> delta_D;
     std::vector<real_type> delta_Ea;
@@ -331,17 +332,16 @@ public:
     std::vector<real_type> delta_R;
     std::vector<real_type> delta_R_n_vaccination;
     std::vector<real_type> delta_S_n_vaccination;
-    std::vector<real_type> I_infectious;
     real_type initial_time;
     std::vector<real_type> lambda;
     std::vector<real_type> n_EaEb;
     std::vector<real_type> n_EbI;
     std::vector<real_type> n_EbId;
     std::vector<real_type> n_EbIr;
-    std::vector<real_type> n_eligible;
     std::vector<real_type> n_IdD;
     std::vector<real_type> n_IrR;
     std::vector<real_type> n_SEa;
+    std::vector<real_type> n_eligible;
     std::vector<real_type> n_vaccination_t_Ea;
     std::vector<real_type> n_vaccination_t_Eb;
     std::vector<real_type> n_vaccination_t_R;
@@ -477,18 +477,15 @@ public:
     state_next[35] = odin_sum2<real_type>(N, 0, shared->dim_N_1, 0, shared->dim_N_2, shared->dim_N_1);
     state_next[33] = odin_sum2<real_type>(R, 0, shared->dim_R_1, 0, shared->dim_R_2, shared->dim_R_1);
     state_next[30] = odin_sum2<real_type>(S, 0, shared->dim_S_1, 0, shared->dim_S_2, shared->dim_S_1);
-    for (int i = 1; i <= shared->dim_daily_doses_t_1; ++i) {
-      for (int j = 1; j <= shared->dim_daily_doses_t_2; ++j) {
-        internal.daily_doses_t[i - 1 + shared->dim_daily_doses_t_1 * (j - 1)] = (static_cast<int>(time) >= (shared->vaccination_campaign_length) ? shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + shared->vaccination_campaign_length - 1] : shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + time - 1]);
-      }
-    }
     for (int i = 1; i <= shared->dim_I_infectious_1; ++i) {
       for (int j = 1; j <= shared->dim_I_infectious_2; ++j) {
         internal.I_infectious[i - 1 + shared->dim_I_infectious_1 * (j - 1)] = I[shared->dim_I_1 * (j - 1) + i - 1] * (1 - shared->ve_T[j - 1]);
       }
     }
-    for (int i = 1; i <= shared->dim_n_eligible; ++i) {
-      internal.n_eligible[i - 1] = (S[shared->dim_S_1 * 0 + i - 1] + Ea[shared->dim_Ea_1 * 0 + i - 1] + Eb[shared->dim_Eb_1 * 0 + i - 1] + R[shared->dim_R_1 * 0 + i - 1]) * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step - 1) + i - 1];
+    for (int i = 1; i <= shared->dim_daily_doses_t_1; ++i) {
+      for (int j = 1; j <= shared->dim_daily_doses_t_2; ++j) {
+        internal.daily_doses_t[i - 1 + shared->dim_daily_doses_t_1 * (j - 1)] = (static_cast<int>(time) >= (shared->vaccination_campaign_length) ? shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + shared->vaccination_campaign_length - 1] : shared->daily_doses[shared->dim_daily_doses_1 * (j - 1) + time - 1]);
+      }
     }
     for (int i = 1; i <= shared->dim_n_IdD_1; ++i) {
       for (int j = 1; j <= shared->dim_n_IdD_2; ++j) {
@@ -499,6 +496,9 @@ public:
       for (int j = 1; j <= shared->dim_n_IrR_2; ++j) {
         internal.n_IrR[i - 1 + shared->dim_n_IrR_1 * (j - 1)] = dust::random::binomial<real_type>(rng_state, Ir[shared->dim_Ir_1 * (j - 1) + i - 1], shared->p_IrR);
       }
+    }
+    for (int i = 1; i <= shared->dim_n_eligible; ++i) {
+      internal.n_eligible[i - 1] = (S[shared->dim_S_1 * 0 + i - 1] + Ea[shared->dim_Ea_1 * 0 + i - 1] + Eb[shared->dim_Eb_1 * 0 + i - 1] + R[shared->dim_R_1 * 0 + i - 1]) * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step - 1) + i - 1];
     }
     for (int i = 1; i <= shared->dim_total_vaccinated_t_1; ++i) {
       for (int j = 1; j <= shared->dim_total_vaccinated_t_2; ++j) {
@@ -560,17 +560,17 @@ public:
       }
     }
     state_next[3] = deaths * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[11] = deaths_0_5 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[12] = deaths_05_15 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[11] = deaths_0_5 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[13] = deaths_15_plus * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[14] = deaths_PBS * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[15] = deaths_SW * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[5] = deaths_cumulative + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[21] = deaths_cumulative_0_5 + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[22] = deaths_cumulative_05_15 + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[21] = deaths_cumulative_0_5 + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[23] = deaths_cumulative_15_plus + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[24] = deaths_cumulative_PBS + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[25] = deaths_cumulative_SW + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[14] = deaths_PBS * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[15] = deaths_SW * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     for (int i = 1; i <= shared->dim_delta_Ea_n_vaccination_1; ++i) {
       for (int j = 1; j <= shared->dim_delta_Ea_n_vaccination_2; ++j) {
         internal.delta_Ea_n_vaccination[i - 1 + shared->dim_delta_Ea_n_vaccination_1 * (j - 1)] = (j == 1 ? (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1]) : (j == shared->n_vax ? (internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1]) : (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1] + internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1])));
@@ -676,18 +676,6 @@ public:
         internal.delta_Ir[i - 1 + shared->dim_delta_Ir_1 * (j - 1)] = internal.n_EbIr[shared->dim_n_EbIr_1 * (j - 1) + i - 1] - internal.n_IrR[shared->dim_n_IrR_1 * (j - 1) + i - 1];
       }
     }
-    state_next[2] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[6] = cases_0_5 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[7] = cases_05_15 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[8] = cases_15_plus * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[4] = cases_cumulative + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[16] = cases_cumulative_0_5 + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[17] = cases_cumulative_05_15 + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[18] = cases_cumulative_15_plus + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[19] = cases_cumulative_PBS + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[20] = cases_cumulative_SW + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[9] = cases_PBS * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[10] = cases_SW * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     for (int i = 1; i <= shared->dim_Id_1; ++i) {
       for (int j = 1; j <= shared->dim_Id_2; ++j) {
         state_next[shared->offset_variable_Id + i - 1 + shared->dim_Id_1 * (j - 1)] = Id[shared->dim_Id_1 * (j - 1) + i - 1] + internal.delta_Id[shared->dim_delta_Id_1 * (j - 1) + i - 1];
@@ -698,6 +686,18 @@ public:
         state_next[37 + i - 1 + shared->dim_S_1 * (j - 1)] = S[shared->dim_S_1 * (j - 1) + i - 1] + internal.delta_S_n_vaccination[shared->dim_delta_S_n_vaccination_1 * (j - 1) + i - 1] - internal.n_SEa[shared->dim_n_SEa_1 * (j - 1) + i - 1];
       }
     }
+    state_next[2] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[7] = cases_05_15 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[6] = cases_0_5 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[8] = cases_15_plus * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[9] = cases_PBS * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[10] = cases_SW * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[4] = cases_cumulative + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[17] = cases_cumulative_05_15 + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[16] = cases_cumulative_0_5 + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[18] = cases_cumulative_15_plus + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[19] = cases_cumulative_PBS + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[20] = cases_cumulative_SW + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     for (int i = 1; i <= shared->dim_Ea_1; ++i) {
       for (int j = 1; j <= shared->dim_Ea_2; ++j) {
         state_next[shared->offset_variable_Ea + i - 1 + shared->dim_Ea_1 * (j - 1)] = Ea[shared->dim_Ea_1 * (j - 1) + i - 1] + internal.delta_Ea_n_vaccination[shared->dim_delta_Ea_n_vaccination_1 * (j - 1) + i - 1] + internal.delta_Ea[shared->dim_delta_Ea_1 * (j - 1) + i - 1];
@@ -945,46 +945,47 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   auto shared = std::make_shared<model_targeted_vax::shared_type>();
   model_targeted_vax::internal_type internal;
   shared->initial_cases = 0;
-  shared->initial_cases_0_5 = 0;
   shared->initial_cases_05_15 = 0;
+  shared->initial_cases_0_5 = 0;
   shared->initial_cases_15_plus = 0;
+  shared->initial_cases_PBS = 0;
+  shared->initial_cases_SW = 0;
   shared->initial_cases_cumulative = 0;
-  shared->initial_cases_cumulative_0_5 = 0;
   shared->initial_cases_cumulative_05_15 = 0;
+  shared->initial_cases_cumulative_0_5 = 0;
   shared->initial_cases_cumulative_15_plus = 0;
   shared->initial_cases_cumulative_PBS = 0;
   shared->initial_cases_cumulative_SW = 0;
-  shared->initial_cases_PBS = 0;
-  shared->initial_cases_SW = 0;
   shared->initial_deaths = 0;
-  shared->initial_deaths_0_5 = 0;
   shared->initial_deaths_05_15 = 0;
+  shared->initial_deaths_0_5 = 0;
   shared->initial_deaths_15_plus = 0;
+  shared->initial_deaths_PBS = 0;
+  shared->initial_deaths_SW = 0;
   shared->initial_deaths_cumulative = 0;
-  shared->initial_deaths_cumulative_0_5 = 0;
   shared->initial_deaths_cumulative_05_15 = 0;
+  shared->initial_deaths_cumulative_0_5 = 0;
   shared->initial_deaths_cumulative_15_plus = 0;
   shared->initial_deaths_cumulative_PBS = 0;
   shared->initial_deaths_cumulative_SW = 0;
-  shared->initial_deaths_PBS = 0;
-  shared->initial_deaths_SW = 0;
   shared->initial_prioritisation_step = 1;
   shared->initial_total_vax = 0;
   shared->initial_vax_given_Ea = 0;
   shared->initial_vax_given_Eb = 0;
   shared->initial_vax_given_R = 0;
   shared->initial_vax_given_S = 0;
+  shared->N_prioritisation_steps = NA_INTEGER;
   shared->beta_h = NA_REAL;
   shared->beta_s = NA_REAL;
   shared->gamma_E = NA_REAL;
   shared->gamma_Id = NA_REAL;
   shared->gamma_Ir = NA_REAL;
   shared->n_group = NA_INTEGER;
-  shared->N_prioritisation_steps = NA_INTEGER;
   shared->n_vax = NA_INTEGER;
   shared->vaccination_campaign_length = NA_INTEGER;
   shared->dt = 1;
   internal.initial_time = 0;
+  shared->N_prioritisation_steps = user_get_scalar<int>(user, "N_prioritisation_steps", shared->N_prioritisation_steps, NA_INTEGER, NA_INTEGER);
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
   shared->beta_s = user_get_scalar<real_type>(user, "beta_s", shared->beta_s, NA_REAL, NA_REAL);
   shared->dt = user_get_scalar<real_type>(user, "dt", shared->dt, NA_REAL, NA_REAL);
@@ -992,16 +993,47 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->gamma_Id = user_get_scalar<real_type>(user, "gamma_Id", shared->gamma_Id, NA_REAL, NA_REAL);
   shared->gamma_Ir = user_get_scalar<real_type>(user, "gamma_Ir", shared->gamma_Ir, NA_REAL, NA_REAL);
   shared->n_group = user_get_scalar<int>(user, "n_group", shared->n_group, NA_INTEGER, NA_INTEGER);
-  shared->N_prioritisation_steps = user_get_scalar<int>(user, "N_prioritisation_steps", shared->N_prioritisation_steps, NA_INTEGER, NA_INTEGER);
   shared->n_vax = user_get_scalar<int>(user, "n_vax", shared->n_vax, NA_INTEGER, NA_INTEGER);
   shared->vaccination_campaign_length = user_get_scalar<int>(user, "vaccination_campaign_length", shared->vaccination_campaign_length, NA_INTEGER, NA_INTEGER);
-  shared->dim_beta_z = shared->n_group;
   shared->dim_CFR_1 = shared->n_group;
   shared->dim_CFR_2 = shared->n_vax;
-  shared->dim_D_1 = shared->n_group;
-  shared->dim_D_2 = shared->n_vax;
   shared->dim_D0_1 = shared->n_group;
   shared->dim_D0_2 = shared->n_vax;
+  shared->dim_D_1 = shared->n_group;
+  shared->dim_D_2 = shared->n_vax;
+  shared->dim_E_1 = shared->n_group;
+  shared->dim_E_2 = shared->n_vax;
+  shared->dim_Ea0_1 = shared->n_group;
+  shared->dim_Ea0_2 = shared->n_vax;
+  shared->dim_Ea_1 = shared->n_group;
+  shared->dim_Ea_2 = shared->n_vax;
+  shared->dim_Eb0_1 = shared->n_group;
+  shared->dim_Eb0_2 = shared->n_vax;
+  shared->dim_Eb_1 = shared->n_group;
+  shared->dim_Eb_2 = shared->n_vax;
+  shared->dim_I_1 = shared->n_group;
+  shared->dim_I_2 = shared->n_vax;
+  shared->dim_I_infectious_1 = shared->n_group;
+  shared->dim_I_infectious_2 = shared->n_vax;
+  shared->dim_Id0_1 = shared->n_group;
+  shared->dim_Id0_2 = shared->n_vax;
+  shared->dim_Id_1 = shared->n_group;
+  shared->dim_Id_2 = shared->n_vax;
+  shared->dim_Ir0_1 = shared->n_group;
+  shared->dim_Ir0_2 = shared->n_vax;
+  shared->dim_Ir_1 = shared->n_group;
+  shared->dim_Ir_2 = shared->n_vax;
+  shared->dim_N_1 = shared->n_group;
+  shared->dim_N_2 = shared->n_vax;
+  shared->dim_R0_1 = shared->n_group;
+  shared->dim_R0_2 = shared->n_vax;
+  shared->dim_R_1 = shared->n_group;
+  shared->dim_R_2 = shared->n_vax;
+  shared->dim_S0_1 = shared->n_group;
+  shared->dim_S0_2 = shared->n_vax;
+  shared->dim_S_1 = shared->n_group;
+  shared->dim_S_2 = shared->n_vax;
+  shared->dim_beta_z = shared->n_group;
   shared->dim_daily_doses_1 = shared->vaccination_campaign_length;
   shared->dim_daily_doses_2 = shared->n_vax;
   shared->dim_daily_doses_t_1 = 1;
@@ -1026,36 +1058,12 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_delta_R_n_vaccination_2 = shared->n_vax;
   shared->dim_delta_S_n_vaccination_1 = shared->n_group;
   shared->dim_delta_S_n_vaccination_2 = shared->n_vax;
-  shared->dim_E_1 = shared->n_group;
-  shared->dim_E_2 = shared->n_vax;
-  shared->dim_Ea_1 = shared->n_group;
-  shared->dim_Ea_2 = shared->n_vax;
-  shared->dim_Ea0_1 = shared->n_group;
-  shared->dim_Ea0_2 = shared->n_vax;
-  shared->dim_Eb_1 = shared->n_group;
-  shared->dim_Eb_2 = shared->n_vax;
-  shared->dim_Eb0_1 = shared->n_group;
-  shared->dim_Eb0_2 = shared->n_vax;
-  shared->dim_I_1 = shared->n_group;
-  shared->dim_I_2 = shared->n_vax;
-  shared->dim_I_infectious_1 = shared->n_group;
-  shared->dim_I_infectious_2 = shared->n_vax;
-  shared->dim_Id_1 = shared->n_group;
-  shared->dim_Id_2 = shared->n_vax;
-  shared->dim_Id0_1 = shared->n_group;
-  shared->dim_Id0_2 = shared->n_vax;
-  shared->dim_Ir_1 = shared->n_group;
-  shared->dim_Ir_2 = shared->n_vax;
-  shared->dim_Ir0_1 = shared->n_group;
-  shared->dim_Ir0_2 = shared->n_vax;
   shared->dim_lambda_1 = shared->n_group;
   shared->dim_lambda_2 = shared->n_vax;
   shared->dim_m_gen_pop_1 = shared->n_group;
   shared->dim_m_gen_pop_2 = shared->n_group;
   shared->dim_m_sex_1 = shared->n_group;
   shared->dim_m_sex_2 = shared->n_group;
-  shared->dim_N_1 = shared->n_group;
-  shared->dim_N_2 = shared->n_vax;
   shared->dim_n_EaEb_1 = shared->n_group;
   shared->dim_n_EaEb_2 = shared->n_vax;
   shared->dim_n_EbI_1 = shared->n_group;
@@ -1064,13 +1072,13 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_n_EbId_2 = shared->n_vax;
   shared->dim_n_EbIr_1 = shared->n_group;
   shared->dim_n_EbIr_2 = shared->n_vax;
-  shared->dim_n_eligible = shared->n_group;
   shared->dim_n_IdD_1 = shared->n_group;
   shared->dim_n_IdD_2 = shared->n_vax;
   shared->dim_n_IrR_1 = shared->n_group;
   shared->dim_n_IrR_2 = shared->n_vax;
   shared->dim_n_SEa_1 = shared->n_group;
   shared->dim_n_SEa_2 = shared->n_vax;
+  shared->dim_n_eligible = shared->n_group;
   shared->dim_n_vaccination_t_Ea_1 = shared->n_group;
   shared->dim_n_vaccination_t_Ea_2 = shared->n_vax;
   shared->dim_n_vaccination_t_Eb_1 = shared->n_group;
@@ -1084,18 +1092,10 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_prioritisation_strategy_1 = shared->n_group;
   shared->dim_prioritisation_strategy_2 = shared->N_prioritisation_steps;
   shared->dim_prop_infectious = shared->n_group;
-  shared->dim_R_1 = shared->n_group;
-  shared->dim_R_2 = shared->n_vax;
-  shared->dim_R0_1 = shared->n_group;
-  shared->dim_R0_2 = shared->n_vax;
-  shared->dim_S_1 = shared->n_group;
-  shared->dim_S_2 = shared->n_vax;
   shared->dim_s_ij_gen_pop_1 = shared->n_group;
   shared->dim_s_ij_gen_pop_2 = shared->n_group;
   shared->dim_s_ij_sex_1 = shared->n_group;
   shared->dim_s_ij_sex_2 = shared->n_group;
-  shared->dim_S0_1 = shared->n_group;
-  shared->dim_S0_2 = shared->n_vax;
   shared->dim_target_met_t_1 = shared->n_group;
   shared->dim_target_met_t_2 = 1;
   shared->dim_total_vaccinated_t_1 = shared->n_group;
@@ -1105,8 +1105,8 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_vaccine_uptake = shared->n_group;
   shared->dim_ve_I = shared->n_vax;
   shared->dim_ve_T = shared->n_vax;
-  shared->p_EE = 1 - dust::math::exp(- shared->gamma_E * shared->dt);
-  shared->p_EI = 1 - dust::math::exp(- shared->gamma_E * shared->dt);
+  shared->p_EE = 1 - dust::math::exp(- shared->gamma_E * 2 * shared->dt);
+  shared->p_EI = 1 - dust::math::exp(- shared->gamma_E * 2 * shared->dt);
   shared->p_IdD = 1 - dust::math::exp(- shared->gamma_Id * shared->dt);
   shared->p_IrR = 1 - dust::math::exp(- shared->gamma_Ir * shared->dt);
   shared->steps_per_week = 7 / (real_type) shared->dt;
@@ -1116,6 +1116,22 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_CFR = shared->dim_CFR_1 * shared->dim_CFR_2;
   shared->dim_D = shared->dim_D_1 * shared->dim_D_2;
   shared->dim_D0 = shared->dim_D0_1 * shared->dim_D0_2;
+  shared->dim_E = shared->dim_E_1 * shared->dim_E_2;
+  shared->dim_Ea = shared->dim_Ea_1 * shared->dim_Ea_2;
+  shared->dim_Ea0 = shared->dim_Ea0_1 * shared->dim_Ea0_2;
+  shared->dim_Eb = shared->dim_Eb_1 * shared->dim_Eb_2;
+  shared->dim_Eb0 = shared->dim_Eb0_1 * shared->dim_Eb0_2;
+  shared->dim_I = shared->dim_I_1 * shared->dim_I_2;
+  shared->dim_I_infectious = shared->dim_I_infectious_1 * shared->dim_I_infectious_2;
+  shared->dim_Id = shared->dim_Id_1 * shared->dim_Id_2;
+  shared->dim_Id0 = shared->dim_Id0_1 * shared->dim_Id0_2;
+  shared->dim_Ir = shared->dim_Ir_1 * shared->dim_Ir_2;
+  shared->dim_Ir0 = shared->dim_Ir0_1 * shared->dim_Ir0_2;
+  shared->dim_N = shared->dim_N_1 * shared->dim_N_2;
+  shared->dim_R = shared->dim_R_1 * shared->dim_R_2;
+  shared->dim_R0 = shared->dim_R0_1 * shared->dim_R0_2;
+  shared->dim_S = shared->dim_S_1 * shared->dim_S_2;
+  shared->dim_S0 = shared->dim_S0_1 * shared->dim_S0_2;
   shared->dim_daily_doses = shared->dim_daily_doses_1 * shared->dim_daily_doses_2;
   shared->dim_daily_doses_t = shared->dim_daily_doses_t_1 * shared->dim_daily_doses_t_2;
   shared->dim_delta_D = shared->dim_delta_D_1 * shared->dim_delta_D_2;
@@ -1128,21 +1144,9 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_delta_R = shared->dim_delta_R_1 * shared->dim_delta_R_2;
   shared->dim_delta_R_n_vaccination = shared->dim_delta_R_n_vaccination_1 * shared->dim_delta_R_n_vaccination_2;
   shared->dim_delta_S_n_vaccination = shared->dim_delta_S_n_vaccination_1 * shared->dim_delta_S_n_vaccination_2;
-  shared->dim_E = shared->dim_E_1 * shared->dim_E_2;
-  shared->dim_Ea = shared->dim_Ea_1 * shared->dim_Ea_2;
-  shared->dim_Ea0 = shared->dim_Ea0_1 * shared->dim_Ea0_2;
-  shared->dim_Eb = shared->dim_Eb_1 * shared->dim_Eb_2;
-  shared->dim_Eb0 = shared->dim_Eb0_1 * shared->dim_Eb0_2;
-  shared->dim_I = shared->dim_I_1 * shared->dim_I_2;
-  shared->dim_I_infectious = shared->dim_I_infectious_1 * shared->dim_I_infectious_2;
-  shared->dim_Id = shared->dim_Id_1 * shared->dim_Id_2;
-  shared->dim_Id0 = shared->dim_Id0_1 * shared->dim_Id0_2;
-  shared->dim_Ir = shared->dim_Ir_1 * shared->dim_Ir_2;
-  shared->dim_Ir0 = shared->dim_Ir0_1 * shared->dim_Ir0_2;
   shared->dim_lambda = shared->dim_lambda_1 * shared->dim_lambda_2;
   shared->dim_m_gen_pop = shared->dim_m_gen_pop_1 * shared->dim_m_gen_pop_2;
   shared->dim_m_sex = shared->dim_m_sex_1 * shared->dim_m_sex_2;
-  shared->dim_N = shared->dim_N_1 * shared->dim_N_2;
   shared->dim_n_EaEb = shared->dim_n_EaEb_1 * shared->dim_n_EaEb_2;
   shared->dim_n_EbI = shared->dim_n_EbI_1 * shared->dim_n_EbI_2;
   shared->dim_n_EbId = shared->dim_n_EbId_1 * shared->dim_n_EbId_2;
@@ -1156,18 +1160,23 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->dim_n_vaccination_t_S = shared->dim_n_vaccination_t_S_1 * shared->dim_n_vaccination_t_S_2;
   shared->dim_p_SE = shared->dim_p_SE_1 * shared->dim_p_SE_2;
   shared->dim_prioritisation_strategy = shared->dim_prioritisation_strategy_1 * shared->dim_prioritisation_strategy_2;
-  shared->dim_R = shared->dim_R_1 * shared->dim_R_2;
-  shared->dim_R0 = shared->dim_R0_1 * shared->dim_R0_2;
-  shared->dim_S = shared->dim_S_1 * shared->dim_S_2;
   shared->dim_s_ij_gen_pop = shared->dim_s_ij_gen_pop_1 * shared->dim_s_ij_gen_pop_2;
   shared->dim_s_ij_sex = shared->dim_s_ij_sex_1 * shared->dim_s_ij_sex_2;
-  shared->dim_S0 = shared->dim_S0_1 * shared->dim_S0_2;
   shared->dim_target_met_t = shared->dim_target_met_t_1 * shared->dim_target_met_t_2;
   shared->dim_total_vaccinated_t = shared->dim_total_vaccinated_t_1 * shared->dim_total_vaccinated_t_2;
   shared->dim_vaccination_coverage_target = shared->dim_vaccination_coverage_target_1 * shared->dim_vaccination_coverage_target_2;
   shared->vaccine_uptake = user_get_array_fixed<real_type, 1>(user, "vaccine_uptake", shared->vaccine_uptake, {shared->dim_vaccine_uptake}, NA_REAL, NA_REAL);
   shared->ve_I = user_get_array_fixed<real_type, 1>(user, "ve_I", shared->ve_I, {shared->dim_ve_I}, NA_REAL, NA_REAL);
   shared->ve_T = user_get_array_fixed<real_type, 1>(user, "ve_T", shared->ve_T, {shared->dim_ve_T}, NA_REAL, NA_REAL);
+  shared->CFR = user_get_array_fixed<real_type, 2>(user, "CFR", shared->CFR, {shared->dim_CFR_1, shared->dim_CFR_2}, NA_REAL, NA_REAL);
+  shared->D0 = user_get_array_fixed<real_type, 2>(user, "D0", shared->D0, {shared->dim_D0_1, shared->dim_D0_2}, NA_REAL, NA_REAL);
+  shared->Ea0 = user_get_array_fixed<real_type, 2>(user, "Ea0", shared->Ea0, {shared->dim_Ea0_1, shared->dim_Ea0_2}, NA_REAL, NA_REAL);
+  shared->Eb0 = user_get_array_fixed<real_type, 2>(user, "Eb0", shared->Eb0, {shared->dim_Eb0_1, shared->dim_Eb0_2}, NA_REAL, NA_REAL);
+  shared->Id0 = user_get_array_fixed<real_type, 2>(user, "Id0", shared->Id0, {shared->dim_Id0_1, shared->dim_Id0_2}, NA_REAL, NA_REAL);
+  shared->Ir0 = user_get_array_fixed<real_type, 2>(user, "Ir0", shared->Ir0, {shared->dim_Ir0_1, shared->dim_Ir0_2}, NA_REAL, NA_REAL);
+  shared->R0 = user_get_array_fixed<real_type, 2>(user, "R0", shared->R0, {shared->dim_R0_1, shared->dim_R0_2}, NA_REAL, NA_REAL);
+  shared->S0 = user_get_array_fixed<real_type, 2>(user, "S0", shared->S0, {shared->dim_S0_1, shared->dim_S0_2}, NA_REAL, NA_REAL);
+  internal.I_infectious = std::vector<real_type>(shared->dim_I_infectious);
   internal.daily_doses_t = std::vector<real_type>(shared->dim_daily_doses_t);
   internal.delta_D = std::vector<real_type>(shared->dim_delta_D);
   internal.delta_Ea = std::vector<real_type>(shared->dim_delta_Ea);
@@ -1179,7 +1188,6 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   internal.delta_R = std::vector<real_type>(shared->dim_delta_R);
   internal.delta_R_n_vaccination = std::vector<real_type>(shared->dim_delta_R_n_vaccination);
   internal.delta_S_n_vaccination = std::vector<real_type>(shared->dim_delta_S_n_vaccination);
-  internal.I_infectious = std::vector<real_type>(shared->dim_I_infectious);
   shared->initial_D = std::vector<real_type>(shared->dim_D);
   shared->initial_E = std::vector<real_type>(shared->dim_E);
   shared->initial_Ea = std::vector<real_type>(shared->dim_Ea);
@@ -1207,13 +1215,7 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   internal.s_ij_sex = std::vector<real_type>(shared->dim_s_ij_sex);
   internal.target_met_t = std::vector<real_type>(shared->dim_target_met_t);
   internal.total_vaccinated_t = std::vector<real_type>(shared->dim_total_vaccinated_t);
-  shared->CFR = user_get_array_fixed<real_type, 2>(user, "CFR", shared->CFR, {shared->dim_CFR_1, shared->dim_CFR_2}, NA_REAL, NA_REAL);
-  shared->D0 = user_get_array_fixed<real_type, 2>(user, "D0", shared->D0, {shared->dim_D0_1, shared->dim_D0_2}, NA_REAL, NA_REAL);
   shared->daily_doses = user_get_array_fixed<real_type, 2>(user, "daily_doses", shared->daily_doses, {shared->dim_daily_doses_1, shared->dim_daily_doses_2}, NA_REAL, NA_REAL);
-  shared->Ea0 = user_get_array_fixed<real_type, 2>(user, "Ea0", shared->Ea0, {shared->dim_Ea0_1, shared->dim_Ea0_2}, NA_REAL, NA_REAL);
-  shared->Eb0 = user_get_array_fixed<real_type, 2>(user, "Eb0", shared->Eb0, {shared->dim_Eb0_1, shared->dim_Eb0_2}, NA_REAL, NA_REAL);
-  shared->Id0 = user_get_array_fixed<real_type, 2>(user, "Id0", shared->Id0, {shared->dim_Id0_1, shared->dim_Id0_2}, NA_REAL, NA_REAL);
-  shared->Ir0 = user_get_array_fixed<real_type, 2>(user, "Ir0", shared->Ir0, {shared->dim_Ir0_1, shared->dim_Ir0_2}, NA_REAL, NA_REAL);
   shared->m_gen_pop = user_get_array_fixed<real_type, 2>(user, "m_gen_pop", shared->m_gen_pop, {shared->dim_m_gen_pop_1, shared->dim_m_gen_pop_2}, NA_REAL, NA_REAL);
   shared->m_sex = user_get_array_fixed<real_type, 2>(user, "m_sex", shared->m_sex, {shared->dim_m_sex_1, shared->dim_m_sex_2}, NA_REAL, NA_REAL);
   shared->offset_variable_D = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 37;
@@ -1226,8 +1228,6 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->offset_variable_N = shared->dim_D + shared->dim_E + shared->dim_Ea + shared->dim_Eb + shared->dim_I + shared->dim_Id + shared->dim_Ir + shared->dim_R + shared->dim_S + 37;
   shared->offset_variable_R = shared->dim_Ea + shared->dim_Eb + shared->dim_Id + shared->dim_Ir + shared->dim_S + 37;
   shared->prioritisation_strategy = user_get_array_fixed<real_type, 2>(user, "prioritisation_strategy", shared->prioritisation_strategy, {shared->dim_prioritisation_strategy_1, shared->dim_prioritisation_strategy_2}, NA_REAL, NA_REAL);
-  shared->R0 = user_get_array_fixed<real_type, 2>(user, "R0", shared->R0, {shared->dim_R0_1, shared->dim_R0_2}, NA_REAL, NA_REAL);
-  shared->S0 = user_get_array_fixed<real_type, 2>(user, "S0", shared->S0, {shared->dim_S0_1, shared->dim_S0_2}, NA_REAL, NA_REAL);
   shared->vaccination_coverage_target = user_get_array_fixed<real_type, 2>(user, "vaccination_coverage_target", shared->vaccination_coverage_target, {shared->dim_vaccination_coverage_target_1, shared->dim_vaccination_coverage_target_2}, NA_REAL, NA_REAL);
   for (int i = 1; i <= shared->dim_D_1; ++i) {
     for (int j = 1; j <= shared->dim_D_2; ++j) {
