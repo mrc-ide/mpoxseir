@@ -124,3 +124,77 @@ get_age_bins <- function() {
   data.frame(label = label, start = start, end = end)
 }
 
+
+#' @export
+parameters_fixed <- function(N, overrides = list()) {
+
+  ## Initialising variable that other parameters depend on
+  demographic_params <- parameters_demographic()
+  n_group <- demographic_params$n_group
+  n_vax <- demographic_params$n_vax
+  N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
+  N_prioritisation_steps <- 1
+
+  # seed infections
+  Ea0 <- matrix(5, nrow = n_group, ncol = n_vax)
+  X0 <- matrix(0, nrow = n_group, ncol = n_vax)
+
+  # CFR from Whittles 2024, 5-year bands to 40
+  age_bins <- get_age_bins()
+  CFR <- rep(0, n_group)
+  names(CFR) <- names(demographic_params$N0)
+  CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
+  CFR[which(age_bins$start >= 40)] <- 0.01
+  CFR["SW"] <- CFR["20-24"]
+  CFR["PBS"] <- CFR["35-39"]
+
+  vaccination_campaign_length <- 1
+
+  ## note this needs to be updated with proper assignment of people into unvax vs vax
+  ## NOTE THIS REALLY NEEDS TO BE UPDATED WITH PROPER ASSIGNMENT OF PEOPLE INTO UNVAX VS VAX
+  params_list = list(
+    n_group = n_group,
+    n_vax = n_vax,
+    N_prioritisation_steps = N_prioritisation_steps,
+    S0 = round(N0 / n_vax) - Ea0,
+    Ea0 = Ea0,
+    Eb0 = X0,
+    Ir0 = X0,
+    Id0 = X0,
+    R0 = X0,
+    D0 = X0,
+    N0 = N0,
+    R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
+    R0_sw_st = 1.3, # Will be fitted
+    beta_z_max = 0.01, # Will be fitted
+    RR_z = c(0.977, 1, 0.444, rep(0.078, n_group - 3)), # Jezek 1988 zoonotic + Jezek 1987
+    gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
+    gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
+    gamma_Id = 1 / 10, # Jezek 1988
+    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
+    m_sex = demographic_params$m_sex,
+    m_gen_pop = demographic_params$m_gen_pop,
+    prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
+    vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
+    vaccine_uptake = rep(0.8, n_group),
+    ve_T = rep(0, n_vax),
+    ve_I = rep(0, n_vax),
+    vaccination_campaign_length = vaccination_campaign_length,
+    daily_doses = matrix(1, nrow = vaccination_campaign_length, ncol = n_vax))
+
+  # Ensure overridden parameters are passed as a list
+  if (!is.list(overrides)) {
+    stop('overrides must be a list')
+  }
+
+  # Override parameter values in the overrides input
+  for (name in names(overrides)) {
+    if (!(name %in% names(params_list))) {
+      stop(paste('unknown parameter', name, sep=' '))
+    }
+    params_list[[name]] <- overrides[[name]]
+  }
+
+  return(params_list)
+}
+

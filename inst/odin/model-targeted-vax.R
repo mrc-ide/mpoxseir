@@ -168,8 +168,8 @@ update(total_vax) <- total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax
 
 ## Individual probabilities of transition:
 p_SE[,] <- 1 - exp(-lambda[i,j] * dt) # S to E - age dependent
-p_EE <- 1 - exp(-gamma_E * dt) # progression through latent period
-p_EI <- 1 - exp(-gamma_E * dt) # progression to infection
+p_EE <- 1 - exp(-gamma_E * 2 * dt) # progression through latent period (2 subcompartments)
+p_EI <- 1 - exp(-gamma_E * 2 * dt) # progression to infection
 p_IrR <- 1 - exp(-gamma_Ir * dt) # progression through infectious period to recovery
 p_IdD <- 1 - exp(-gamma_Id * dt) # progression through infectious period to death
 
