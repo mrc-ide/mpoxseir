@@ -150,18 +150,17 @@ parameters_fixed <- function(N, overrides = list()) {
 
   vaccination_campaign_length <- 1
 
-  ## note this needs to be updated with proper assignment of people into unvax vs vax
-  ## NOTE THIS REALLY NEEDS TO BE UPDATED WITH PROPER ASSIGNMENT OF PEOPLE INTO UNVAX VS VAX - RM: assuming this is smallpox vax which is what I'm fixing below but ignore if not correct
-  ## update with assignment into smallpox vaccination
+  ## update with assignment into smallpox vaccination compartment (j=1)
   S0 <- matrix(0,nrow=demographic_params$n_group,ncol=demographic_params$n_vax)
-  S0[,1] <- rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,1]
-  S0[,n_vax] <- N0-S0[,1]-Ea0[,2]
+  S0[,2] <- rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
+  S0[,1] <- N0-S0[,2]-Ea0[,1]
+  ##rowSums(S0)+rowSums(Ea0)==N0
 
   params_list = list(
     n_group = n_group,
     n_vax = n_vax,
     N_prioritisation_steps = N_prioritisation_steps,
-    S0 = round(N0 / n_vax) - Ea0,
+    S0 = S0,
     Ea0 = Ea0,
     Eb0 = X0,
     Ir0 = X0,
