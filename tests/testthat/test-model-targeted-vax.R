@@ -93,9 +93,9 @@ test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
   pars$beta_h <- 0
   pars$beta_z<- rep(0,pars$n_group)
   # need to seed infections as so low otherwise
-  pars$Ir0[17:18,1] <- pars$Ir0[17:18,1] + 1
-  pars$Id0[17:18,1] <- pars$Id0[17:18,1] + 1
-  pars$S0[17:18,1] <- pars$S0[17:18,1] - pars$Id0[17:18,1] - pars$Ir0[17:18,1]
+  pars$Ir0[17:18,2] <- pars$Ir0[17:18,2] + 1
+  pars$Id0[17:18,2] <- pars$Id0[17:18,2] + 1
+  pars$S0[17:18,2] <- pars$S0[17:18,2] - pars$Id0[17:18,2] - pars$Ir0[17:18,2]
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 50) # run for longer to ensure infections in PBS
@@ -128,16 +128,16 @@ test_that("when n_vaccination>0, vaccinations are given", {
   rownames(res) <- names(unlist(m$info()$index))
 
   comps_of_interest_S <- paste0("S",
-                                seq(from=pars$n_group+1,
+                                seq(from=2*pars$n_group+1,
                                     to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_Ea <- paste0("Ea",
-                                 seq(from=pars$n_group+1,
+                                 seq(from=2*pars$n_group+1,
                                      to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_Eb <- paste0("Eb",
-                                 seq(from=pars$n_group+1,
+                                 seq(from=2*pars$n_group+1,
                                      to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_R <- paste0("R",
-                                seq(from=pars$n_group+1,
+                                seq(from=2*pars$n_group+1,
                                     to=pars$n_group*pars$n_vax,by=1))
 
 
@@ -202,10 +202,21 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
   rownames(res) <- names(unlist(m$info()$index))
 
   if(all(res["prioritisation_step",,]==1)){
-    expect_true(all(res[paste0("S",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Ea",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Eb",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("R",(pars$n_group+4):(2*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("S",(2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Ea",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Eb",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("R",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("S",(3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Ea",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Eb",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("R",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+
   }
 
 })
@@ -226,6 +237,37 @@ test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
 })
 
 
+test_that("no one moves in or out of j=1 (previous smallpox vaccine)", {
+  pars <- reference_pars_targeted_vax()
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  # the total number of people in j=1 shouldn't change
+  expect_true(all(res[paste0("N",seq(1:pars$n_group)),,]==pars$S0[,1]))
+
+  ## population check
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
+
+})
+
+
+test_that("1st and 2nd doses are given", {
+  pars <- reference_pars_targeted_vax()
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  # 1st doses are given
+  expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  # 2nd doses are given
+  expect_true(all(res["total_vax_2nddose",,max(t)]>0))
+
+})
 
 
 
