@@ -106,7 +106,7 @@ parameters_demographic <- function() {
     m_sex = m_sex,
     total_contacts_gen_pop = M_all,
     #total_contacts_sex = M_sex,
-    n_vax = 2,
+    n_vax = 4,
     sus_prop = sus_prop,
     province_pop = province_pop
   )
