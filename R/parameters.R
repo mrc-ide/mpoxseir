@@ -151,10 +151,15 @@ parameters_fixed <- function(N, overrides = list()) {
   vaccination_campaign_length <- 1
 
   ## update with assignment into smallpox vaccination compartment (j=1)
-  S0 <- matrix(0,nrow=demographic_params$n_group,ncol=demographic_params$n_vax)
-  S0[,2] <- rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
-  S0[,1] <- N0-S0[,2]-Ea0[,1]
-  ##rowSums(S0)+rowSums(Ea0)==N0
+  ## if we have a small population then seeding with 5 infections per compt and strata could be a problem (e.g. with N=10000 too few SW)
+  if(all(rowSums(Ea0)<N0)){
+      S0 <- matrix(0,nrow=demographic_params$n_group,
+                   ncol=demographic_params$n_vax)
+      S0[,2] <- round((N0-rowSums(Ea0))*demographic_params$sus_prop)
+      #rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
+      S0[,1] <- N0-rowSums(Ea0)-S0[,2]
+      ##rowSums(S0)+rowSums(Ea0)==N0
+  }
 
   params_list = list(
     n_group = n_group,
