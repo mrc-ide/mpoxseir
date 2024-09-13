@@ -130,7 +130,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
 
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu"))) {
-    stop("region must be equatuer or sudkivu")
+    stop("region must be equateur or sudkivu")
   }
 
   ## Initialising variable that other parameters depend on
