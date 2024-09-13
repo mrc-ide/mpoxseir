@@ -1,8 +1,8 @@
 
 #' @export
-create_transform_params <- function(N, overrides = list()) {
+create_transform_params <- function(region, overrides = list()) {
 
-  pars <- parameters_fixed(N = N, overrides = overrides)
+  pars <- parameters_fixed(region = region, overrides = overrides)
 
   function(beta_z_max,  ## zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
            R0_hh,       ## R0 for household transmission (used to calculate beta_h)
@@ -67,7 +67,7 @@ create_transform_params <- function(N, overrides = list()) {
 #' @export
 run_mpoxSEIR_targetedVax_single <- function(
 
-    N,       # population size to run the model with
+    region,  # region to run the model for (either Sud Kivu or Equateur)
     n_weeks, # number of weeks to run for
 
     ## Transmission related parameters
@@ -102,7 +102,7 @@ run_mpoxSEIR_targetedVax_single <- function(
   ########################
 
   ## Transforming inputted parameters into those required for model running
-  transform_params <- create_transform_params(N = N, overrides = list())
+  transform_params <- create_transform_params(region = region, overrides = list())
   pars <- transform_params(beta_z_max = beta_z_max,
                            R0_hh = R0_hh,
                            R0_sw_st = R0_sw_st)
@@ -144,7 +144,7 @@ run_mpoxSEIR_targetedVax_single <- function(
 # Run multiple iterations of the model with different parameter values
 #' @export
 run_mpoxSEIR_targetedVax_multiple <- function(
-    N,
+    region,
     n_weeks,
     beta_z_max,
     R0_hh,
@@ -180,7 +180,7 @@ run_mpoxSEIR_targetedVax_multiple <- function(
                  R0_hh = R0_hh,
                  R0_sw_st = R0_sw_st,
                  MoreArgs = list(
-                   N = N,                               ## size of the population to run the model with
+                   region = region,                     ## region to run the model for
                    n_weeks = n_weeks,
                    n_vax = n_vax,                       ## number of vaccination compartments (integer, basis for an additional dimension in odin states)
                    daily_doses = daily_doses,                 ## the daily number of doses administered (matrix of vaccination_campaign_length * number of vaccination compartments)

@@ -126,12 +126,18 @@ get_age_bins <- function() {
 
 
 #' @export
-parameters_fixed <- function(N, overrides = list()) {
+parameters_fixed <- function(region, overrides = list()) {
+
+  ## Checking region
+  if (!(region %in% c("equateur", "sudkivu"))) {
+    stop("region must be equatuer or sudkivu")
+  }
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
+  N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
   N_prioritisation_steps <- 1
 
