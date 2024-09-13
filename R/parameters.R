@@ -160,21 +160,43 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     ## First pass at assigning initial infections
     non_integer_seeding_infections <- RR_z_normalized * initial_infections
     rounded_seeding_infections <- round(non_integer_seeding_infections)
-    rounding_difference <- non_integer_seeding_infections - rounded_seeding_infections
-    
-    ## Assigning the remainder to groups that "lost out" in the initial rounding
-    total_unassigned_infections <- sum(rounding_difference)
-    indices_for_assignment <- which(rounding_difference > 0) # i.e. those that lost out in initial assignment as a result of rounding
-    ordered_indices_for_assignment <- indices_for_assignment[order(RR_z_normalized[indices_for_assignment], decreasing = TRUE)]
-    counter <- 1
-    while (total_unassigned_infections > 0) {
-      index_for_assignment <- ordered_indices_for_assignment[counter]
-      rounded_seeding_infections[index_for_assignment] <- rounded_seeding_infections[index_for_assignment] + 1
-      counter <- counter + 1
-      if (counter > length(indices_for_assignment)) {
-        counter <- 1
+    rounding_difference <- non_integer_seeding_infections - rounded_seeding_infections # calculating the difference bewteen rounded and unrounded infection counts
+    total_rounding_difference <- round(sum(rounding_difference), 0) # negative means too many infections assigned, positive is too few infections assigned
+  
+    ## Depending on whether we've overassigned or underassigned, modify rounded_seeding_infections in a manner proportional RR_z 
+    if (total_rounding_difference > 0) {
+      ## Assigning the remainder to groups that "lost out" in the initial rounding
+      total_unassigned_infections <-  # calculate number of infections still to be assigned
+      indices_for_assignment <- which(rounding_difference > 0) # i.e. those that lost out in initial assignment as a result of rounding
+      ordered_indices_for_assignment <- indices_for_assignment[order(RR_z_normalized[indices_for_assignment], decreasing = TRUE)] # ordering these losers who are owed more infections in order of RR_z
+      
+      ## Assigning remaining infections until we've hit the total_rounding_difference we need to assign
+      counter <- 1
+      while (total_rounding_difference > 0) {
+        index_for_assignment <- ordered_indices_for_assignment[counter]
+        rounded_seeding_infections[index_for_assignment] <- rounded_seeding_infections[index_for_assignment] + 1
+        counter <- counter + 1
+        if (counter > length(indices_for_assignment)) {
+          counter <- 1
+        }
+        total_rounding_difference <- total_rounding_difference - 1
       }
-      total_unassigned_infections <- total_unassigned_infections - 1
+    } else if (total_rounding_difference < 0) {
+      ## Removing the remainder from groups that "won" in the initial rounding
+      indices_for_removal <- which(rounding_difference < 0) # i.e. those that won out in initial assignment as a result of rounding
+      ordered_indices_for_removal <- indices_for_removal[order(RR_z_normalized[indices_for_removal], decreasing = FALSE)] # ordering these winner who need to have infections removed in order of reverse RR_z
+      
+      ## Assigning remaining infections until we've hit the total_unassigned_infections we need to assign
+      counter <- 1
+      while (total_rounding_difference < 0) {
+        index_for_removal <- ordered_indices_for_removal[counter]
+        rounded_seeding_infections[index_for_removal] <- rounded_seeding_infections[index_for_removal] - 1
+        counter <- counter + 1
+        if (counter > length(indices_for_removal)) {
+          counter <- 1
+        }
+        total_rounding_difference <- total_rounding_difference + 1
+      }
     }
     Ea0[gen_pop_index, 2] <- rounded_seeding_infections
     
