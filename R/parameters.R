@@ -124,6 +124,25 @@ get_age_bins <- function() {
   data.frame(label = label, start = start, end = end)
 }
 
+# Function to allocate N individuals into m groups based on weights
+assign_seeds <- function(N, w) {
+
+    w_norm <- w / sum(w)
+    raw_alloc <- N * w_norm
+    int_alloc <- floor(raw_alloc)
+
+    remainder <- N - sum(int_alloc)
+    fractional_parts <- raw_alloc - int_alloc
+
+    # Distribute the remainder to the groups with the largest fractional parts
+    if (remainder > 0) {
+      extra_alloc <- order(fractional_parts, decreasing = TRUE)[1:remainder]
+      int_alloc[extra_alloc] <- int_alloc[extra_alloc] + 1
+    }
+
+    int_alloc
+  }
+
 
 #' @export
 parameters_fixed <- function(region, initial_infections, overrides = list()) {
@@ -135,6 +154,8 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
+  age_bins <- get_age_bins()
+
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
   N <- demographic_params$province_pop[[region]]
@@ -146,66 +167,25 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   Ea0 <- matrix(0, nrow = n_group, ncol = n_vax)
   RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
   if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
-    
+
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
     sw_index <- which(colnames(demographic_params$m_gen_pop) == "SW")
     Ea0[sw_index, 2] <- initial_infections
-    
-  } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
-    
-    ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
-    gen_pop_index <- which(colnames(demographic_params$m_gen_pop) != "SW" & colnames(demographic_params$m_gen_pop) != "PBS")
-    RR_z_normalized <- RR_z[gen_pop_index] / sum(RR_z[gen_pop_index])
 
-    ## First pass at assigning initial infections
-    non_integer_seeding_infections <- RR_z_normalized * initial_infections
-    rounded_seeding_infections <- round(non_integer_seeding_infections)
-    rounding_difference <- non_integer_seeding_infections - rounded_seeding_infections # calculating the difference bewteen rounded and unrounded infection counts
-    total_rounding_difference <- round(sum(rounding_difference), 0) # negative means too many infections assigned, positive is too few infections assigned
-  
-    ## Depending on whether we've overassigned or underassigned, modify rounded_seeding_infections in a manner proportional RR_z 
-    if (total_rounding_difference > 0) {
-      ## Assigning the remainder to groups that "lost out" in the initial rounding
-      total_unassigned_infections <-  # calculate number of infections still to be assigned
-      indices_for_assignment <- which(rounding_difference > 0) # i.e. those that lost out in initial assignment as a result of rounding
-      ordered_indices_for_assignment <- indices_for_assignment[order(RR_z_normalized[indices_for_assignment], decreasing = TRUE)] # ordering these losers who are owed more infections in order of RR_z
-      
-      ## Assigning remaining infections until we've hit the total_rounding_difference we need to assign
-      counter <- 1
-      while (total_rounding_difference > 0) {
-        index_for_assignment <- ordered_indices_for_assignment[counter]
-        rounded_seeding_infections[index_for_assignment] <- rounded_seeding_infections[index_for_assignment] + 1
-        counter <- counter + 1
-        if (counter > length(indices_for_assignment)) {
-          counter <- 1
-        }
-        total_rounding_difference <- total_rounding_difference - 1
-      }
-    } else if (total_rounding_difference < 0) {
-      ## Removing the remainder from groups that "won" in the initial rounding
-      indices_for_removal <- which(rounding_difference < 0) # i.e. those that won out in initial assignment as a result of rounding
-      ordered_indices_for_removal <- indices_for_removal[order(RR_z_normalized[indices_for_removal], decreasing = FALSE)] # ordering these winner who need to have infections removed in order of reverse RR_z
-      
-      ## Assigning remaining infections until we've hit the total_unassigned_infections we need to assign
-      counter <- 1
-      while (total_rounding_difference < 0) {
-        index_for_removal <- ordered_indices_for_removal[counter]
-        rounded_seeding_infections[index_for_removal] <- rounded_seeding_infections[index_for_removal] - 1
-        counter <- counter + 1
-        if (counter > length(indices_for_removal)) {
-          counter <- 1
-        }
-        total_rounding_difference <- total_rounding_difference + 1
-      }
-    }
-    Ea0[gen_pop_index, 2] <- rounded_seeding_infections
-    
+  } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
+
+    ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
+    gen_pop_index <- seq_len(nrow(age_bins))
+    seeding_infections <- assign_seeds(initial_infections, w = RR_z[gen_pop_index])
+
+    Ea0[gen_pop_index, 2] <- seeding_infections
+
   } else {
     stop("something is wrong with the name of the region - change to sudkivu or equateur")
   }
 
   # CFR from Whittles 2024, 5-year bands to 40
-  age_bins <- get_age_bins()
+
   CFR <- rep(0, n_group)
   names(CFR) <- names(demographic_params$N0)
   CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
@@ -232,7 +212,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
-    RR_z = RR_z, 
+    RR_z = RR_z,
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
