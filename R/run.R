@@ -4,16 +4,15 @@ create_transform_params <- function(region, initial_infections, overrides = list
 
   pars <- parameters_fixed(region = region, initial_infections = initial_infections, overrides = overrides)
 
-  function(beta_z_max,  ## zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
-           R0_hh,       ## R0 for household transmission (used to calculate beta_h)
-           R0_sw_st) {  ## R0 for sex workers to people who buy sex)
-
+  function(transformed_pars) {  ## beta_z_max = zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
+                                ## R0_hh = R0 for household transmission (used to calculate beta_h)
+                                ## R0_sw_st = R0 for sex workers to people who buy sex)
     nms_group <- names(pars$N0)
 
     ## Updating values in pars with parameters passed into transform_params
-    pars$beta_z_max <- beta_z_max
-    pars$R0_hh <- R0_hh
-    pars$R0_sw_st <- R0_sw_st
+    pars$beta_z_max <- transformed_pars["beta_z_max"]
+    pars$R0_hh <- transformed_pars["R0_hh"]
+    pars$R0_sw_st <- transformed_pars["R0_sw_st"]
 
     # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 
@@ -22,8 +21,7 @@ create_transform_params <- function(region, initial_infections, overrides = list
     ## is based on duration_infectious_by_age in unvaccinated individuals (i.e. with the unvaxxed CFR)
     k <- 1 # number of compartments per infectious disease state
     dt <- 1 # timestep
-
-
+    
     if (pars$n_vax > 1) {
       CFR <- pars$CFR[, 1]
     } else {
@@ -104,9 +102,8 @@ run_mpoxSEIR_targetedVax_single <- function(
 
   ## Transforming inputted parameters into those required for model running
   transform_params <- create_transform_params(region = region, initial_infections = initial_infections, overrides = list())
-  pars <- transform_params(beta_z_max = beta_z_max,
-                           R0_hh = R0_hh,
-                           R0_sw_st = R0_sw_st)
+  params_for_transform <- c("beta_z_max" = beta_z_max, "R0_hh" = R0_hh, "R0_sw_st" = R0_sw_st)
+  pars <- transform_params(params_for_transform)
 
   ## Setting up the model with the inputted parameters
   mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
