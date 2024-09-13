@@ -154,10 +154,29 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
     
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
-    set.seed(10)
     gen_pop_index <- which(colnames(demographic_params$m_gen_pop) != "SW" & colnames(demographic_params$m_gen_pop) != "PBS")
-    seeding_indices <- sample(x = gen_pop_index, size = initial_infections, replace = TRUE, prob = RR_z[gen_pop_index])
-    Ea0[gen_pop_index, 2] <- as.numeric(table(factor(seeding_indices, levels = gen_pop_index)))
+    RR_z_normalized <- RR_z[gen_pop_index] / sum(RR_z[gen_pop_index])
+
+    ## First pass at assigning initial infections
+    non_integer_seeding_infections <- RR_z_normalized * initial_infections
+    rounded_seeding_infections <- round(non_integer_seeding_infections)
+    rounding_difference <- non_integer_seeding_infections - rounded_seeding_infections
+    
+    ## Assigning the remainder to groups that "lost out" in the initial rounding
+    total_unassigned_infections <- sum(rounding_difference)
+    indices_for_assignment <- which(rounding_difference > 0) # i.e. those that lost out in initial assignment as a result of rounding
+    ordered_indices_for_assignment <- indices_for_assignment[order(RR_z_normalized[indices_for_assignment], decreasing = TRUE)]
+    counter <- 1
+    while (total_unassigned_infections > 0) {
+      index_for_assignment <- ordered_indices_for_assignment[counter]
+      rounded_seeding_infections[index_for_assignment] <- rounded_seeding_infections[index_for_assignment] + 1
+      counter <- counter + 1
+      if (counter > length(indices_for_assignment)) {
+        counter <- 1
+      }
+      total_unassigned_infections <- total_unassigned_infections - 1
+    }
+    Ea0[gen_pop_index, 2] <- rounded_seeding_infections
     
   } else {
     stop("something is wrong with the name of the region - change to sudkivu or equateur")
