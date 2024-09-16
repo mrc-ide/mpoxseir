@@ -15,7 +15,8 @@ update(time) <- (step + 1) * dt
 ## j = 4: 2 doses
 
 ## specify the daily number of vaccinations that can happen at each time point
-## first and last columns must be 0
+## first and last columns must be 0; last row must be 0 (pre-processing job)
+## column j corresponds to the people in j receiving a vaccine (so moving to j+1)
 daily_doses[,] <- user()
 dim(daily_doses) <- c(vaccination_campaign_length,n_vax)
 
@@ -24,56 +25,67 @@ daily_doses_t[,] <- if (as.integer(time) >= (vaccination_campaign_length))
   daily_doses[vaccination_campaign_length,j] else daily_doses[time,j]
 dim(daily_doses_t) <- c(1,n_vax)
 
-## where are we allocating the daily doses for that time step?
-## we have to look at the prioritisation strategy
+## allocate the daily doses according to prioritisation strategy
 
 ## the number of different prioritisation strategies that we are considering
 N_prioritisation_steps <- user()
-#priotisation_step <- user() ### must intialise at 1
 ## what this corresponds to in terms of groups is encoded here
+## this is independent of dose / applies to both doeses
 prioritisation_strategy[,] <- user()
 dim(prioritisation_strategy) <- c(n_group,N_prioritisation_steps)
 
 ## vaccination targets: for each group, what is the level of coverage we want to see before we move onto the next set of groups to target?
 ## when we input this do the calc outside by the population size as part of pre-processing to save faffing around in here
-vaccination_coverage_target[,] <- user()
-dim(vaccination_coverage_target) <- c(n_group,N_prioritisation_steps)
+## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0 and j=1 this stays at 0
+vaccination_coverage_target[,,] <- user()
+dim(vaccination_coverage_target) <- c(n_group,N_prioritisation_steps,n_vax)
 
-## what is the current state of the vaccination targets? e.g. what prioritisation step are we on
-# this depends on whether we have met our targets
-## total vaccinated in the model comes from the columns of N for which j>1
-
-## total number of people vaccinated per group
-## update 10/9: we are subtracting the second column now because this corresponds to unvaccinated
-total_vaccinated_t[,] <- sum(N[i,j]) - N[i,2]
-dim(total_vaccinated_t) <- c(n_group,1)
+## what is the current state of the vaccination targets? e.g. what prioritisation step are we on, this depends on whether we have met our targets
 
 ## has the target been met
-target_met_t[,] <- if(total_vaccinated_t[i,1]>vaccination_coverage_target[i,prioritisation_step]) 1 else 0
-dim(target_met_t) <- c(n_group,1)
+## for cols 1 (smallpox vax) and 2 (unvaccinated) this doesn't matter
+target_met_t[,] <- 0
+dim(target_met_t) <- c(n_group,n_vax)
 
-update(prioritisation_step) <- if(sum(target_met_t[,])==n_group) prioritisation_step + 1 else prioritisation_step
+## 1st doses
+## if you have a 2nd dose this implies you also have had a 1st dose so account for this in the 1st dose target
+target_met_t[,3] <- if(sum(N[,3:4])>vaccination_coverage_target[i,prioritisation_step_1st_dose,3]) 1 else 0
+
+## 2nd doses
+target_met_t[,4] <- if(sum(N[,4])>vaccination_coverage_target[i,prioritisation_step_2nd_dose,4]) 1 else 0
+
+## prioritisation step proposal to account for the fact that this would update every single time step if we vaccinate quickly enough (unlikely but would like it to be done properly)
+prioritisation_step_1st_dose_proposal <- if(sum(target_met_t[,3])==n_group) prioritisation_step_1st_dose + 1 else prioritisation_step_1st_dose
+
+update(prioritisation_step_1st_dose) <- if(prioritisation_step_1st_dose_proposal>N_prioritisation_steps) N_prioritisation_steps else prioritisation_step_1st_dose_proposal
+
+prioritisation_step_2nd_dose_proposal <- if(sum(target_met_t[,4])==n_group) prioritisation_step_2nd_dose + 1 else prioritisation_step_2nd_dose
+
+update(prioritisation_step_2nd_dose) <- if(prioritisation_step_2nd_dose_proposal>N_prioritisation_steps) N_prioritisation_steps else prioritisation_step_2nd_dose_proposal
+
 
 #prioritisation_step <- user()
-initial(prioritisation_step) <- 1
+#initial(prioritisation_step) <- 1
+initial(prioritisation_step_1st_dose) <- 1
+initial(prioritisation_step_2nd_dose) <- 1
 
 ## now that we know the step we are on, we know who is eligible per age group to be vaccinated
 ## who can get a 1st dose
-n_eligible_for_dose1[] <- (S[i,2] + Ea[i,2] + Eb[i,2] + R[i,2])*prioritisation_strategy[i,prioritisation_step]
+
+## now we have to look in the preceding j class (e.g. who in unvaccinated j=1 can get a 1st dose and move to j=2) as these are the people who will be eligible
+n_eligible_for_dose1[] <- (S[i,2] + Ea[i,2] + Eb[i,2] + R[i,2])*prioritisation_strategy[i,prioritisation_step_1st_dose]
 dim(n_eligible_for_dose1) <- c(n_group)
 ## who can get a 2nd dose
-n_eligible_for_dose2[] <- (S[i,3] + Ea[i,3] + Eb[i,3] + R[i,3])*prioritisation_strategy[i,prioritisation_step]
+n_eligible_for_dose2[] <- (S[i,3] + Ea[i,3] + Eb[i,3] + R[i,3])*prioritisation_strategy[i,prioritisation_step_2nd_dose]
 dim(n_eligible_for_dose2) <- c(n_group)
-
 
 ## vaccine uptake
 ## account for the fact that some groups (in n_group) may be less inclined to take the vaccine
 vaccine_uptake[] <- user()
 dim(vaccine_uptake) <- c(n_group)
 
-
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy and across S, E, R
-## hacky fix for now to only allocate a dose
+## hacky fix for now
 n_vaccination_t_S[,] <- 0
 n_vaccination_t_Ea[,] <- 0
 n_vaccination_t_Eb[,] <- 0
@@ -81,43 +93,43 @@ n_vaccination_t_R[,] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_S[,2] <- min(
-  floor((daily_doses_t[1,2] * S[i,2] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
+  floor((daily_doses_t[1,2] * S[i,2] * prioritisation_strategy[i,prioritisation_step_1st_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
   S[i,2])
 
 n_vaccination_t_Ea[,2] <- min(
-  floor((daily_doses_t[1,2] * Ea[i,2] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
+  floor((daily_doses_t[1,2] * Ea[i,2] * prioritisation_strategy[i,prioritisation_step_1st_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
   Ea[i,2])
 
 n_vaccination_t_Eb[,2] <- min(
-  floor((daily_doses_t[1,2] * Eb[i,2] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
+  floor((daily_doses_t[1,2] * Eb[i,2] * prioritisation_strategy[i,prioritisation_step_1st_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
   Eb[i,2])
 
 n_vaccination_t_R[,2] <- min(
-  floor((daily_doses_t[1,2] * R[i,2] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
+  floor((daily_doses_t[1,2] * R[i,2] * prioritisation_strategy[i,prioritisation_step_1st_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose1[])),
   R[i,2])
 
 
 ## allocate 2nd doses
 n_vaccination_t_S[,3] <- min(
-  floor((daily_doses_t[1,3] * S[i,3] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
+  floor((daily_doses_t[1,3] * S[i,3] * prioritisation_strategy[i,prioritisation_step_2nd_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
   S[i,3])
 
 n_vaccination_t_Ea[,3] <- min(
-  floor((daily_doses_t[1,3] * Ea[i,3] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
+  floor((daily_doses_t[1,3] * Ea[i,3] * prioritisation_strategy[i,prioritisation_step_2nd_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
   Ea[i,3])
 
 n_vaccination_t_Eb[,3] <- min(
-  floor((daily_doses_t[1,3] * Eb[i,3] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
+  floor((daily_doses_t[1,3] * Eb[i,3] * prioritisation_strategy[i,prioritisation_step_2nd_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
   Eb[i,3])
 
 n_vaccination_t_R[,3] <- min(
-  floor((daily_doses_t[1,3] * R[i,3] * prioritisation_strategy[i,prioritisation_step]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
+  floor((daily_doses_t[1,3] * R[i,3] * prioritisation_strategy[i,prioritisation_step_2nd_dose]*vaccine_uptake[i])/sum(n_eligible_for_dose2[])),
   R[i,3])
 
 
 ## net vaccination change for relevant classes (S,Ea,Eb,R)
 ## logic here depends on vaccine class you are in (e.g. can only increase through j)
-## j=1 corresponds to previous smallpox vaccination so this is the
+## j=1 corresponds to previous smallpox vaccination
 ## this is generic so accounts for n_vax whatever it is
 delta_S_n_vaccination[,] <- if(j==1) 0 else if(j==2) (-n_vaccination_t_S[i,j]) else if(j==n_vax) (n_vaccination_t_S[i,j-1]) else (-n_vaccination_t_S[i,j] + n_vaccination_t_S[i,j-1])
 
