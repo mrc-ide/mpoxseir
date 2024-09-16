@@ -201,7 +201,7 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  if(all(res["prioritisation_step",,]==1)){
+  if(all(res["prioritisation_step_1st_dose",,]==1)){
     expect_true(all(res[paste0("S",(2*pars$n_group+4):(3*pars$n_group)),,]==0))
     expect_true(all(res[paste0("Ea",
                                (2*pars$n_group+4):(3*pars$n_group)),,]==0))
@@ -209,6 +209,9 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
                                (2*pars$n_group+4):(3*pars$n_group)),,]==0))
     expect_true(all(res[paste0("R",
                                (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+  }
+
+  if(all(res["prioritisation_step_2nd_dose",,]==1)){
     expect_true(all(res[paste0("S",(3*pars$n_group+4):(4*pars$n_group)),,]==0))
     expect_true(all(res[paste0("Ea",
                                (3*pars$n_group+4):(4*pars$n_group)),,]==0))
@@ -216,7 +219,6 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
                                (3*pars$n_group+4):(4*pars$n_group)),,]==0))
     expect_true(all(res[paste0("R",
                                (3*pars$n_group+4):(4*pars$n_group)),,]==0))
-
   }
 
 })
@@ -270,4 +272,46 @@ test_that("1st and 2nd doses are given", {
 })
 
 
+test_that("1st and 2nd prioritisation steps can be different depending on the targets", {
+
+  pars <- reference_pars_targeted_vax()
+  # low vaccination target coverage
+  pars$vaccination_coverage_target[,,3] <- round(pars$prioritisation_strategy * 0.1 * pars$N)
+  pars$vaccination_campaign_length <- 15
+  pars$daily_doses <- matrix(0,ncol=pars$n_vax,
+                        nrow=pars$vaccination_campaign_length)
+  # give loads of vaccines to push through prioiritsation quickly
+  pars$daily_doses[1:10,2] <- pars$daily_doses[11:15,3] <- 1000000
+  pars$daily_doses[pars$vaccination_campaign_length,] <- 0
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  expect_false(all(res["prioritisation_step_1st_dose",,]==res["prioritisation_step_2nd_dose",,]))
+
+  # extra check here for good measure
+  expect_true(all((sum(pars$daily_doses) - res["total_vax",,max(t)])>0))
+
+})
+
+test_that("no 2nd doses are given if no 1st doses are given", {
+
+  pars <- reference_pars_targeted_vax()
+  # no 1st doses allocated
+  pars$daily_doses[,2] <- 0
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  ## check no 1st doses given
+  expect_true(all(res["total_vax_1stdose",,]==0))
+
+  ## check no 2nd doses given
+  expect_true(all(res["total_vax_2nddose",,]==0))
+
+})
 
