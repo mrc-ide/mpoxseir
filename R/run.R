@@ -1,19 +1,18 @@
 
 #' @export
-create_transform_params <- function(N, overrides = list()) {
+create_transform_params <- function(region, initial_infections, overrides = list()) {
 
-  pars <- parameters_fixed(N = N, overrides = overrides)
+  pars <- parameters_fixed(region = region, initial_infections = initial_infections, overrides = overrides)
 
-  function(beta_z_max,  ## zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
-           R0_hh,       ## R0 for household transmission (used to calculate beta_h)
-           R0_sw_st) {  ## R0 for sex workers to people who buy sex)
-
+  function(transformed_pars) {  ## beta_z_max = zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
+                                ## R0_hh = R0 for household transmission (used to calculate beta_h)
+                                ## R0_sw_st = R0 for sex workers to people who buy sex)
     nms_group <- names(pars$N0)
 
     ## Updating values in pars with parameters passed into transform_params
-    pars$beta_z_max <- beta_z_max
-    pars$R0_hh <- R0_hh
-    pars$R0_sw_st <- R0_sw_st
+    pars$beta_z_max <- transformed_pars["beta_z_max"]
+    pars$R0_hh <- transformed_pars["R0_hh"]
+    pars$R0_sw_st <- transformed_pars["R0_sw_st"]
 
     # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 
@@ -22,8 +21,7 @@ create_transform_params <- function(N, overrides = list()) {
     ## is based on duration_infectious_by_age in unvaccinated individuals (i.e. with the unvaxxed CFR)
     k <- 1 # number of compartments per infectious disease state
     dt <- 1 # timestep
-
-
+    
     if (pars$n_vax > 1) {
       CFR <- pars$CFR[, 1]
     } else {
@@ -67,7 +65,8 @@ create_transform_params <- function(N, overrides = list()) {
 #' @export
 run_mpoxSEIR_targetedVax_single <- function(
 
-    N,       # population size to run the model with
+    region,  # region to run the model for (either Sud Kivu or Equateur)
+    initial_infections, # number of initial infections to seed with
     n_weeks, # number of weeks to run for
 
     ## Transmission related parameters
@@ -102,10 +101,9 @@ run_mpoxSEIR_targetedVax_single <- function(
   ########################
 
   ## Transforming inputted parameters into those required for model running
-  transform_params <- create_transform_params(N = N, overrides = list())
-  pars <- transform_params(beta_z_max = beta_z_max,
-                           R0_hh = R0_hh,
-                           R0_sw_st = R0_sw_st)
+  transform_params <- create_transform_params(region = region, initial_infections = initial_infections, overrides = list())
+  params_for_transform <- c("beta_z_max" = beta_z_max, "R0_hh" = R0_hh, "R0_sw_st" = R0_sw_st)
+  pars <- transform_params(params_for_transform)
 
   ## Setting up the model with the inputted parameters
   mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
@@ -144,7 +142,8 @@ run_mpoxSEIR_targetedVax_single <- function(
 # Run multiple iterations of the model with different parameter values
 #' @export
 run_mpoxSEIR_targetedVax_multiple <- function(
-    N,
+    region,
+    initial_infections, 
     n_weeks,
     beta_z_max,
     R0_hh,
@@ -180,7 +179,8 @@ run_mpoxSEIR_targetedVax_multiple <- function(
                  R0_hh = R0_hh,
                  R0_sw_st = R0_sw_st,
                  MoreArgs = list(
-                   N = N,                               ## size of the population to run the model with
+                   region = region,                     ## region to run the model for
+                   initial_infections = initial_infections, 
                    n_weeks = n_weeks,
                    n_vax = n_vax,                       ## number of vaccination compartments (integer, basis for an additional dimension in odin states)
                    daily_doses = daily_doses,                 ## the daily number of doses administered (matrix of vaccination_campaign_length * number of vaccination compartments)

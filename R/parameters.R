@@ -124,23 +124,68 @@ get_age_bins <- function() {
   data.frame(label = label, start = start, end = end)
 }
 
+# Function to allocate N individuals into m groups based on weights
+assign_seeds <- function(N, w) {
+
+    w_norm <- w / sum(w)
+    raw_alloc <- N * w_norm
+    int_alloc <- floor(raw_alloc)
+
+    remainder <- N - sum(int_alloc)
+    fractional_parts <- raw_alloc - int_alloc
+
+    # Distribute the remainder to the groups with the largest fractional parts
+    if (remainder > 0) {
+      extra_alloc <- order(fractional_parts * w_norm, decreasing = TRUE)[1:remainder]
+      int_alloc[extra_alloc] <- int_alloc[extra_alloc] + 1
+    }
+
+    int_alloc
+  }
+
 
 #' @export
-parameters_fixed <- function(N, overrides = list()) {
+parameters_fixed <- function(region, initial_infections, overrides = list()) {
+
+  ## Checking region
+  if (!(region %in% c("equateur", "sudkivu"))) {
+    stop("region must be equateur or sudkivu")
+  }
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
+  age_bins <- get_age_bins()
+
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
+  N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
   N_prioritisation_steps <- 1
 
-  # seed infections
-  Ea0 <- matrix(5, nrow = n_group, ncol = n_vax)
+  ## Seed infections in the unvaccinated group in a region-specific manner
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
+  Ea0 <- matrix(0, nrow = n_group, ncol = n_vax)
+  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
+
+    ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
+    sw_index <- which(colnames(demographic_params$m_gen_pop) == "SW")
+    Ea0[sw_index, 2] <- initial_infections
+
+  } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
+
+    ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
+    gen_pop_index <- seq_len(nrow(age_bins))
+    seeding_infections <- assign_seeds(initial_infections, w = RR_z[gen_pop_index])
+
+    Ea0[gen_pop_index, 2] <- seeding_infections
+
+  } else {
+    stop("something is wrong with the name of the region - change to sudkivu or equateur")
+  }
 
   # CFR from Whittles 2024, 5-year bands to 40
-  age_bins <- get_age_bins()
+
   CFR <- rep(0, n_group)
   names(CFR) <- names(demographic_params$N0)
   CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
@@ -167,7 +212,7 @@ parameters_fixed <- function(N, overrides = list()) {
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
-    RR_z = c(0.977, 1, 0.444, rep(0.078, n_group - 3)), # Jezek 1988 zoonotic + Jezek 1987
+    RR_z = RR_z,
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
