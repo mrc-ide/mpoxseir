@@ -136,7 +136,7 @@ assign_seeds <- function(N, w) {
 
     # Distribute the remainder to the groups with the largest fractional parts
     if (remainder > 0) {
-      extra_alloc <- order(fractional_parts, decreasing = TRUE)[1:remainder]
+      extra_alloc <- order(fractional_parts * w_norm, decreasing = TRUE)[1:remainder]
       int_alloc[extra_alloc] <- int_alloc[extra_alloc] + 1
     }
 
