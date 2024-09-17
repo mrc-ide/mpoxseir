@@ -37,8 +37,16 @@ dim(prioritisation_strategy) <- c(n_group,N_prioritisation_steps)
 ## vaccination targets: for each group, what is the level of coverage we want to see before we move onto the next set of groups to target?
 ## when we input this do the calc outside by the population size as part of pre-processing to save faffing around in here
 ## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0 and j=1 this stays at 0
-vaccination_coverage_target[,,] <- user()
-dim(vaccination_coverage_target) <- c(n_group,N_prioritisation_steps,n_vax)
+vaccination_coverage_target_1st_dose_prop <- user()
+vaccination_coverage_target_2nd_dose_prop <- user()
+
+# # set up the vaccination coverage targets based on the
+# vaccination_coverage_target[,,] <- 0
+# dim(vaccination_coverage_target) <- c(n_group,N_prioritisation_steps,n_vax)
+#
+# vaccination_coverage_target[,,3] <- round(prioritisation_strategy[,] * vaccination_coverage_target_1st_dose_prop * sum(N[,1:4]))
+# vaccination_coverage_target[,,4] <- round(prioritisation_strategy[,] * vaccination_coverage_target_2nd_dose_prop * sum(N[,1:4]))
+
 
 ## what is the current state of the vaccination targets? e.g. what prioritisation step are we on, this depends on whether we have met our targets
 
@@ -49,10 +57,15 @@ dim(target_met_t) <- c(n_group,n_vax)
 
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account for this in the 1st dose target
-target_met_t[,3] <- if(sum(N[,3:4])>vaccination_coverage_target[i,prioritisation_step_1st_dose,3]) 1 else 0
+# target_met_t[,3] <- if(sum(N[,3:4])>vaccination_coverage_target[i,prioritisation_step_1st_dose,3]) 1 else 0
+
+target_met_t[,3] <- if(sum(N[,3:4]) > round(prioritisation_strategy[i,j]*vaccination_coverage_target_1st_dose_prop*sum(N[i,1:4]))) 1 else 0
+
 
 ## 2nd doses
-target_met_t[,4] <- if(sum(N[,4])>vaccination_coverage_target[i,prioritisation_step_2nd_dose,4]) 1 else 0
+# target_met_t[,4] <- if(sum(N[,4])>vaccination_coverage_target[i,prioritisation_step_2nd_dose,4]) 1 else 0
+
+target_met_t[,4] <- if(sum(N[,4])>round(prioritisation_strategy[i,j]*vaccination_coverage_target_2nd_dose_prop*sum(N[i,1:4]))) 1 else 0
 
 ## prioritisation step proposal to account for the fact that this would update every single time step if we vaccinate quickly enough (unlikely but would like it to be done properly)
 prioritisation_step_1st_dose_proposal <- if(sum(target_met_t[,3])==n_group) prioritisation_step_1st_dose + 1 else prioritisation_step_1st_dose
