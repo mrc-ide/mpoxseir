@@ -106,7 +106,7 @@ parameters_demographic <- function() {
     m_sex = m_sex,
     total_contacts_gen_pop = M_all,
     #total_contacts_sex = M_sex,
-    n_vax = 2,
+    n_vax = 4,
     sus_prop = sus_prop,
     province_pop = province_pop
   )
@@ -195,13 +195,24 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
 
   vaccination_campaign_length <- 1
 
-  ## note this needs to be updated with proper assignment of people into unvax vs vax
-  ## NOTE THIS REALLY NEEDS TO BE UPDATED WITH PROPER ASSIGNMENT OF PEOPLE INTO UNVAX VS VAX
+  ## update with assignment into smallpox vaccination compartment (j=1)
+  ## if we have a small population then seeding with 5 infections per compt and strata could be a problem (e.g. with N=10000 too few SW)
+  if(all(rowSums(Ea0)<N0)){
+      S0 <- matrix(0,nrow=demographic_params$n_group,
+                   ncol=demographic_params$n_vax)
+      S0[,2] <- round((N0-rowSums(Ea0))*demographic_params$sus_prop)
+      #rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
+      S0[,1] <- N0-rowSums(Ea0)-S0[,2]
+      ##rowSums(S0)+rowSums(Ea0)==N0
+  }else{
+    stop("combination of population size and seeding infections is incompatible, please review.")
+  }
+
   params_list = list(
     n_group = n_group,
     n_vax = n_vax,
     N_prioritisation_steps = N_prioritisation_steps,
-    S0 = round(N0 / n_vax) - Ea0,
+    S0 = S0,
     Ea0 = Ea0,
     Eb0 = X0,
     Ir0 = X0,

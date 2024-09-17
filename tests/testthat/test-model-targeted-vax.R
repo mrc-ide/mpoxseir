@@ -93,9 +93,9 @@ test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
   pars$beta_h <- 0
   pars$beta_z<- rep(0,pars$n_group)
   # need to seed infections as so low otherwise
-  pars$Ir0[17:18,1] <- pars$Ir0[17:18,1] + 1
-  pars$Id0[17:18,1] <- pars$Id0[17:18,1] + 1
-  pars$S0[17:18,1] <- pars$S0[17:18,1] - pars$Id0[17:18,1] - pars$Ir0[17:18,1]
+  pars$Ir0[17:18,2] <- pars$Ir0[17:18,2] + 1
+  pars$Id0[17:18,2] <- pars$Id0[17:18,2] + 1
+  pars$S0[17:18,2] <- pars$S0[17:18,2] - pars$Id0[17:18,2] - pars$Ir0[17:18,2]
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 50) # run for longer to ensure infections in PBS
@@ -128,16 +128,16 @@ test_that("when n_vaccination>0, vaccinations are given", {
   rownames(res) <- names(unlist(m$info()$index))
 
   comps_of_interest_S <- paste0("S",
-                                seq(from=pars$n_group+1,
+                                seq(from=2*pars$n_group+1,
                                     to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_Ea <- paste0("Ea",
-                                 seq(from=pars$n_group+1,
+                                 seq(from=2*pars$n_group+1,
                                      to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_Eb <- paste0("Eb",
-                                 seq(from=pars$n_group+1,
+                                 seq(from=2*pars$n_group+1,
                                      to=pars$n_group*pars$n_vax,by=1))
   comps_of_interest_R <- paste0("R",
-                                seq(from=pars$n_group+1,
+                                seq(from=2*pars$n_group+1,
                                     to=pars$n_group*pars$n_vax,by=1))
 
 
@@ -201,11 +201,24 @@ test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", 
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  if(all(res["prioritisation_step",,]==1)){
-    expect_true(all(res[paste0("S",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Ea",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Eb",(pars$n_group+4):(2*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("R",(pars$n_group+4):(2*pars$n_group)),,]==0))
+  if(all(res["prioritisation_step_1st_dose",,]==1)){
+    expect_true(all(res[paste0("S",(2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Ea",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Eb",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("R",
+                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+  }
+
+  if(all(res["prioritisation_step_2nd_dose",,]==1)){
+    expect_true(all(res[paste0("S",(3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Ea",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("Eb",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+    expect_true(all(res[paste0("R",
+                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
   }
 
 })
@@ -226,6 +239,79 @@ test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
 })
 
 
+test_that("no one moves in or out of j=1 (previous smallpox vaccine)", {
+  pars <- reference_pars_targeted_vax()
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  # the total number of people in j=1 shouldn't change
+  expect_true(all(res[paste0("N",seq(1:pars$n_group)),,]==pars$S0[,1]))
+
+  ## population check
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
+
+})
 
 
+test_that("1st and 2nd doses are given", {
+  pars <- reference_pars_targeted_vax()
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  # 1st doses are given
+  expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  # 2nd doses are given
+  expect_true(all(res["total_vax_2nddose",,max(t)]>0))
+
+})
+
+
+test_that("1st and 2nd prioritisation steps can be different depending on the targets", {
+
+  pars <- reference_pars_targeted_vax()
+  # low vaccination target coverage
+  pars$vaccination_coverage_target_1st_dose_prop <- 0.1
+  pars$vaccination_campaign_length <- 15
+  pars$daily_doses <- matrix(0,ncol=pars$n_vax,
+                        nrow=pars$vaccination_campaign_length)
+  # give loads of vaccines to push through prioiritsation quickly
+  pars$daily_doses[1:10,2] <- pars$daily_doses[11:15,3] <- 1000000
+  pars$daily_doses[pars$vaccination_campaign_length,] <- 0
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  expect_false(all(res["prioritisation_step_1st_dose",,]==res["prioritisation_step_2nd_dose",,]))
+
+  # extra check here for good measure
+  expect_true(all((sum(pars$daily_doses) - res["total_vax",,max(t)])>0))
+
+})
+
+test_that("no 2nd doses are given if no 1st doses are given", {
+
+  pars <- reference_pars_targeted_vax()
+  # no 1st doses allocated
+  pars$daily_doses[,2] <- 0
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+
+  ## check no 1st doses given
+  expect_true(all(res["total_vax_1stdose",,]==0))
+
+  ## check no 2nd doses given
+  expect_true(all(res["total_vax_2nddose",,]==0))
+
+})
 

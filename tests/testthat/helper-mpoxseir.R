@@ -5,22 +5,33 @@ reference_pars_targeted_vax <- function() {
   n_vax <- dem_pars$n_vax
   Ea0 <- matrix(0, n_group, n_vax)
   S0 <- Ea0
-  S0[,1] <- dem_pars$N
+  #S0[,2] <- dem_pars$N
+  S0[,2] <- rbinom(size=dem_pars$N,
+                   prob=dem_pars$sus_prop,n=length(dem_pars$N))
+  S0[,1] <- dem_pars$N-S0[,2]
+  # rowSums(S0)==dem_pars$N0
   dem_pars$m_sex["SW","PBS"] <- dem_pars$m_sex["PBS","SW"] <- max(dem_pars$m_gen_pop)
 
   vaccination_campaign_length <- 10
-  daily_doses <- matrix(c(rep(1000,vaccination_campaign_length),
-                          rep(0,vaccination_campaign_length)),
-                        ncol=n_vax,
+  daily_doses <- matrix(0,ncol=n_vax,
                         nrow=vaccination_campaign_length)
+  # nothing happens for j=1 and 2 doses are the maximum
+  daily_doses[,2] <- daily_doses[,3] <- 1000
   daily_doses[vaccination_campaign_length,] <- 0
 
   N_prioritisation_steps <- 3
   prioritisation_strategy <- cbind(c(1,1,1,rep(0,n_group-3)),# kids
                                    c(1,1,1,rep(0,n_group-5),1,1), # kids + CSW
                                    c(rep(1,n_group))) # all
-  vaccination_coverage_target_prop <- 0.8
-  vaccination_coverage_target <- round(prioritisation_strategy * vaccination_coverage_target_prop * dem_pars$N0)
+  vaccination_coverage_target_1st_dose_prop <- 0.8
+  vaccination_coverage_target_2nd_dose_prop <- 0.5
+  #n_group,N_prioritisation_steps,n_vax
+  # vaccination_coverage_target <- array(0,dim=c(n_group,N_prioritisation_steps,
+  #                                              n_vax))
+  #
+  # vaccination_coverage_target[,,3] <- round(prioritisation_strategy * vaccination_coverage_target_1st_dose_prop * dem_pars$N0)
+  # vaccination_coverage_target[,,4] <- round(prioritisation_strategy * vaccination_coverage_target_2nd_dose_prop * dem_pars$N0)
+
 
 
   out <- list(dt = 1,
@@ -42,8 +53,8 @@ reference_pars_targeted_vax <- function() {
               CFR = matrix(c(1 / c(seq(2.5, 77.5, 5), 25, 25),
                              (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25)),
                            n_group,n_vax),
-              ve_T = c(0,0.9),
-              ve_I = c(0,0.8),
+              ve_T = c(0.8,0,0.8,0.9),
+              ve_I = c(0.8,0,0.8,0.9),
               m_gen_pop = dem_pars$m_gen_pop,
               m_sex = dem_pars$m_sex,
               n_group = n_group,
@@ -53,8 +64,10 @@ reference_pars_targeted_vax <- function() {
               daily_doses = daily_doses,
               N_prioritisation_steps = N_prioritisation_steps,
               prioritisation_strategy = prioritisation_strategy,
-              vaccination_coverage_target = vaccination_coverage_target,
-              vaccine_uptake = rep(1,n_group)
+              #vaccination_coverage_target = vaccination_coverage_target,
+              vaccine_uptake = rep(1,n_group),
+              vaccination_coverage_target_1st_dose_prop = vaccination_coverage_target_1st_dose_prop,
+              vaccination_coverage_target_2nd_dose_prop = vaccination_coverage_target_2nd_dose_prop
   )
 
   return(out)
