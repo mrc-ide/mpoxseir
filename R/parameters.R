@@ -159,6 +159,8 @@ parameters_fixed <- function(N, overrides = list()) {
       #rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
       S0[,1] <- N0-rowSums(Ea0)-S0[,2]
       ##rowSums(S0)+rowSums(Ea0)==N0
+  }else{
+    stop("combination of population size and seeding infections is incompatible, please review.")
   }
 
   params_list = list(
