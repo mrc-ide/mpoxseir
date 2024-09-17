@@ -26,11 +26,12 @@ reference_pars_targeted_vax <- function() {
   vaccination_coverage_target_1st_dose_prop <- 0.8
   vaccination_coverage_target_2nd_dose_prop <- 0.5
   #n_group,N_prioritisation_steps,n_vax
-  vaccination_coverage_target <- array(0,dim=c(n_group,N_prioritisation_steps,
-                                               n_vax))
+  # vaccination_coverage_target <- array(0,dim=c(n_group,N_prioritisation_steps,
+  #                                              n_vax))
+  #
+  # vaccination_coverage_target[,,3] <- round(prioritisation_strategy * vaccination_coverage_target_1st_dose_prop * dem_pars$N0)
+  # vaccination_coverage_target[,,4] <- round(prioritisation_strategy * vaccination_coverage_target_2nd_dose_prop * dem_pars$N0)
 
-  vaccination_coverage_target[,,3] <- round(prioritisation_strategy * vaccination_coverage_target_1st_dose_prop * dem_pars$N0)
-  vaccination_coverage_target[,,4] <- round(prioritisation_strategy * vaccination_coverage_target_2nd_dose_prop * dem_pars$N0)
 
 
   out <- list(dt = 1,
@@ -63,8 +64,10 @@ reference_pars_targeted_vax <- function() {
               daily_doses = daily_doses,
               N_prioritisation_steps = N_prioritisation_steps,
               prioritisation_strategy = prioritisation_strategy,
-              vaccination_coverage_target = vaccination_coverage_target,
-              vaccine_uptake = rep(1,n_group)
+              #vaccination_coverage_target = vaccination_coverage_target,
+              vaccine_uptake = rep(1,n_group),
+              vaccination_coverage_target_1st_dose_prop = vaccination_coverage_target_1st_dose_prop,
+              vaccination_coverage_target_2nd_dose_prop = vaccination_coverage_target_2nd_dose_prop
   )
 
   return(out)
