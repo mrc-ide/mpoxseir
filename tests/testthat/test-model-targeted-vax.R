@@ -276,7 +276,7 @@ test_that("1st and 2nd prioritisation steps can be different depending on the ta
 
   pars <- reference_pars_targeted_vax()
   # low vaccination target coverage
-  pars$vaccination_coverage_target[,,3] <- round(pars$prioritisation_strategy * 0.1 * pars$N)
+  pars$vaccination_coverage_target_1st_dose_prop <- 0.1
   pars$vaccination_campaign_length <- 15
   pars$daily_doses <- matrix(0,ncol=pars$n_vax,
                         nrow=pars$vaccination_campaign_length)
