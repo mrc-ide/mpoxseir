@@ -7,8 +7,8 @@ test_that("run is equal to reference", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(any(res["deaths", , ] > 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(any(res["deaths_inc", , ] > 0))
 
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
 })
@@ -25,7 +25,7 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(all(res["cases", , ] == 0))
+  expect_true(all(res["cases_inc", , ] == 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
 })
 
@@ -38,8 +38,8 @@ test_that("when CFR = 0 nobody dies", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(all(res["deaths", , ] == 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(all(res["deaths_inc", , ] == 0))
   expect_true(any(res["R_tot", , ] > 0))
   expect_true(all(res["D_tot", , ] == 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
@@ -54,8 +54,8 @@ test_that("when CFR = 1 everybody dies", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(any(res["deaths", , ] > 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(any(res["deaths_inc", , ] > 0))
   expect_true(all(res["R_tot", , ] == 0))
   expect_true(any(res["D_tot", , ] > 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
@@ -107,8 +107,8 @@ test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
   expect_true(all(res["cases_cumulative_SW",,max(t)]>0))
 
   ## shouldn't have cases in the age groups
-  expect_true(all(res["cases_cumulative_0_5",,max(t)]==0))
-  expect_true(all(res["cases_cumulative_05_15",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_00_04",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_05_14",,max(t)]==0))
   expect_true(all(res["cases_cumulative_15_plus",,max(t)]==0))
 
   ## make sure population size continues behaving
