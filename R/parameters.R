@@ -231,10 +231,12 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     m_sex = demographic_params$m_sex,
     m_gen_pop = demographic_params$m_gen_pop,
     prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
-    vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
+    # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
     vaccine_uptake = rep(0.8, n_group),
     ve_T = rep(0, n_vax),
     ve_I = rep(0, n_vax),
+    vaccination_coverage_target_1st_dose_prop = 0.8,
+    vaccination_coverage_target_2nd_dose_prop = 0.5,
     vaccination_campaign_length = vaccination_campaign_length,
     daily_doses = matrix(1, nrow = vaccination_campaign_length, ncol = n_vax))
 
