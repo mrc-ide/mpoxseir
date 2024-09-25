@@ -138,11 +138,21 @@ __host__ __device__ T odin_sign(T x) {
 // [[dust::param(ve_I, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(ve_T, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(dt, has_default = TRUE, default_value = 1L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(exp_noise, has_default = TRUE, default_value = 1000000L, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 class model_targeted_vax {
 public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
-  using data_type = dust::no_data;
+  struct __align__(16) data_type {
+    real_type cases;
+    real_type cases_00_04;
+    real_type cases_05_14;
+    real_type cases_15_plus;
+    real_type deaths;
+    real_type deaths_00_04;
+    real_type deaths_05_14;
+    real_type deaths_15_plus;
+  };
   struct shared_type {
     std::vector<real_type> CFR;
     std::vector<real_type> D0;
@@ -315,6 +325,7 @@ public:
     int dim_ve_I;
     int dim_ve_T;
     real_type dt;
+    real_type exp_noise;
     real_type gamma_E;
     real_type gamma_Id;
     real_type gamma_Ir;
@@ -334,30 +345,30 @@ public:
     real_type initial_R_tot;
     std::vector<real_type> initial_S;
     real_type initial_S_tot;
-    real_type initial_cases;
-    real_type initial_cases_05_15;
-    real_type initial_cases_0_5;
-    real_type initial_cases_15_plus;
-    real_type initial_cases_PBS;
-    real_type initial_cases_SW;
     real_type initial_cases_cumulative;
-    real_type initial_cases_cumulative_05_15;
-    real_type initial_cases_cumulative_0_5;
+    real_type initial_cases_cumulative_00_04;
+    real_type initial_cases_cumulative_05_14;
     real_type initial_cases_cumulative_15_plus;
     real_type initial_cases_cumulative_PBS;
     real_type initial_cases_cumulative_SW;
-    real_type initial_deaths;
-    real_type initial_deaths_05_15;
-    real_type initial_deaths_0_5;
-    real_type initial_deaths_15_plus;
-    real_type initial_deaths_PBS;
-    real_type initial_deaths_SW;
+    real_type initial_cases_inc;
+    real_type initial_cases_inc_00_04;
+    real_type initial_cases_inc_05_14;
+    real_type initial_cases_inc_15_plus;
+    real_type initial_cases_inc_PBS;
+    real_type initial_cases_inc_SW;
     real_type initial_deaths_cumulative;
-    real_type initial_deaths_cumulative_05_15;
-    real_type initial_deaths_cumulative_0_5;
+    real_type initial_deaths_cumulative_00_04;
+    real_type initial_deaths_cumulative_05_14;
     real_type initial_deaths_cumulative_15_plus;
     real_type initial_deaths_cumulative_PBS;
     real_type initial_deaths_cumulative_SW;
+    real_type initial_deaths_inc;
+    real_type initial_deaths_inc_00_04;
+    real_type initial_deaths_inc_05_14;
+    real_type initial_deaths_inc_15_plus;
+    real_type initial_deaths_inc_PBS;
+    real_type initial_deaths_inc_SW;
     real_type initial_prioritisation_step_1st_dose;
     real_type initial_prioritisation_step_2nd_dose;
     real_type initial_total_vax;
@@ -447,27 +458,27 @@ public:
     state[0] = internal.initial_time;
     state[1] = shared->initial_prioritisation_step_1st_dose;
     state[2] = shared->initial_prioritisation_step_2nd_dose;
-    state[3] = shared->initial_cases;
-    state[4] = shared->initial_deaths;
+    state[3] = shared->initial_cases_inc;
+    state[4] = shared->initial_deaths_inc;
     state[5] = shared->initial_cases_cumulative;
     state[6] = shared->initial_deaths_cumulative;
-    state[7] = shared->initial_cases_0_5;
-    state[8] = shared->initial_cases_05_15;
-    state[9] = shared->initial_cases_15_plus;
-    state[10] = shared->initial_cases_PBS;
-    state[11] = shared->initial_cases_SW;
-    state[12] = shared->initial_deaths_0_5;
-    state[13] = shared->initial_deaths_05_15;
-    state[14] = shared->initial_deaths_15_plus;
-    state[15] = shared->initial_deaths_PBS;
-    state[16] = shared->initial_deaths_SW;
-    state[17] = shared->initial_cases_cumulative_0_5;
-    state[18] = shared->initial_cases_cumulative_05_15;
+    state[7] = shared->initial_cases_inc_00_04;
+    state[8] = shared->initial_cases_inc_05_14;
+    state[9] = shared->initial_cases_inc_15_plus;
+    state[10] = shared->initial_cases_inc_PBS;
+    state[11] = shared->initial_cases_inc_SW;
+    state[12] = shared->initial_deaths_inc_00_04;
+    state[13] = shared->initial_deaths_inc_05_14;
+    state[14] = shared->initial_deaths_inc_15_plus;
+    state[15] = shared->initial_deaths_inc_PBS;
+    state[16] = shared->initial_deaths_inc_SW;
+    state[17] = shared->initial_cases_cumulative_00_04;
+    state[18] = shared->initial_cases_cumulative_05_14;
     state[19] = shared->initial_cases_cumulative_15_plus;
     state[20] = shared->initial_cases_cumulative_PBS;
     state[21] = shared->initial_cases_cumulative_SW;
-    state[22] = shared->initial_deaths_cumulative_0_5;
-    state[23] = shared->initial_deaths_cumulative_05_15;
+    state[22] = shared->initial_deaths_cumulative_00_04;
+    state[23] = shared->initial_deaths_cumulative_05_14;
     state[24] = shared->initial_deaths_cumulative_15_plus;
     state[25] = shared->initial_deaths_cumulative_PBS;
     state[26] = shared->initial_deaths_cumulative_SW;
@@ -530,27 +541,27 @@ public:
     const real_type * E = state + shared->offset_variable_E;
     const real_type * I = state + shared->offset_variable_I;
     const real_type * N = state + shared->offset_variable_N;
-    const real_type cases = state[3];
-    const real_type cases_0_5 = state[7];
-    const real_type cases_05_15 = state[8];
-    const real_type cases_15_plus = state[9];
-    const real_type cases_PBS = state[10];
-    const real_type cases_SW = state[11];
+    const real_type cases_inc = state[3];
+    const real_type cases_inc_00_04 = state[7];
+    const real_type cases_inc_05_14 = state[8];
+    const real_type cases_inc_15_plus = state[9];
+    const real_type cases_inc_PBS = state[10];
+    const real_type cases_inc_SW = state[11];
     const real_type cases_cumulative = state[5];
-    const real_type cases_cumulative_0_5 = state[17];
-    const real_type cases_cumulative_05_15 = state[18];
+    const real_type cases_cumulative_00_04 = state[17];
+    const real_type cases_cumulative_05_14 = state[18];
     const real_type cases_cumulative_15_plus = state[19];
     const real_type cases_cumulative_PBS = state[20];
     const real_type cases_cumulative_SW = state[21];
-    const real_type deaths = state[4];
-    const real_type deaths_0_5 = state[12];
-    const real_type deaths_05_15 = state[13];
-    const real_type deaths_15_plus = state[14];
-    const real_type deaths_PBS = state[15];
-    const real_type deaths_SW = state[16];
+    const real_type deaths_inc = state[4];
+    const real_type deaths_inc_00_04 = state[12];
+    const real_type deaths_inc_05_14 = state[13];
+    const real_type deaths_inc_15_plus = state[14];
+    const real_type deaths_inc_PBS = state[15];
+    const real_type deaths_inc_SW = state[16];
     const real_type deaths_cumulative = state[6];
-    const real_type deaths_cumulative_0_5 = state[22];
-    const real_type deaths_cumulative_05_15 = state[23];
+    const real_type deaths_cumulative_00_04 = state[22];
+    const real_type deaths_cumulative_05_14 = state[23];
     const real_type deaths_cumulative_15_plus = state[24];
     const real_type deaths_cumulative_PBS = state[25];
     const real_type deaths_cumulative_SW = state[26];
@@ -689,18 +700,18 @@ public:
     for (int i = 1; i <= shared->dim_prop_infectious; ++i) {
       internal.prop_infectious[i - 1] = odin_sum2<real_type>(internal.I_infectious.data(), i - 1, i, 0, shared->dim_I_infectious_2, shared->dim_I_infectious_1) / (real_type) odin_sum2<real_type>(N, i - 1, i, 0, shared->dim_N_2, shared->dim_N_1);
     }
-    state_next[4] = deaths * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[13] = deaths_05_15 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[12] = deaths_0_5 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[14] = deaths_15_plus * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[15] = deaths_PBS * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[16] = deaths_SW * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[6] = deaths_cumulative + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[23] = deaths_cumulative_05_15 + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    state_next[22] = deaths_cumulative_0_5 + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[22] = deaths_cumulative_00_04 + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[23] = deaths_cumulative_05_14 + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[24] = deaths_cumulative_15_plus + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[25] = deaths_cumulative_PBS + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[26] = deaths_cumulative_SW + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[4] = deaths_inc * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[12] = deaths_inc_00_04 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[13] = deaths_inc_05_14 * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[14] = deaths_inc_15_plus * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[15] = deaths_inc_PBS * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    state_next[16] = deaths_inc_SW * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 17, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     for (int i = 1; i <= shared->dim_delta_Ea_n_vaccination_1; ++i) {
       for (int j = 1; j <= shared->dim_delta_Ea_n_vaccination_2; ++j) {
         internal.delta_Ea_n_vaccination[i - 1 + shared->dim_delta_Ea_n_vaccination_1 * (j - 1)] = (j == 1 ? 0 : (j == 2 ? (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1]) : (j == shared->n_vax ? (internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1]) : (- internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1) + i - 1] + internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * (j - 1 - 1) + i - 1]))));
@@ -825,18 +836,18 @@ public:
         state_next[48 + i - 1 + shared->dim_S_1 * (j - 1)] = S[shared->dim_S_1 * (j - 1) + i - 1] + internal.delta_S_n_vaccination[shared->dim_delta_S_n_vaccination_1 * (j - 1) + i - 1] - internal.n_SEa[shared->dim_n_SEa_1 * (j - 1) + i - 1];
       }
     }
-    state_next[3] = cases * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[8] = cases_05_15 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[7] = cases_0_5 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[9] = cases_15_plus * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[10] = cases_PBS * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[11] = cases_SW * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     state_next[5] = cases_cumulative + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[18] = cases_cumulative_05_15 + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    state_next[17] = cases_cumulative_0_5 + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[17] = cases_cumulative_00_04 + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[18] = cases_cumulative_05_14 + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     state_next[19] = cases_cumulative_15_plus + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     state_next[20] = cases_cumulative_PBS + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     state_next[21] = cases_cumulative_SW + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[3] = cases_inc * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[7] = cases_inc_00_04 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[8] = cases_inc_05_14 * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[9] = cases_inc_15_plus * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[10] = cases_inc_PBS * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[11] = cases_inc_SW * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 17, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     for (int i = 1; i <= shared->dim_Ea_1; ++i) {
       for (int j = 1; j <= shared->dim_Ea_2; ++j) {
         state_next[shared->offset_variable_Ea + i - 1 + shared->dim_Ea_1 * (j - 1)] = Ea[shared->dim_Ea_1 * (j - 1) + i - 1] + internal.delta_Ea_n_vaccination[shared->dim_delta_Ea_n_vaccination_1 * (j - 1) + i - 1] + internal.delta_Ea[shared->dim_delta_Ea_1 * (j - 1) + i - 1];
@@ -847,6 +858,37 @@ public:
         state_next[shared->offset_variable_Ir + i - 1 + shared->dim_Ir_1 * (j - 1)] = Ir[shared->dim_Ir_1 * (j - 1) + i - 1] + internal.delta_Ir[shared->dim_delta_Ir_1 * (j - 1) + i - 1];
       }
     }
+  }
+  real_type compare_data(const real_type * state, const data_type& data, rng_state_type& rng_state) {
+    const real_type cases_inc = state[3];
+    const real_type cases_inc_00_04 = state[7];
+    const real_type cases_inc_05_14 = state[8];
+    const real_type cases_inc_15_plus = state[9];
+    const real_type cases_inc_PBS = state[10];
+    const real_type cases_inc_SW = state[11];
+    const real_type deaths_inc = state[4];
+    const real_type deaths_inc_00_04 = state[12];
+    const real_type deaths_inc_05_14 = state[13];
+    const real_type deaths_inc_15_plus = state[14];
+    const real_type deaths_inc_PBS = state[15];
+    const real_type deaths_inc_SW = state[16];
+    real_type model_cases = cases_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_00_04 = cases_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_05_14 = cases_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_15_plus = cases_inc_15_plus + cases_inc_PBS + cases_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_deaths = deaths_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_deaths_00_04 = deaths_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_deaths_05_14 = deaths_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_deaths_15_plus = deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    const auto compare_cases = (std::isnan(data.cases)) ? 0 : dust::density::poisson(data.cases, model_cases, true);
+    const auto compare_cases_00_04 = (std::isnan(data.cases_00_04)) ? 0 : dust::density::poisson(data.cases_00_04, model_cases_00_04, true);
+    const auto compare_cases_05_14 = (std::isnan(data.cases_05_14)) ? 0 : dust::density::poisson(data.cases_05_14, model_cases_05_14, true);
+    const auto compare_cases_15_plus = (std::isnan(data.cases_15_plus)) ? 0 : dust::density::poisson(data.cases_15_plus, model_cases_15_plus, true);
+    const auto compare_deaths = (std::isnan(data.deaths)) ? 0 : dust::density::poisson(data.deaths, model_deaths, true);
+    const auto compare_deaths_00_04 = (std::isnan(data.deaths_00_04)) ? 0 : dust::density::poisson(data.deaths_00_04, model_deaths_00_04, true);
+    const auto compare_deaths_05_14 = (std::isnan(data.deaths_05_14)) ? 0 : dust::density::poisson(data.deaths_05_14, model_deaths_05_14, true);
+    const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::poisson(data.deaths_15_plus, model_deaths_15_plus, true);
+    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -1083,30 +1125,30 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   using real_type = typename model_targeted_vax::real_type;
   auto shared = std::make_shared<model_targeted_vax::shared_type>();
   model_targeted_vax::internal_type internal;
-  shared->initial_cases = 0;
-  shared->initial_cases_05_15 = 0;
-  shared->initial_cases_0_5 = 0;
-  shared->initial_cases_15_plus = 0;
-  shared->initial_cases_PBS = 0;
-  shared->initial_cases_SW = 0;
   shared->initial_cases_cumulative = 0;
-  shared->initial_cases_cumulative_05_15 = 0;
-  shared->initial_cases_cumulative_0_5 = 0;
+  shared->initial_cases_cumulative_00_04 = 0;
+  shared->initial_cases_cumulative_05_14 = 0;
   shared->initial_cases_cumulative_15_plus = 0;
   shared->initial_cases_cumulative_PBS = 0;
   shared->initial_cases_cumulative_SW = 0;
-  shared->initial_deaths = 0;
-  shared->initial_deaths_05_15 = 0;
-  shared->initial_deaths_0_5 = 0;
-  shared->initial_deaths_15_plus = 0;
-  shared->initial_deaths_PBS = 0;
-  shared->initial_deaths_SW = 0;
+  shared->initial_cases_inc = 0;
+  shared->initial_cases_inc_00_04 = 0;
+  shared->initial_cases_inc_05_14 = 0;
+  shared->initial_cases_inc_15_plus = 0;
+  shared->initial_cases_inc_PBS = 0;
+  shared->initial_cases_inc_SW = 0;
   shared->initial_deaths_cumulative = 0;
-  shared->initial_deaths_cumulative_05_15 = 0;
-  shared->initial_deaths_cumulative_0_5 = 0;
+  shared->initial_deaths_cumulative_00_04 = 0;
+  shared->initial_deaths_cumulative_05_14 = 0;
   shared->initial_deaths_cumulative_15_plus = 0;
   shared->initial_deaths_cumulative_PBS = 0;
   shared->initial_deaths_cumulative_SW = 0;
+  shared->initial_deaths_inc = 0;
+  shared->initial_deaths_inc_00_04 = 0;
+  shared->initial_deaths_inc_05_14 = 0;
+  shared->initial_deaths_inc_15_plus = 0;
+  shared->initial_deaths_inc_PBS = 0;
+  shared->initial_deaths_inc_SW = 0;
   shared->initial_prioritisation_step_1st_dose = 1;
   shared->initial_prioritisation_step_2nd_dose = 1;
   shared->initial_total_vax = 0;
@@ -1136,11 +1178,13 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->vaccination_coverage_target_1st_dose_prop = NA_REAL;
   shared->vaccination_coverage_target_2nd_dose_prop = NA_REAL;
   shared->dt = 1;
+  shared->exp_noise = 1000000;
   internal.initial_time = 0;
   shared->N_prioritisation_steps = user_get_scalar<int>(user, "N_prioritisation_steps", shared->N_prioritisation_steps, NA_INTEGER, NA_INTEGER);
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
   shared->beta_s = user_get_scalar<real_type>(user, "beta_s", shared->beta_s, NA_REAL, NA_REAL);
   shared->dt = user_get_scalar<real_type>(user, "dt", shared->dt, NA_REAL, NA_REAL);
+  shared->exp_noise = user_get_scalar<real_type>(user, "exp_noise", shared->exp_noise, NA_REAL, NA_REAL);
   shared->gamma_E = user_get_scalar<real_type>(user, "gamma_E", shared->gamma_E, NA_REAL, NA_REAL);
   shared->gamma_Id = user_get_scalar<real_type>(user, "gamma_Id", shared->gamma_Id, NA_REAL, NA_REAL);
   shared->gamma_Ir = user_get_scalar<real_type>(user, "gamma_Ir", shared->gamma_Ir, NA_REAL, NA_REAL);
@@ -1438,7 +1482,7 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
 template <>
 cpp11::sexp dust_info<model_targeted_vax>(const dust::pars_type<model_targeted_vax>& pars) {
   const std::shared_ptr<const model_targeted_vax::shared_type> shared = pars.shared;
-  cpp11::writable::strings nms({"time", "prioritisation_step_1st_dose", "prioritisation_step_2nd_dose", "cases", "deaths", "cases_cumulative", "deaths_cumulative", "cases_0_5", "cases_05_15", "cases_15_plus", "cases_PBS", "cases_SW", "deaths_0_5", "deaths_05_15", "deaths_15_plus", "deaths_PBS", "deaths_SW", "cases_cumulative_0_5", "cases_cumulative_05_15", "cases_cumulative_15_plus", "cases_cumulative_PBS", "cases_cumulative_SW", "deaths_cumulative_0_5", "deaths_cumulative_05_15", "deaths_cumulative_15_plus", "deaths_cumulative_PBS", "deaths_cumulative_SW", "vax_given_S", "vax_given_Ea", "vax_given_Eb", "vax_given_R", "vax_1stdose_given_S", "vax_1stdose_given_Ea", "vax_1stdose_given_Eb", "vax_1stdose_given_R", "vax_2nddose_given_S", "vax_2nddose_given_Ea", "vax_2nddose_given_Eb", "vax_2nddose_given_R", "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot", "total_vax", "total_vax_1stdose", "total_vax_2nddose", "S", "Ea", "Eb", "Ir", "Id", "R", "D", "E", "I", "N"});
+  cpp11::writable::strings nms({"time", "prioritisation_step_1st_dose", "prioritisation_step_2nd_dose", "cases_inc", "deaths_inc", "cases_cumulative", "deaths_cumulative", "cases_inc_00_04", "cases_inc_05_14", "cases_inc_15_plus", "cases_inc_PBS", "cases_inc_SW", "deaths_inc_00_04", "deaths_inc_05_14", "deaths_inc_15_plus", "deaths_inc_PBS", "deaths_inc_SW", "cases_cumulative_00_04", "cases_cumulative_05_14", "cases_cumulative_15_plus", "cases_cumulative_PBS", "cases_cumulative_SW", "deaths_cumulative_00_04", "deaths_cumulative_05_14", "deaths_cumulative_15_plus", "deaths_cumulative_PBS", "deaths_cumulative_SW", "vax_given_S", "vax_given_Ea", "vax_given_Eb", "vax_given_R", "vax_1stdose_given_S", "vax_1stdose_given_Ea", "vax_1stdose_given_Eb", "vax_1stdose_given_R", "vax_2nddose_given_S", "vax_2nddose_given_Ea", "vax_2nddose_given_Eb", "vax_2nddose_given_R", "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot", "total_vax", "total_vax_1stdose", "total_vax_2nddose", "S", "Ea", "Eb", "Ir", "Id", "R", "D", "E", "I", "N"});
   cpp11::writable::list dim(58);
   dim[0] = cpp11::writable::integers({1});
   dim[1] = cpp11::writable::integers({1});
@@ -1565,6 +1609,20 @@ cpp11::sexp dust_info<model_targeted_vax>(const dust::pars_type<model_targeted_v
            "dim"_nm = dim,
            "len"_nm = len,
            "index"_nm = index});
+}
+template <>
+model_targeted_vax::data_type dust_data<model_targeted_vax>(cpp11::list data) {
+  using real_type = model_targeted_vax::real_type;
+  return model_targeted_vax::data_type{
+      cpp11::as_cpp<real_type>(data["cases"]),
+      cpp11::as_cpp<real_type>(data["cases_00_04"]),
+      cpp11::as_cpp<real_type>(data["cases_05_14"]),
+      cpp11::as_cpp<real_type>(data["cases_15_plus"]),
+      cpp11::as_cpp<real_type>(data["deaths"]),
+      cpp11::as_cpp<real_type>(data["deaths_00_04"]),
+      cpp11::as_cpp<real_type>(data["deaths_05_14"]),
+      cpp11::as_cpp<real_type>(data["deaths_15_plus"])
+    };
 }
 }
 

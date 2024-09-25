@@ -7,8 +7,8 @@ test_that("run is equal to reference", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(any(res["deaths", , ] > 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(any(res["deaths_inc", , ] > 0))
 
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
 })
@@ -25,7 +25,7 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(all(res["cases", , ] == 0))
+  expect_true(all(res["cases_inc", , ] == 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
 })
 
@@ -38,8 +38,8 @@ test_that("when CFR = 0 nobody dies", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(all(res["deaths", , ] == 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(all(res["deaths_inc", , ] == 0))
   expect_true(any(res["R_tot", , ] > 0))
   expect_true(all(res["D_tot", , ] == 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
@@ -54,8 +54,8 @@ test_that("when CFR = 1 everybody dies", {
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_true(any(res["cases", , ] > 0))
-  expect_true(any(res["deaths", , ] > 0))
+  expect_true(any(res["cases_inc", , ] > 0))
+  expect_true(any(res["deaths_inc", , ] > 0))
   expect_true(all(res["R_tot", , ] == 0))
   expect_true(any(res["D_tot", , ] > 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N)), 0)
@@ -107,8 +107,8 @@ test_that("when beta_h = 0 and beta_z=0 infections only from sexual contact", {
   expect_true(all(res["cases_cumulative_SW",,max(t)]>0))
 
   ## shouldn't have cases in the age groups
-  expect_true(all(res["cases_cumulative_0_5",,max(t)]==0))
-  expect_true(all(res["cases_cumulative_05_15",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_00_04",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_05_14",,max(t)]==0))
   expect_true(all(res["cases_cumulative_15_plus",,max(t)]==0))
 
   ## make sure population size continues behaving
@@ -315,3 +315,53 @@ test_that("no 2nd doses are given if no 1st doses are given", {
 
 })
 
+
+test_that("Test compiled compare components", {
+  pars <- reference_pars_targeted_vax()
+  pars$exp_noise <- Inf
+  nms <- reference_names()
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1L)
+  
+  time <- 350
+  y <- m$run(time)
+  
+  d <- data.frame(time = 350,
+                  cases = 150,
+                  cases_00_04 = 30,
+                  cases_05_14 = 40,
+                  cases_15_plus = 80,
+                  deaths = 50,
+                  deaths_00_04 = 10,
+                  deaths_05_14 = 15,
+                  deaths_15_plus = 25)
+  
+  parts <- list(
+    c("cases"),
+    c("cases_00_04"),
+    c("cases_05_14"),
+    c("cases_15_plus"),
+    c("deaths"),
+    c("deaths_00_04"),
+    c("deaths_05_14"),
+    c("deaths_15_plus"))
+  
+  
+  compare_part <- function(nms) {
+    d_test <- d
+    d_test[, setdiff(names(d), c(nms, "time"))] <- NA_real_
+    m$set_data(dust::dust_data(d_test, "time"))
+    m$compare_data()
+  }
+  
+  ll_parts <- lapply(parts, compare_part)
+  
+  ll_all <- compare_part(do.call(cbind, parts))
+  
+  ## check that using each datastream individually sums to using them all
+  expect_equal(ll_all, rowSums(do.call(cbind, ll_parts)))
+    
+  ## check that all datastreams are supplying non-zero likelihood contributions
+  expect_true(all(sapply(ll_parts, function(x) any(x != 0))))
+    
+})

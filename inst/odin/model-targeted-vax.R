@@ -179,33 +179,33 @@ update(N[,]) <- S[i,j] + Ea[i,j] + Eb[i,j] + Ir[i,j] + Id[i,j] + R[i,j] + D[i,j]
 
 # weekly cases
 is_same_week <- step %% steps_per_week > 0
-update(cases) <- cases * is_same_week + sum(n_SEa[,])
-update(cases_0_5) <- cases_0_5 * is_same_week + sum(n_SEa[1,])
-update(cases_05_15) <- cases_05_15 * is_same_week + sum(n_SEa[2:3,])
-update(cases_15_plus) <- cases_15_plus * is_same_week + sum(n_SEa[4:16,])
-update(cases_PBS) <- cases_PBS * is_same_week + sum(n_SEa[17,])
-update(cases_SW) <- cases_SW * is_same_week + sum(n_SEa[18,])
+update(cases_inc) <- cases_inc * is_same_week + sum(n_SEa[,])
+update(cases_inc_00_04) <- cases_inc_00_04 * is_same_week + sum(n_SEa[1,])
+update(cases_inc_05_14) <- cases_inc_05_14 * is_same_week + sum(n_SEa[2:3,])
+update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week + sum(n_SEa[4:16,])
+update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + sum(n_SEa[17,])
+update(cases_inc_SW) <- cases_inc_SW * is_same_week + sum(n_SEa[18,])
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[,])
-update(cases_cumulative_0_5) <- cases_cumulative_0_5 + sum(n_SEa[1,])
-update(cases_cumulative_05_15) <- cases_cumulative_05_15 + sum(n_SEa[2:3,])
+update(cases_cumulative_00_04) <- cases_cumulative_00_04 + sum(n_SEa[1,])
+update(cases_cumulative_05_14) <- cases_cumulative_05_14 + sum(n_SEa[2:3,])
 update(cases_cumulative_15_plus) <- cases_cumulative_15_plus + sum(n_SEa[4:16,])
 update(cases_cumulative_PBS) <- cases_cumulative_PBS + sum(n_SEa[17,])
 update(cases_cumulative_SW) <- cases_cumulative_SW + sum(n_SEa[18,])
 
 # weekly deaths
-update(deaths) <- deaths * is_same_week + sum(n_IdD[,])
-update(deaths_0_5) <- deaths_0_5 * is_same_week + sum(n_IdD[1,])
-update(deaths_05_15) <- deaths_05_15 * is_same_week + sum(n_IdD[2:3,])
-update(deaths_15_plus) <- deaths_15_plus * is_same_week + sum(n_IdD[4:16,])
-update(deaths_PBS) <- deaths_PBS * is_same_week + sum(n_IdD[17,])
-update(deaths_SW) <- deaths_SW * is_same_week + sum(n_IdD[18,])
+update(deaths_inc) <- deaths_inc * is_same_week + sum(n_IdD[,])
+update(deaths_inc_00_04) <- deaths_inc_00_04 * is_same_week + sum(n_IdD[1,])
+update(deaths_inc_05_14) <- deaths_inc_05_14 * is_same_week + sum(n_IdD[2:3,])
+update(deaths_inc_15_plus) <- deaths_inc_15_plus * is_same_week + sum(n_IdD[4:16,])
+update(deaths_inc_PBS) <- deaths_inc_PBS * is_same_week + sum(n_IdD[17,])
+update(deaths_inc_SW) <- deaths_inc_SW * is_same_week + sum(n_IdD[18,])
 
 # cumulative deaths
 update(deaths_cumulative) <- deaths_cumulative + sum(n_IdD[,])
-update(deaths_cumulative_0_5) <- deaths_cumulative_0_5 + sum(n_IdD[1,])
-update(deaths_cumulative_05_15) <- deaths_cumulative_05_15 + sum(n_IdD[2:3,])
+update(deaths_cumulative_00_04) <- deaths_cumulative_00_04 + sum(n_IdD[1,])
+update(deaths_cumulative_05_14) <- deaths_cumulative_05_14 + sum(n_IdD[2:3,])
 update(deaths_cumulative_15_plus) <- deaths_cumulative_15_plus + sum(n_IdD[4:16,])
 update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + sum(n_IdD[17,])
 update(deaths_cumulative_SW) <- deaths_cumulative_SW + sum(n_IdD[18,])
@@ -270,29 +270,29 @@ initial(D[,]) <- D0[i,j]
 initial(E[,]) <- Ea0[i,j] + Eb0[i,j]
 initial(I[,]) <- Ir0[i,j] + Id0[i,j]
 initial(N[,]) <- S0[i,j] + Ea0[i,j] + Eb0[i,j] + Ir0[i,j] + Id0[i,j] + R0[i,j] + D0[i,j]
-initial(cases) <- 0
-initial(deaths) <- 0
+initial(cases_inc) <- 0
+initial(deaths_inc) <- 0
 initial(cases_cumulative) <- 0
 initial(deaths_cumulative) <- 0
 
-initial(cases_0_5) <- 0
-initial(cases_05_15) <- 0
-initial(cases_15_plus) <- 0
-initial(cases_PBS) <- 0
-initial(cases_SW) <- 0
-initial(deaths_0_5) <- 0
-initial(deaths_05_15) <- 0
-initial(deaths_15_plus) <- 0
-initial(deaths_PBS) <- 0
-initial(deaths_SW) <- 0
+initial(cases_inc_00_04) <- 0
+initial(cases_inc_05_14) <- 0
+initial(cases_inc_15_plus) <- 0
+initial(cases_inc_PBS) <- 0
+initial(cases_inc_SW) <- 0
+initial(deaths_inc_00_04) <- 0
+initial(deaths_inc_05_14) <- 0
+initial(deaths_inc_15_plus) <- 0
+initial(deaths_inc_PBS) <- 0
+initial(deaths_inc_SW) <- 0
 
-initial(cases_cumulative_0_5) <- 0
-initial(cases_cumulative_05_15) <- 0
+initial(cases_cumulative_00_04) <- 0
+initial(cases_cumulative_05_14) <- 0
 initial(cases_cumulative_15_plus) <- 0
 initial(cases_cumulative_PBS) <- 0
 initial(cases_cumulative_SW) <- 0
-initial(deaths_cumulative_0_5) <- 0
-initial(deaths_cumulative_05_15) <- 0
+initial(deaths_cumulative_00_04) <- 0
+initial(deaths_cumulative_05_14) <- 0
 initial(deaths_cumulative_15_plus) <- 0
 initial(deaths_cumulative_PBS) <- 0
 initial(deaths_cumulative_SW) <- 0
@@ -415,5 +415,46 @@ dim(delta_S_n_vaccination) <- c(n_group,n_vax)
 dim(delta_Ea_n_vaccination) <- c(n_group,n_vax)
 dim(delta_Eb_n_vaccination) <- c(n_group,n_vax)
 dim(delta_R_n_vaccination) <- c(n_group,n_vax)
+
+
+#### compare
+
+exp_noise <- user(1e6)
+
+# cases
+cases <- data()
+model_cases <- cases_inc + rexp(exp_noise)
+compare(cases) ~ poisson(model_cases)
+
+cases_00_04 <- data()
+model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
+compare(cases_00_04) ~ poisson(model_cases_00_04)
+
+cases_05_14 <- data()
+model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
+compare(cases_05_14) ~ poisson(model_cases_05_14)
+
+cases_15_plus <- data()
+model_cases_15_plus <- cases_inc_15_plus + cases_inc_PBS + cases_inc_SW + 
+  rexp(exp_noise)
+compare(cases_15_plus) ~ poisson(model_cases_15_plus)
+
+# deaths
+deaths <- data()
+model_deaths <- deaths_inc + rexp(exp_noise)
+compare(deaths) ~ poisson(model_deaths)
+
+deaths_00_04 <- data()
+model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
+compare(deaths_00_04) ~ poisson(model_deaths_00_04)
+
+deaths_05_14 <- data()
+model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
+compare(deaths_05_14) ~ poisson(model_deaths_05_14)
+
+deaths_15_plus <- data()
+model_deaths_15_plus <- deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW + 
+  rexp(exp_noise)
+compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
 
 

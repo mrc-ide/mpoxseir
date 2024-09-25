@@ -15,8 +15,11 @@ NULL
 ##'   compartments used to compare
 ##' @export
 model_index <- function(info) {
-  run <- c("cases", "deaths")
-  state <- c(run, "S", "E", "I", "R")
+  run <- c(
+    "cases",  "deaths",
+    "cases_0_5", "cases_05_15", "cases_15_plus", "cases_PBS", "cases_SW",
+    "deaths_0_5", "deaths_05_15", "deaths_15_plus", "deaths_PBS", "deaths_SW")
+  save <- c(run, "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot")
   index <- unlist(info$index)
-  list(run = index[run], state = index[state])
+  list(run = index[run], state = index[save])
 }
