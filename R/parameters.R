@@ -209,6 +209,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   }
 
   params_list = list(
+    region = region,
     n_group = n_group,
     n_vax = n_vax,
     N_prioritisation_steps = N_prioritisation_steps,
