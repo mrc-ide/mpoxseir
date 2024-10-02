@@ -106,12 +106,12 @@ run_mpoxSEIR_targetedVax_single <- function(
   pars <- transform_params(params_for_transform)
 
   ## Setting up the model with the inputted parameters
-  mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
-                                           time = 0,
-                                           n_particles = n_particles,
-                                           n_threads = n_threads,
-                                           seed = seed,
-                                           deterministic = deterministic)
+  mod <- model_targeted_vax$new(pars = pars,
+                                time = 0,
+                                n_particles = n_particles,
+                                n_threads = n_threads,
+                                seed = seed,
+                                deterministic = deterministic)
 
   ## Running the model
   days_per_week <- 7
