@@ -21,6 +21,7 @@ rename_cols_rows <- function(m,res){
 }
 
 ##' @importFrom dplyr %>%
+##' @importFrom dplyr .data
 make_df_from_array <- function(m,res){
 
   # collapse from array into df format
@@ -28,7 +29,7 @@ make_df_from_array <- function(m,res){
   res_df <- plyr::adply(res,3,.id = "t") %>%
     dplyr::mutate(t = as.numeric(t),
            "var" = rep(names(unlist(m$info()$index)),max(t))) %>%
-    dplyr::filter(var != "time")
+    dplyr::filter(.data$var != "time")
 
   return(res_df)
 }
