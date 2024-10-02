@@ -1,9 +1,17 @@
 
-#' @importFrom stats dmultinom
-#' @importFrom stats setNames
-#' @importFrom squire get_population
-#' @importFrom squire get_mixing_matrix
-#' @export
+##' A function that returns the demographic parameters for use in the model
+##' 
+##' @title Get demographic parameters
+##' 
+##' @return A list containing all the demographic parameters
+##'   
+##' @export
+##' @importFrom stats dmultinom
+##' @importFrom stats setNames
+##' @importFrom squire get_population
+##' @importFrom squire get_mixing_matrix
+##' 
+##' @export
 parameters_demographic <- function() {
   age_bins <- get_age_bins()
 
@@ -112,10 +120,18 @@ parameters_demographic <- function() {
   )
 }
 
-## We always use these age bands, so rather than detect them, we will
-## check that things conform to them.
-#' @export
+
+##' A function that gets the age bins used in the model.
+##' 
+##' @title Get age bins for use in the model
+##' 
+##' @return A data frame containing the labels for the age bins, and their
+##'   start and end values
+##'   
+##' @export
 get_age_bins <- function() {
+  ## We always use these age bands, so rather than detect them, we will
+  ## check that things conform to them.
   end <- c(seq(4, 75, by = 5), 100)
   start <- c(0, end[-length(end)] + 1L)
   label <- paste(start, end, sep = "-")
@@ -143,7 +159,22 @@ assign_seeds <- function(N, w) {
     int_alloc
   }
 
-
+##' A function that gets the fixed parameters for use in the model
+##' 
+##' @title Get fixed parameters for use in the model
+##' 
+##' @param region The region for the parameters, must be either `"equateur"` or
+##'   `"sudkivu"`
+##'   
+##' @param initial_infections The initial number of infections
+##' 
+##' @param overrides A list, containing any parameters for which you want to
+##'   override the default values
+##' 
+##' @return A list of the fixed parameters
+##'   
+##' @export
+##' 
 #' @export
 parameters_fixed <- function(region, initial_infections, overrides = list()) {
 
