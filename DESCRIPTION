@@ -18,7 +18,9 @@ Suggests:
     odin.dust (>= 0.3.3),
     testthat (>= 3.0.0)
 Imports:
-    squire
+    squire,
+    dplyr,
+    plyr
 Config/testthat/edition: 3
 SystemRequirements: C++14
 Remotes:
