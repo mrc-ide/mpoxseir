@@ -13,7 +13,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 LinkingTo:
     cpp11,
-    dust (>= 0.14.0)
+    dust (>= 0.15.0)
 Suggests:
     odin.dust (>= 0.3.3),
     testthat (>= 3.0.0)
