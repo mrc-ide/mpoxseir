@@ -10,7 +10,7 @@ NULL
 ##' conforms to the mcstate interface.
 ##' @title Index of model variables
 ##' @param info The result of running the `$info()` method on an
-##'   initialised [model]
+##'   initialised [model_targeted_vax]
 ##' @return A list with element `run`, indicating the locations of the
 ##'   compartments used to compare
 ##' @export

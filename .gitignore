@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 *.RProj
+*.o
+*.so
+*.dll

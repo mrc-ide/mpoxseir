@@ -8,7 +8,7 @@ model_index(info)
 }
 \arguments{
 \item{info}{The result of running the \verb{$info()} method on an
-initialised \link{model}}
+initialised \link{model_targeted_vax}}
 }
 \value{
 A list with element \code{run}, indicating the locations of the

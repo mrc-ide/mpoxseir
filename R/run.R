@@ -1,5 +1,19 @@
-
-#' @export
+##' A function that creates the transform function for use in the fitting
+##' 
+##' @title Create transform function
+##' 
+##' @param region The region for fitting, must be either `"equateur"` or 
+##'   `"sudkivu"`
+##'   
+##' @param initial_infections The initial number of infections
+##' 
+##' @param overrides A list, containing any parameters for which you want to
+##'   override the default fixed values
+##' 
+##' @return A transform function
+##'   
+##' @export
+##'
 create_transform_params <- function(region, initial_infections, overrides = list()) {
 
   pars <- parameters_fixed(region = region, initial_infections = initial_infections, overrides = overrides)
@@ -61,8 +75,73 @@ create_transform_params <- function(region, initial_infections, overrides = list
 
 }
 
-# Run the model with single set of parameter values
-#' @export
+##' Run the model with single set of parameter values
+##'
+##' @title Run the model with single set of parameter values
+##' 
+##' @param region The region to run the model for, must be either `"equateur"` 
+##'   or `"sudkivu"`
+##'   
+##' @param initial_infections The initial number of infections to seed with
+##' 
+##' @param n_weeks number of weeks to run for
+##' 
+##' @param R0_hh R0 for the household
+##' 
+##' @param R0_sw_st R0 for sex workers to people who buy sex
+##' 
+##' @param beta_z_max beta for the age-group with highest zoonotic 
+##'   transmission (a number)
+##' 
+##' @param n_vax number of vaccination compartments (integer, basis for an 
+##'   additional dimension in odin states)
+##' 
+##' @param daily_doses the daily number of doses administered (matrix of 
+##'   vaccination_campaign_length * number of vaccination compartments)
+##' 
+##' @param N_prioritisation_steps the number of different vaccination 
+##'   prioritisation categories we're considering
+##' 
+##' @param prioritisation_strategy what each step corresponds to in terms of 
+##'   strategy (matrix of n_group * N_prioritisation_steps, with 1s and 0s
+##'   indicating whether a group is included in prioritisation step)
+##' 
+##' @param vaccination_coverage_target vaccination coverage target for each 
+##'   group and prioritisation step (matrix of n_group * N_prioritisation_steps)
+##' 
+##' @param vaccine_uptake max achievable coverage for each group (vector of 
+##'   length n_group)
+##' 
+##' @param ve_T vaccine efficacy against onwards transmissibility for each 
+##'   vaccinated compartment (vector of length n_vax)
+##' 
+##' @param ve_I vaccine efficacy against infection for each vaccinated 
+##'   compartment (vector of length n_vax)
+##' 
+##' @param ve_D vaccine efficacy against death for each vaccinated 
+##'   compartment (vector of length n_vax)
+##' 
+##' @param vaccination_campaign_length length of the vaccination campaign
+##'   (in timesteps NOT days - CHECK WITH RUTH THIS IS RIGHT)
+##' 
+##' @param overrides list of other model parameters which if specified will
+##'   overwrite the defaults
+##' 
+##' @param n_particles Number of particles
+##' 
+##' @param n_threads Number of threads
+##' 
+##' @param seed The random seed to use
+##' 
+##' @param deterministic Logical, whether to run the model deterministically or
+##'   not
+##' 
+##' @param outputs_retained The outputs to retain
+##' 
+##' @return The output from running the model
+##'   
+##' @export
+##'
 run_mpoxSEIR_targetedVax_single <- function(
 
     region,  # region to run the model for (either Sud Kivu or Equateur)
@@ -106,12 +185,12 @@ run_mpoxSEIR_targetedVax_single <- function(
   pars <- transform_params(params_for_transform)
 
   ## Setting up the model with the inputted parameters
-  mod <- mpoxseir:::model_targeted_vax$new(pars = pars,
-                                           time = 0,
-                                           n_particles = n_particles,
-                                           n_threads = n_threads,
-                                           seed = seed,
-                                           deterministic = deterministic)
+  mod <- model_targeted_vax$new(pars = pars,
+                                time = 0,
+                                n_particles = n_particles,
+                                n_threads = n_threads,
+                                seed = seed,
+                                deterministic = deterministic)
 
   ## Running the model
   days_per_week <- 7
@@ -139,8 +218,73 @@ run_mpoxSEIR_targetedVax_single <- function(
   ret
 }
 
-# Run multiple iterations of the model with different parameter values
-#' @export
+##' Run multiple iterations of the model with different parameter values
+##'
+##' @title Run multiple iterations of the model with different parameter values
+##' 
+##' @param region The region to run the model for, must be either `"equateur"` 
+##'   or `"sudkivu"`
+##'   
+##' @param initial_infections The initial number of infections to seed with
+##' 
+##' @param n_weeks number of weeks to run for
+##' 
+##' @param R0_hh R0 for the household
+##' 
+##' @param R0_sw_st R0 for sex workers to people who buy sex
+##' 
+##' @param beta_z_max beta for the age-group with highest zoonotic 
+##'   transmission (a number)
+##' 
+##' @param n_vax number of vaccination compartments (integer, basis for an 
+##'   additional dimension in odin states)
+##' 
+##' @param daily_doses the daily number of doses administered (matrix of 
+##'   vaccination_campaign_length * number of vaccination compartments)
+##' 
+##' @param N_prioritisation_steps the number of different vaccination 
+##'   prioritisation categories we're considering
+##' 
+##' @param prioritisation_strategy what each step corresponds to in terms of 
+##'   strategy (matrix of n_group * N_prioritisation_steps, with 1s and 0s
+##'   indicating whether a group is included in prioritisation step)
+##' 
+##' @param vaccination_coverage_target vaccination coverage target for each 
+##'   group and prioritisation step (matrix of n_group * N_prioritisation_steps)
+##' 
+##' @param vaccine_uptake max achievable coverage for each group (vector of 
+##'   length n_group)
+##' 
+##' @param ve_T vaccine efficacy against onwards transmissibility for each 
+##'   vaccinated compartment (vector of length n_vax)
+##' 
+##' @param ve_I vaccine efficacy against infection for each vaccinated 
+##'   compartment (vector of length n_vax)
+##' 
+##' @param ve_D vaccine efficacy against death for each vaccinated 
+##'   compartment (vector of length n_vax)
+##' 
+##' @param vaccination_campaign_length length of the vaccination campaign
+##'   (in timesteps NOT days - CHECK WITH RUTH THIS IS RIGHT)
+##' 
+##' @param overrides list of other model parameters which if specified will
+##'   overwrite the defaults
+##' 
+##' @param n_particles Number of particles
+##' 
+##' @param n_threads Number of threads
+##' 
+##' @param seed The random seed to use
+##' 
+##' @param deterministic Logical, whether to run the model deterministically or
+##'   not
+##' 
+##' @param outputs_retained The outputs to retain
+##' 
+##' @return The output from running the model
+##'   
+##' @export
+##'
 run_mpoxSEIR_targetedVax_multiple <- function(
     region,
     initial_infections, 
