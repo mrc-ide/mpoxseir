@@ -13,6 +13,7 @@
 ##' 
 ##' @export
 parameters_demographic <- function() {
+  
   age_bins <- get_age_bins()
 
   ## Set up population denominators
@@ -21,16 +22,41 @@ parameters_demographic <- function() {
   N_age <- c(data$n[1:15], sum(data$n[16:17])) # combine 75+
 
   ## Add in Sex workers (SW) and People who Buy Sex (PBS)
-  idx_15_49  <- age_bins$start >= 15 & age_bins$end < 49
-  N_15_49 <- N_age * idx_15_49
+  
+  idx_12_49 <- age_bins$start>=10 & age_bins$end <= 49
+  
+  ## CSW
+  ## splitting this for child (12 - 17) and adult SWs (18 - 49)
+  idx_12_17 <- age_bins$start >=10 & age_bins$end <= 19
+  idx_18_49  <- age_bins$start >= 15 & age_bins$end <= 49
+  
+  N_12_17 <- N_age * idx_12_17
+  ## adjust for different age bands
+  N_12_17[which(age_bins=="10-14")] <- 0.6*N_12_17[which(age_bins=="10-14")]
+  N_12_17[which(age_bins=="15-19")] <- 0.6*N_12_17[which(age_bins=="15-19")]
+  
+  N_18_49 <- N_age * idx_18_49
+  ## adjust for different age bands
+  N_18_49[which(age_bins=="15-19")] <- 0.4*N_18_49[which(age_bins=="15-19")]
 
   p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al
-  N_SW <- round(p_SW * N_15_49)
+  N_SW_children <- round(p_SW * N_12_17)
+  N_SW_adults <- round(p_SW * N_18_49)
 
+  ## PBS
+  
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
+  idx_15_49  <- age_bins$start >= 15 & age_bins$end <= 49
+  N_15_49 <- N_age * idx_15_49
+  
   N_PBS <- round(p_PBS * N_15_49)
 
-  N <- c(N_age - N_SW - N_PBS, sum(N_SW), sum(N_PBS))
+  N <- c(N_age - N_SW_adults - N_PBS - N_SW_children, 
+         sum(N_SW_adults), sum(N_PBS), sum(N_SW_children))
+  
+  # check allocated properly
+  sum(N) - sum(N_age)
+  # all fine
 
   # Set up mixing matrices: 1) general population and 2) sexual contact
   # Squire gives unbalanced per-capita daily rates, we need to
@@ -50,42 +76,58 @@ parameters_demographic <- function() {
   # assume homogenous mixing in day-to-day contacts (will add sex in fitting)
 
   # decompose total contact matrix by number in pair that could be KP (0/1/2)
-  M0 <- M_age * outer(!idx_15_49, !idx_15_49) # neither could be KP
-  M1 <- M_age * outer(idx_15_49, idx_15_49, FUN = "xor") # only 1 could be KP
-  M2 <- M_age * outer(idx_15_49, idx_15_49) # both could be KP
+  
+  M0 <- M_age * outer(!idx_12_49, !idx_12_49) # neither could be KP
+  ## border case of 10 - 14 (reduce contacts to 40% of the total contacts in this band e.g. 10 and 11 year olds)
+  M0[which(age_bins=="10-14"),!idx_12_49] <- 0.4 * M_age[which(age_bins=="10-14"),!idx_12_49] 
+  M0[!idx_12_49,which(age_bins=="10-14")] <- 0.4 * M_age[!idx_12_49,which(age_bins=="10-14")]
+  M0[which(age_bins=="10-14"),which(age_bins=="10-14")] <- 0.4 * M_age[which(age_bins=="10-14"),which(age_bins=="10-14")]
+  
+  M1 <- M_age * outer(idx_12_49, idx_12_49, FUN = "xor") # only 1 could be KP
+  ## border case of 10 - 14 (reduce contacts to 60% of this band, e.g. 12, 13, 14)
+  M1[which(age_bins=="10-14"),] <- 0.6 * M1[which(age_bins=="10-14"),] 
+  M1[,which(age_bins=="10-14")] <- 0.6 * M1[,which(age_bins=="10-14")]
+  
+  M2 <- M_age * outer(idx_12_49, idx_12_49) # both could be KP
+  ## border case of 10 - 14
+  M2[which(age_bins=="10-14"),] <- 0.6 * M2[which(age_bins=="10-14"),]
+  M2[,which(age_bins=="10-14")] <- 0.6 * M2[,which(age_bins=="10-14")]
 
   p_KP <- p_SW + p_PBS
   p <- c(1 - p_KP, p_SW, p_PBS)
 
   # Split contact matrix by all 6 combinations of contact between groups
   M_gen_pop <- M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
-  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW
+  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW 
   M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
   M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
   M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
   M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
 
   ## check matrices are decomposed properly
+  ## LILITH right now they are not sorry
   sum(M_gen_pop + M_gen_PBS + M_gen_SW + M_SW_SW + M_PBS_PBS + M_SW_PBS - M_age)
 
   marginalise <- function(M) (rowSums(M) + diag(M)) / 2
 
   n_age <- length(N_age)
   idx_age <- seq_len(n_age)
-  n_group <- n_age + 2
-  nms_group <- c(age_bins$label, "SW", "PBS")
+  n_group <- n_age + 3
+  nms_group <- c(age_bins$label, "SW_adults", "PBS", "SW_children")
 
 
   ### General population
   # Construct new contact matrix including groups
   M_all <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
   M_all[idx_age, idx_age] <- M_gen_pop
-  M_all["SW", idx_age] <- M_all[idx_age, "SW"] <- marginalise(M_gen_SW)
+  M_all["SW_adults", idx_age] <- M_all[idx_age, "SW_adults"] <- marginalise(M_gen_SW)
   M_all["PBS", idx_age] <- M_all[idx_age, "PBS"] <- marginalise(M_gen_PBS)
 
-  M_all["SW", "SW"] <- sum(marginalise(M_SW_SW))
+  M_all["SW_adults", "SW_adults"] <- sum(marginalise(M_SW_SW))
+  M_all["SW_children", "SW_children"] <- sum(marginalise(M_SW_SW))
   M_all["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
-  M_all["SW", "PBS"] <- M_all["PBS", "SW"] <- sum(marginalise(M_SW_PBS))
+  M_all["SW_adults", "PBS"] <- M_all["PBS", "SW_adults"] <- sum(marginalise(M_SW_PBS))
+  M_all["SW_children", "PBS"] <- M_all["PBS", "SW_children"] <- sum(marginalise(M_SW_PBS))
 
   # check that total contacts are the same as original
   sum(marginalise(M_all)) - sum(marginalise(M_age)) ## check total number of contacts
@@ -100,7 +142,7 @@ parameters_demographic <- function() {
   m_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
 
   # proportion of susceptibles estimated to have smallpox vaccine
-  sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
+  sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1,1)
 
   # province populations
   province_pop = list("equateur" = 1712000,
