@@ -83,6 +83,8 @@ parameters_demographic <- function() {
   M0[!idx_12_49,which(age_bins=="10-14")] <- 0.4 * M_age[!idx_12_49,which(age_bins=="10-14")]
   M0[which(age_bins=="10-14"),which(age_bins=="10-14")] <- 0.4 * M_age[which(age_bins=="10-14"),which(age_bins=="10-14")]
   
+  ### is there another border case in the 15 - 17 year olds?
+  
   M1 <- M_age * outer(idx_12_49, idx_12_49, FUN = "xor") # only 1 could be KP
   ## border case of 10 - 14 (reduce contacts to 60% of this band, e.g. 12, 13, 14)
   M1[which(age_bins=="10-14"),] <- 0.6 * M1[which(age_bins=="10-14"),] 
@@ -242,8 +244,9 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
-    sw_index <- which(colnames(demographic_params$m_gen_pop) == "SW")
-    Ea0[sw_index, 2] <- initial_infections
+    sw_index <- which(colnames(demographic_params$m_gen_pop) %in% c("SW_adults","SW_children"))
+    Ea0[sw_index[1], 2] <- round(initial_infections * N0["SW_adults"]/(N0["SW_adults"]+N0["SW_children"]))
+    Ea0[sw_index[2], 2] <- initial_infections - Ea0[sw_index[1], 2]
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
 
@@ -263,8 +266,9 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   names(CFR) <- names(demographic_params$N0)
   CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
   CFR[which(age_bins$start >= 40)] <- 0.01
-  CFR["SW"] <- CFR["20-24"]
+  CFR["SW_adults"] <- CFR["20-24"]
   CFR["PBS"] <- CFR["35-39"]
+  CFR["SW_children"] <- CFR["10-14"]
 
   vaccination_campaign_length <- 1
 
