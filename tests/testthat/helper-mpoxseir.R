@@ -10,7 +10,7 @@ reference_pars_targeted_vax <- function() {
                    prob=dem_pars$sus_prop,n=length(dem_pars$N))
   S0[,1] <- dem_pars$N-S0[,2]
   # rowSums(S0)==dem_pars$N0
-  dem_pars$m_sex["SW","PBS"] <- dem_pars$m_sex["PBS","SW"] <- max(dem_pars$m_gen_pop)
+  dem_pars$m_sex["SW_adults","PBS"] <- dem_pars$m_sex["PBS","SW_adults"] <- dem_pars$m_sex["SW_children","PBS"] <- dem_pars$m_sex["PBS","SW_children"] <-max(dem_pars$m_gen_pop)
 
   vaccination_campaign_length <- 10
   daily_doses <- matrix(0,ncol=n_vax,
@@ -21,7 +21,7 @@ reference_pars_targeted_vax <- function() {
 
   N_prioritisation_steps <- 3
   prioritisation_strategy <- cbind(c(1,1,1,rep(0,n_group-3)),# kids
-                                   c(1,1,1,rep(0,n_group-5),1,1), # kids + CSW
+                                   c(1,1,1,rep(0,n_group-6),1,1,1), # kids + CSW
                                    c(rep(1,n_group))) # all
   vaccination_coverage_target_1st_dose_prop <- 0.8
   vaccination_coverage_target_2nd_dose_prop <- 0.5
@@ -50,8 +50,8 @@ reference_pars_targeted_vax <- function() {
               gamma_I = 0.1,
               gamma_Ir = 0.1,
               gamma_Id = 0.05,
-              CFR = matrix(c(1 / c(seq(2.5, 77.5, 5), 25, 25),
-                             (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25)),
+              CFR = matrix(c(1 / c(seq(2.5, 77.5, 5), 25, 25,25),
+                             (0.5*1) / c(seq(2.5, 77.5, 5), 25, 25,25)),
                            n_group,n_vax),
               ve_T = c(0.8,0,0.8,0.9),
               ve_I = c(0.8,0,0.8,0.9),
