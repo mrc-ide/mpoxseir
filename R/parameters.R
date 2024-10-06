@@ -261,8 +261,6 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   }
 
   # CFR from Whittles 2024, 5-year bands to 40
-  
-  #### include vaccines
 
   CFR <- rep(0, n_group)
   names(CFR) <- names(demographic_params$N0)
@@ -285,12 +283,6 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
       ##rowSums(S0)+rowSums(Ea0)==N0
   }else{
     stop("combination of population size and seeding infections is incompatible, please review.")
-  }
-  
-  ## vaccine efficacy
-  ve_I <- c(0.736,0,0.736,0.818)
-  if(length(ve_I)!=n_vax){
-    stop("incorrect dimension for ve_I")
   }
 
   params_list = list(
@@ -320,7 +312,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
     vaccine_uptake = rep(0.8, n_group),
     ve_T = rep(0, n_vax),
-    ve_I = ve_I,
+    ve_I = rep(0, n_vax),
     vaccination_coverage_target_1st_dose_prop = 0.8,
     vaccination_coverage_target_2nd_dose_prop = 0.5,
     vaccination_campaign_length = vaccination_campaign_length,
