@@ -217,12 +217,20 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
 
   # CFR from Whittles 2024, 5-year bands to 40
 
-  CFR <- rep(0, n_group)
-  names(CFR) <- names(demographic_params$N0)
-  CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
-  CFR[which(age_bins$start >= 40)] <- 0.01
-  CFR["SW"] <- CFR["20-24"]
-  CFR["PBS"] <- CFR["35-39"]
+  CFR <- matrix(0, nrow = n_group, ncol = n_vax)
+  rownames(CFR) <- names(demographic_params$N0)
+  
+  ## unvaccinated
+  CFR[which(age_bins$end < 40),2] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
+  CFR[which(age_bins$start >= 40),2] <- 0.01
+  CFR["SW",2] <- CFR["20-24",2]
+  CFR["PBS",2] <- CFR["35-39",2]
+  
+  ## vaccinated (currently no distinction, LW to review)
+  CFR[which(age_bins$end < 40),c(1,3,4)] <- c(0.048, 0.025, 0.016, 0.012, 0.009, 0.007, 0.006, 0.005)
+  CFR[which(age_bins$start >= 40),c(1,3,4)] <- 0.004
+  CFR["SW",c(1,3,4)] <- CFR["20-24",c(1,3,4)]
+  CFR["PBS",c(1,3,4)] <- CFR["35-39",c(1,3,4)]
 
   vaccination_campaign_length <- 1
 
@@ -265,7 +273,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
-    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
+    CFR = as.matrix(CFR),
     m_sex = demographic_params$m_sex,
     m_gen_pop = demographic_params$m_gen_pop,
     prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
