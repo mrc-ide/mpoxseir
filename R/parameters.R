@@ -261,6 +261,8 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   }
 
   # CFR from Whittles 2024, 5-year bands to 40
+  
+  #### include vaccines
 
   CFR <- rep(0, n_group)
   names(CFR) <- names(demographic_params$N0)
