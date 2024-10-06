@@ -32,11 +32,13 @@ parameters_demographic <- function() {
   
   N_12_17 <- N_age * idx_12_17
   ## adjust for different age bands
+  ## 60% of those in 10 - 14 can be child SWs
   N_12_17[which(age_bins=="10-14")] <- 0.6*N_12_17[which(age_bins=="10-14")]
+  ## 60% of those in 15 - 19 can be child SWs
   N_12_17[which(age_bins=="15-19")] <- 0.6*N_12_17[which(age_bins=="15-19")]
   
   N_18_49 <- N_age * idx_18_49
-  ## adjust for different age bands
+  ## adjust for different age bands - 40% of those in 15 - 19 would be adult SWs
   N_18_49[which(age_bins=="15-19")] <- 0.4*N_18_49[which(age_bins=="15-19")]
 
   p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al
@@ -44,6 +46,7 @@ parameters_demographic <- function() {
   N_SW_adults <- round(p_SW * N_18_49)
 
   ## PBS
+  # not changing this based on age as we only heard about young SWs not young PBS
   
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
   idx_15_49  <- age_bins$start >= 15 & age_bins$end <= 49
@@ -56,7 +59,6 @@ parameters_demographic <- function() {
   
   # check allocated properly
   sum(N) - sum(N_age)
-  # all fine
 
   # Set up mixing matrices: 1) general population and 2) sexual contact
   # Squire gives unbalanced per-capita daily rates, we need to
@@ -79,15 +81,16 @@ parameters_demographic <- function() {
   
   M0 <- M_age * outer(!idx_12_49, !idx_12_49) # neither could be KP
   ## border case of 10 - 14 (reduce contacts to 40% of the total contacts in this band e.g. 10 and 11 year olds)
-  M0[which(age_bins=="10-14"),!idx_12_49] <- 0.4 * M_age[which(age_bins=="10-14"),!idx_12_49] 
+  M0[which(age_bins=="10-14"),!idx_12_49] <- 0.4 * M_age[which(age_bins=="10-14"),!idx_12_49]
   M0[!idx_12_49,which(age_bins=="10-14")] <- 0.4 * M_age[!idx_12_49,which(age_bins=="10-14")]
   M0[which(age_bins=="10-14"),which(age_bins=="10-14")] <- 0.4 * M_age[which(age_bins=="10-14"),which(age_bins=="10-14")]
   
-  ### is there another border case in the 15 - 17 year olds?
+  ### is there another border case in the 15 - 17 year olds? 
+  ## where do the other 60% of the contacts in 10 - 14 go?
   
   M1 <- M_age * outer(idx_12_49, idx_12_49, FUN = "xor") # only 1 could be KP
   ## border case of 10 - 14 (reduce contacts to 60% of this band, e.g. 12, 13, 14)
-  M1[which(age_bins=="10-14"),] <- 0.6 * M1[which(age_bins=="10-14"),] 
+  M1[which(age_bins=="10-14"),] <- 0.6 * M1[which(age_bins=="10-14"),]
   M1[,which(age_bins=="10-14")] <- 0.6 * M1[,which(age_bins=="10-14")]
   
   M2 <- M_age * outer(idx_12_49, idx_12_49) # both could be KP
@@ -117,19 +120,20 @@ parameters_demographic <- function() {
   n_group <- n_age + 3
   nms_group <- c(age_bins$label, "SW_adults", "PBS", "SW_children")
 
-
   ### General population
   # Construct new contact matrix including groups
   M_all <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
   M_all[idx_age, idx_age] <- M_gen_pop
   M_all["SW_adults", idx_age] <- M_all[idx_age, "SW_adults"] <- marginalise(M_gen_SW)
   M_all["PBS", idx_age] <- M_all[idx_age, "PBS"] <- marginalise(M_gen_PBS)
-
   M_all["SW_adults", "SW_adults"] <- sum(marginalise(M_SW_SW))
+  ## LILITH - guessed
   M_all["SW_children", "SW_children"] <- sum(marginalise(M_SW_SW))
   M_all["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
   M_all["SW_adults", "PBS"] <- M_all["PBS", "SW_adults"] <- sum(marginalise(M_SW_PBS))
+  ## LILITH - guessed
   M_all["SW_children", "PBS"] <- M_all["PBS", "SW_children"] <- sum(marginalise(M_SW_PBS))
+  ## LILITH - assumed no mixing of SW_children and SW_adults
 
   # check that total contacts are the same as original
   sum(marginalise(M_all)) - sum(marginalise(M_age)) ## check total number of contacts
