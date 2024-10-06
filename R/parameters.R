@@ -238,7 +238,13 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   }else{
     stop("combination of population size and seeding infections is incompatible, please review.")
   }
-
+  
+  ## vaccine efficacy
+  ve_I <- c(0.736,0,0.736,0.818)
+  if(length(ve_I)!=n_vax){
+    stop("incorrect dimension for ve_I")
+  }
+  
   params_list = list(
     region = region,
     n_group = n_group,
@@ -266,7 +272,7 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
     vaccine_uptake = rep(0.8, n_group),
     ve_T = rep(0, n_vax),
-    ve_I = rep(0, n_vax),
+    ve_I = ve_I,
     vaccination_coverage_target_1st_dose_prop = 0.8,
     vaccination_coverage_target_2nd_dose_prop = 0.5,
     vaccination_campaign_length = vaccination_campaign_length,
