@@ -18,7 +18,7 @@ update(time) <- (step + 1) * dt
 ## first and last columns must be 0; last row must be 0 (pre-processing job)
 ## column j corresponds to the people in j receiving a vaccine (so moving
 ## to j + 1)
-daily_doses[, ] <- user()
+daily_doses <- parameter()
 dim(daily_doses) <- c(vaccination_campaign_length, n_vax)
 
 ## with this we need to ensure daily_doses final time step is all 0 - done
@@ -30,10 +30,10 @@ dim(daily_doses_t) <- c(1, n_vax)
 ## allocate the daily doses according to prioritisation strategy
 
 ## the number of different prioritisation strategies that we are considering
-N_prioritisation_steps <- user()
+N_prioritisation_steps <- parameter()
 ## what this corresponds to in terms of groups is encoded here
 ## this is independent of dose / applies to both doeses
-prioritisation_strategy[, ] <- user()
+prioritisation_strategy <- parameter()
 dim(prioritisation_strategy) <- c(n_group, N_prioritisation_steps)
 
 ## vaccination targets: for each group, what is the level of coverage we want to
@@ -42,8 +42,8 @@ dim(prioritisation_strategy) <- c(n_group, N_prioritisation_steps)
 ## pre-processing to save faffing around in here.
 ## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0
 ## and j=1 this stays at 0
-vaccination_coverage_target_1st_dose_prop <- user()
-vaccination_coverage_target_2nd_dose_prop <- user()
+vaccination_coverage_target_1st_dose_prop <- parameter()
+vaccination_coverage_target_2nd_dose_prop <- parameter()
 
 ## what is the current state of the vaccination targets? e.g. what
 ## prioritisation step are we on, this depends on whether we have met our
@@ -114,7 +114,7 @@ dim(n_eligible_for_dose2) <- c(n_group)
 ## vaccine uptake
 ## account for the fact that some groups (in n_group) may be less inclined to
 ## take the vaccine
-vaccine_uptake[] <- user()
+vaccine_uptake <- parameter()
 dim(vaccine_uptake) <- c(n_group)
 
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy
@@ -305,8 +305,8 @@ p_IdD <- 1 - exp(-gamma_Id * dt)
 # Compute the force of infection
 
 #  Mixing Matrix
-m_gen_pop[, ] <- user()
-m_sex[, ] <- user()
+m_gen_pop <- parameter()
+m_sex <- parameter()
 # I adjusted for reduced transmissibility
 I_infectious[, ] <- I[i, j] * (1 - ve_T[j])
 
@@ -321,17 +321,17 @@ lambda[, ] <- ((beta_h * sum(s_ij_gen_pop[i, ])) +
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
-n_SEa[, ] <- rbinom(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
-n_EaEb[, ] <- rbinom(Ea[i, j] + delta_Ea_n_vaccination[i, j], p_EE)
-n_EbI[, ] <- rbinom(Eb[i, j] + delta_Eb_n_vaccination[i, j], p_EI)
+n_SEa[, ] <- Binomial(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
+n_EaEb[, ] <- Binomial(Ea[i, j] + delta_Ea_n_vaccination[i, j], p_EE)
+n_EbI[, ] <- Binomial(Eb[i, j] + delta_Eb_n_vaccination[i, j], p_EI)
 # Proportion of the infections that will die, impact of vaccination included
 # already as part of inputs
-n_EbId[, ] <- rbinom(n_EbI[i, j], CFR[i, j])
+n_EbId[, ] <- Binomial(n_EbI[i, j], CFR[i, j])
 # whatever infections don't die go to R
 n_EbIr[, ] <- n_EbI[i, j] - n_EbId[i, j]
 
-n_IrR[, ] <- rbinom(Ir[i, j], p_IrR)
-n_IdD[, ] <- rbinom(Id[i, j], p_IdD)
+n_IrR[, ] <- Binomial(Ir[i, j], p_IrR)
+n_IdD[, ] <- Binomial(Id[i, j], p_IdD)
 
 ## Calculate net change in each model state
 delta_Ea[, ] <- n_SEa[i, j] - n_EaEb[i, j]
@@ -408,31 +408,31 @@ initial(total_vax_1stdose) <- 0
 initial(total_vax_2nddose) <- 0
 
 ##Initial vectors
-S0[, ] <- user()
-Ea0[, ] <- user()
-Eb0[, ] <- user()
-Ir0[, ] <- user()
-Id0[, ] <- user()
-R0[, ] <- user()
-D0[, ] <- user()
+S0 <- parameter()
+Ea0 <- parameter()
+Eb0 <- parameter()
+Ir0 <- parameter()
+Id0 <- parameter()
+R0 <- parameter()
+D0 <- parameter()
 
 ##Parameters
-beta_h <- user()
-beta_s <- user()
-beta_z[] <- user()
-gamma_E <- user()
-gamma_Ir <- user()
-gamma_Id <- user()
-CFR[, ] <- user()
+beta_h <- parameter()
+beta_s <- parameter()
+beta_z <- parameter()
+gamma_E <- parameter()
+gamma_Ir <- parameter()
+gamma_Id <- parameter()
+CFR <- parameter()
 
 #vaccine efficacy parameters
-ve_T[] <- user()
-ve_I[] <- user()
+ve_T <- parameter()
+ve_I <- parameter()
 #ve_D[,] <- user() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
-n_vax <- user()
-n_group <- user()
+n_vax <- parameter()
+n_group <- parameter()
 
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
@@ -489,7 +489,7 @@ dim(CFR) <- c(n_group, n_vax)
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_vax)
 
-vaccination_campaign_length <- user()
+vaccination_campaign_length <- parameter()
 
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
@@ -504,40 +504,38 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 #### compare
 
-exp_noise <- user(1e6)
+exp_noise <- parameter(1e+06)
 
 # cases
 cases <- data()
-model_cases <- cases_inc + rexp(exp_noise)
-compare(cases) ~ poisson(model_cases)
+model_cases <- cases_inc + Exponential(exp_noise)
+cases ~ poisson(model_cases)
 
 cases_00_04 <- data()
-model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
-compare(cases_00_04) ~ poisson(model_cases_00_04)
+model_cases_00_04 <- cases_inc_00_04 + Exponential(exp_noise)
+cases_00_04 ~ poisson(model_cases_00_04)
 
 cases_05_14 <- data()
-model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
-compare(cases_05_14) ~ poisson(model_cases_05_14)
+model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
+cases_05_14 ~ poisson(model_cases_05_14)
 
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + cases_inc_PBS + cases_inc_SW +
-  rexp(exp_noise)
-compare(cases_15_plus) ~ poisson(model_cases_15_plus)
+model_cases_15_plus <- cases_inc_15_plus + cases_inc_PBS + cases_inc_SW + Exponential(exp_noise)
+cases_15_plus ~ poisson(model_cases_15_plus)
 
 # deaths
 deaths <- data()
-model_deaths <- deaths_inc + rexp(exp_noise)
-compare(deaths) ~ poisson(model_deaths)
+model_deaths <- deaths_inc + Exponential(exp_noise)
+deaths ~ poisson(model_deaths)
 
 deaths_00_04 <- data()
-model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
-compare(deaths_00_04) ~ poisson(model_deaths_00_04)
+model_deaths_00_04 <- deaths_inc_00_04 + Exponential(exp_noise)
+deaths_00_04 ~ poisson(model_deaths_00_04)
 
 deaths_05_14 <- data()
-model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
-compare(deaths_05_14) ~ poisson(model_deaths_05_14)
+model_deaths_05_14 <- deaths_inc_05_14 + Exponential(exp_noise)
+deaths_05_14 ~ poisson(model_deaths_05_14)
 
 deaths_15_plus <- data()
-model_deaths_15_plus <- deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW +
-  rexp(exp_noise)
-compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
+model_deaths_15_plus <- deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW + Exponential(exp_noise)
+deaths_15_plus ~ poisson(model_deaths_15_plus)
