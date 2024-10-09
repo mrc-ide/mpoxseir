@@ -1,12 +1,5 @@
 # State indices: [i: age; j: vaccination]
 
-# Time Steps
-dt <- user(1)
-steps_per_week <- 7 / dt
-initial(time) <- step
-update(time) <- (step + 1) * dt
-#output(time) <- TRUE
-
 #### Vaccination
 
 ## j = 1: previous smallpox vaccine (efficacy roughly at one dose)
@@ -241,14 +234,12 @@ update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] + R[i, j] +
 #update(N[, ]) <- S[i, j] + E[i, j] + I[i, j] + R[i, j] + D[i, j]
 
 # weekly cases
-is_same_week <- step %% steps_per_week > 0
-update(cases_inc) <- cases_inc * is_same_week + sum(n_SEa[, ])
-update(cases_inc_00_04) <- cases_inc_00_04 * is_same_week + sum(n_SEa[1, ])
-update(cases_inc_05_14) <- cases_inc_05_14 * is_same_week + sum(n_SEa[2:3, ])
-update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week +
-  sum(n_SEa[4:16, ])
-update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + sum(n_SEa[17, ])
-update(cases_inc_SW) <- cases_inc_SW * is_same_week + sum(n_SEa[18, ])
+update(cases_inc) <- cases_inc + sum(n_SEa[, ])
+update(cases_inc_00_04) <- cases_inc_00_04 + sum(n_SEa[1, ])
+update(cases_inc_05_14) <- cases_inc_05_14 + sum(n_SEa[2:3, ])
+update(cases_inc_15_plus) <- cases_inc_15_plus + sum(n_SEa[4:16, ])
+update(cases_inc_PBS) <- cases_inc_PBS + sum(n_SEa[17, ])
+update(cases_inc_SW) <- cases_inc_SW + sum(n_SEa[18, ])
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
@@ -260,13 +251,12 @@ update(cases_cumulative_PBS) <- cases_cumulative_PBS + sum(n_SEa[17, ])
 update(cases_cumulative_SW) <- cases_cumulative_SW + sum(n_SEa[18, ])
 
 # weekly deaths
-update(deaths_inc) <- deaths_inc * is_same_week + sum(n_IdD[, ])
-update(deaths_inc_00_04) <- deaths_inc_00_04 * is_same_week + sum(n_IdD[1, ])
-update(deaths_inc_05_14) <- deaths_inc_05_14 * is_same_week + sum(n_IdD[2:3, ])
-update(deaths_inc_15_plus) <- deaths_inc_15_plus * is_same_week +
-  sum(n_IdD[4:16, ])
-update(deaths_inc_PBS) <- deaths_inc_PBS * is_same_week + sum(n_IdD[17, ])
-update(deaths_inc_SW) <- deaths_inc_SW * is_same_week + sum(n_IdD[18, ])
+update(deaths_inc) <- deaths_inc + sum(n_IdD[, ])
+update(deaths_inc_00_04) <- deaths_inc_00_04 + sum(n_IdD[1, ])
+update(deaths_inc_05_14) <- deaths_inc_05_14 + sum(n_IdD[2:3, ])
+update(deaths_inc_15_plus) <- deaths_inc_15_plus + sum(n_IdD[4:16, ])
+update(deaths_inc_PBS) <- deaths_inc_PBS + sum(n_IdD[17, ])
+update(deaths_inc_SW) <- deaths_inc_SW + sum(n_IdD[18, ])
 
 # cumulative deaths
 update(deaths_cumulative) <- deaths_cumulative + sum(n_IdD[, ])
@@ -354,21 +344,21 @@ initial(E[, ]) <- Ea0[i, j] + Eb0[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
-initial(cases_inc) <- 0
-initial(deaths_inc) <- 0
-initial(cases_cumulative) <- 0
-initial(deaths_cumulative) <- 0
+initial(cases_inc, zero_every = 7) <- 0
+initial(deaths_inc, zero_every = 7) <- 0
+initial(cases_cumulative, zero_every = 7) <- 0
+initial(deaths_cumulative, zero_every = 7) <- 0
 
-initial(cases_inc_00_04) <- 0
-initial(cases_inc_05_14) <- 0
-initial(cases_inc_15_plus) <- 0
-initial(cases_inc_PBS) <- 0
-initial(cases_inc_SW) <- 0
-initial(deaths_inc_00_04) <- 0
-initial(deaths_inc_05_14) <- 0
-initial(deaths_inc_15_plus) <- 0
-initial(deaths_inc_PBS) <- 0
-initial(deaths_inc_SW) <- 0
+initial(cases_inc_00_04, zero_every = 7) <- 0
+initial(cases_inc_05_14, zero_every = 7) <- 0
+initial(cases_inc_15_plus, zero_every = 7) <- 0
+initial(cases_inc_PBS, zero_every = 7) <- 0
+initial(cases_inc_SW, zero_every = 7) <- 0
+initial(deaths_inc_00_04, zero_every = 7) <- 0
+initial(deaths_inc_05_14, zero_every = 7) <- 0
+initial(deaths_inc_15_plus, zero_every = 7) <- 0
+initial(deaths_inc_PBS, zero_every = 7) <- 0
+initial(deaths_inc_SW, zero_every = 7) <- 0
 
 initial(cases_cumulative_00_04) <- 0
 initial(cases_cumulative_05_14) <- 0
