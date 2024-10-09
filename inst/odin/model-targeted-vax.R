@@ -44,8 +44,8 @@ vaccination_coverage_target_2nd_dose_prop <- parameter()
 
 ## has the target been met
 ## for cols 1 (smallpox vax) and 2 (unvaccinated) this doesn't matter
-target_met_t[, ] <- 0
 dim(target_met_t) <- c(n_group, n_vax)
+target_met_t[, ] <- 0
 
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
@@ -113,10 +113,9 @@ dim(vaccine_uptake) <- c(n_group)
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy
 ## and across S, E, R
 ## hacky fix for now
+
+## allocate doses to S
 n_vaccination_t_S[, ] <- 0
-n_vaccination_t_Ea[, ] <- 0
-n_vaccination_t_Eb[, ] <- 0
-n_vaccination_t_R[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_S[, 2] <- min(
@@ -125,25 +124,6 @@ n_vaccination_t_S[, 2] <- min(
            vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
   S[i, 2])
 
-n_vaccination_t_Ea[, 2] <- min(
-  floor((daily_doses_t[1, 2] * Ea[i, 2] *
-           prioritisation_strategy[i, prioritisation_step_1st_dose] *
-           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
-  Ea[i, 2])
-
-n_vaccination_t_Eb[, 2] <- min(
-  floor((daily_doses_t[1, 2] * Eb[i, 2] *
-           prioritisation_strategy[i, prioritisation_step_1st_dose] *
-           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
-  Eb[i, 2])
-
-n_vaccination_t_R[, 2] <- min(
-  floor((daily_doses_t[1, 2] * R[i, 2] *
-           prioritisation_strategy[i, prioritisation_step_1st_dose] *
-           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
-  R[i, 2])
-
-
 ## allocate 2nd doses
 n_vaccination_t_S[, 3] <- min(
   floor((daily_doses_t[1, 3] * S[i, 3] *
@@ -151,18 +131,51 @@ n_vaccination_t_S[, 3] <- min(
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   S[i, 3])
 
+## allocate doses to Ea
+n_vaccination_t_Ea[, ] <- 0
+
+## allocate 1st doses
+n_vaccination_t_Ea[, 2] <- min(
+  floor((daily_doses_t[1, 2] * Ea[i, 2] *
+           prioritisation_strategy[i, prioritisation_step_1st_dose] *
+           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+  Ea[i, 2])
+
+## allocate 2nd doses
 n_vaccination_t_Ea[, 3] <- min(
   floor((daily_doses_t[1, 3] * Ea[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   Ea[i, 3])
 
+## allocate doses to Eb
+n_vaccination_t_Eb[, ] <- 0
+
+## allocate 1st doses
+n_vaccination_t_Eb[, 2] <- min(
+  floor((daily_doses_t[1, 2] * Eb[i, 2] *
+           prioritisation_strategy[i, prioritisation_step_1st_dose] *
+           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+  Eb[i, 2])
+
+## allocate 2nd doses
 n_vaccination_t_Eb[, 3] <- min(
   floor((daily_doses_t[1, 3] * Eb[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   Eb[i, 3])
 
+## allocate doses to R
+n_vaccination_t_R[, ] <- 0
+
+## allocate 1st doses
+n_vaccination_t_R[, 2] <- min(
+  floor((daily_doses_t[1, 2] * R[i, 2] *
+           prioritisation_strategy[i, prioritisation_step_1st_dose] *
+           vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+  R[i, 2])
+
+## allocate 2nd doses
 n_vaccination_t_R[, 3] <- min(
   floor((daily_doses_t[1, 3] * R[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
