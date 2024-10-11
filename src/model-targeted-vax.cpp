@@ -714,10 +714,10 @@ public:
       }
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_S.dim[0]; ++i) {
-      internal.n_vaccination_t_S[i - 1 + shared.dim.n_vaccination_t_S.mult[1]] = std::min(monty::math::floor((internal.daily_doses_t[1] * S[i - 1 + shared.dim.S.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), S[i - 1 + shared.dim.S.mult[1]]);
+      internal.n_vaccination_t_S[i - 1 + shared.dim.n_vaccination_t_S.mult[1]] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[1] * S[i - 1 + shared.dim.S.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), S[i - 1 + shared.dim.S.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_S.dim[0]; ++i) {
-      internal.n_vaccination_t_S[i - 1 + 2 * (shared.dim.n_vaccination_t_S.mult[1])] = std::min(monty::math::floor((internal.daily_doses_t[2] * S[i - 1 + 2 * (shared.dim.S.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), S[i - 1 + 2 * (shared.dim.S.mult[1])]);
+      internal.n_vaccination_t_S[i - 1 + 2 * (shared.dim.n_vaccination_t_S.mult[1])] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[2] * S[i - 1 + 2 * (shared.dim.S.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), S[i - 1 + 2 * (shared.dim.S.mult[1])]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Ea.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_vaccination_t_Ea.dim[1]; ++j) {
@@ -725,10 +725,10 @@ public:
       }
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Ea.dim[0]; ++i) {
-      internal.n_vaccination_t_Ea[i - 1 + shared.dim.n_vaccination_t_Ea.mult[1]] = std::min(monty::math::floor((internal.daily_doses_t[1] * Ea[i - 1 + shared.dim.Ea.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), Ea[i - 1 + shared.dim.Ea.mult[1]]);
+      internal.n_vaccination_t_Ea[i - 1 + shared.dim.n_vaccination_t_Ea.mult[1]] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[1] * Ea[i - 1 + shared.dim.Ea.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), Ea[i - 1 + shared.dim.Ea.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Ea.dim[0]; ++i) {
-      internal.n_vaccination_t_Ea[i - 1 + 2 * (shared.dim.n_vaccination_t_Ea.mult[1])] = std::min(monty::math::floor((internal.daily_doses_t[2] * Ea[i - 1 + 2 * (shared.dim.Ea.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), Ea[i - 1 + 2 * (shared.dim.Ea.mult[1])]);
+      internal.n_vaccination_t_Ea[i - 1 + 2 * (shared.dim.n_vaccination_t_Ea.mult[1])] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[2] * Ea[i - 1 + 2 * (shared.dim.Ea.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), Ea[i - 1 + 2 * (shared.dim.Ea.mult[1])]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_vaccination_t_Eb.dim[1]; ++j) {
@@ -736,10 +736,10 @@ public:
       }
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb.dim[0]; ++i) {
-      internal.n_vaccination_t_Eb[i - 1 + shared.dim.n_vaccination_t_Eb.mult[1]] = std::min(monty::math::floor((internal.daily_doses_t[1] * Eb[i - 1 + shared.dim.Eb.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), Eb[i - 1 + shared.dim.Eb.mult[1]]);
+      internal.n_vaccination_t_Eb[i - 1 + shared.dim.n_vaccination_t_Eb.mult[1]] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[1] * Eb[i - 1 + shared.dim.Eb.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), Eb[i - 1 + shared.dim.Eb.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb.dim[0]; ++i) {
-      internal.n_vaccination_t_Eb[i - 1 + 2 * (shared.dim.n_vaccination_t_Eb.mult[1])] = std::min(monty::math::floor((internal.daily_doses_t[2] * Eb[i - 1 + 2 * (shared.dim.Eb.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), Eb[i - 1 + 2 * (shared.dim.Eb.mult[1])]);
+      internal.n_vaccination_t_Eb[i - 1 + 2 * (shared.dim.n_vaccination_t_Eb.mult[1])] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[2] * Eb[i - 1 + 2 * (shared.dim.Eb.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), Eb[i - 1 + 2 * (shared.dim.Eb.mult[1])]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_R.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_vaccination_t_R.dim[1]; ++j) {
@@ -747,10 +747,10 @@ public:
       }
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_R.dim[0]; ++i) {
-      internal.n_vaccination_t_R[i - 1 + shared.dim.n_vaccination_t_R.mult[1]] = std::min(monty::math::floor((internal.daily_doses_t[1] * R[i - 1 + shared.dim.R.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), R[i - 1 + shared.dim.R.mult[1]]);
+      internal.n_vaccination_t_R[i - 1 + shared.dim.n_vaccination_t_R.mult[1]] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[1] * R[i - 1 + shared.dim.R.mult[1]] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_1st_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose1.data(), shared.dim.n_eligible_for_dose1)), R[i - 1 + shared.dim.R.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_R.dim[0]; ++i) {
-      internal.n_vaccination_t_R[i - 1 + 2 * (shared.dim.n_vaccination_t_R.mult[1])] = std::min(monty::math::floor((internal.daily_doses_t[2] * R[i - 1 + 2 * (shared.dim.R.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), R[i - 1 + 2 * (shared.dim.R.mult[1])]);
+      internal.n_vaccination_t_R[i - 1 + 2 * (shared.dim.n_vaccination_t_R.mult[1])] = (dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2) == 0 ? 0 : std::min(monty::math::floor((internal.daily_doses_t[2] * R[i - 1 + 2 * (shared.dim.R.mult[1])] * shared.prioritisation_strategy[i - 1 + (prioritisation_step_2nd_dose - 1) * (shared.dim.prioritisation_strategy.mult[1])] * shared.vaccine_uptake[i - 1]) / dust2::array::sum<real_type>(internal.n_eligible_for_dose2.data(), shared.dim.n_eligible_for_dose2)), R[i - 1 + 2 * (shared.dim.R.mult[1])]));
     }
     for (size_t i = 1; i <= shared.dim.prop_infectious.size; ++i) {
       internal.prop_infectious[i - 1] = dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious, {i - 1, i - 1}, {0, shared.dim.I_infectious.dim[1] - 1}) / dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {0, shared.dim.N.dim[1] - 1});
