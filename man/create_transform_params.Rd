@@ -4,16 +4,24 @@
 \alias{create_transform_params}
 \title{Create transform function}
 \usage{
-create_transform_params(region, initial_infections, overrides = list())
+create_transform_params(
+  region,
+  initial_infections,
+  use_ve_D = FALSE,
+  overrides = list()
+)
 }
 \arguments{
-\item{region}{The region for fitting, must be either \code{"equateur"} or
+\item{region}{The region for the parameters, must be either \code{"equateur"} or
 \code{"sudkivu"}}
 
 \item{initial_infections}{The initial number of infections}
 
+\item{use_ve_D}{logical, indicating whether model should allow for vaccine
+efficacy against death (above and beyond protection against infection)}
+
 \item{overrides}{A list, containing any parameters for which you want to
-override the default fixed values}
+override the default values}
 }
 \value{
 A transform function

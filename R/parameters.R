@@ -70,10 +70,11 @@ parameters_demographic <- function() {
 
   marginalise <- function(M) (rowSums(M) + diag(M)) / 2
 
+  compartment_indices <- get_compartment_indices()
   n_age <- length(N_age)
   idx_age <- seq_len(n_age)
-  n_group <- n_age + 2
-  nms_group <- c(age_bins$label, "SW", "PBS")
+  n_group <- compartment_indices$dim$group
+  nms_group <- names(compartment_indices$group)
 
 
   ### General population
@@ -99,8 +100,12 @@ parameters_demographic <- function() {
   ## set up sexual contact matrix for parameterisation in transform function
   m_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
 
-  # proportion of susceptibles estimated to have smallpox vaccine
-  sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1)
+  # proportion of susceptibles estimated to be unvaccinated (historically)
+  p_unvaccinated <- setNames(rep(0, n_group), nms_group)
+  p_unvaccinated[which(age_bins$end < 40)] <- 1
+  p_unvaccinated[which(age_bins$start >= 40)] <-
+    c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
+  p_unvaccinated["SW"] <- p_unvaccinated["PBS"] <- 1
 
   # province populations
   province_pop = list("equateur" = 1712000,
@@ -114,8 +119,8 @@ parameters_demographic <- function() {
     m_sex = m_sex,
     total_contacts_gen_pop = M_all,
     #total_contacts_sex = M_sex,
-    n_vax = 4,
-    sus_prop = sus_prop,
+    n_vax = compartment_indices$dim$vax,
+    p_unvaccinated = p_unvaccinated,
     province_pop = province_pop
   )
 }
@@ -138,6 +143,39 @@ get_age_bins <- function() {
   label[length(label)] <- paste0(max(start), "+")
 
   data.frame(label = label, start = start, end = end)
+}
+
+
+
+##' A function that gets the compartment indices used in the model
+##' 
+##' @title Get compartment indices used throughout the model
+##' 
+##' @return A list containing entries: `dim` giving the dimensions of each
+##' compartment, currently: group = 18, vax = 4;
+##' `group`, a named list of the array indices corresponding to the
+##' first dimension of model compartments: 16 5-year age bands + SW + PBS;
+##' and `vax`, a named list of the vaccine strata used in
+##' the second dimension of model compartments:
+##' 1. historic smallpox; 2. unvaccinated; 3. one-dose; 4. two-dose.
+##' 
+##' Use this function wherever you need to refer to these standards in your code
+##' to avoid duplication, and make modifying universally easier.
+##'   
+##' @export
+get_compartment_indices <- function() {
+  age_bins <- get_age_bins()
+  n_group <- nrow(age_bins) + 2
+  groups <- seq_len(n_group)
+  names(groups) <- c(age_bins$label, "SW", "PBS")
+  
+  n_vax <- 4
+  vax_strata <- seq_len(n_vax)
+  names(vax_strata) <- c("historic", "unvaccinated", "one_dose", "two_dose")
+  
+  list(dim = list(group = n_group, vax = n_vax),
+       group = as.list(groups),
+       vax = as.list(vax_strata))
 }
 
 # Function to allocate N individuals into m groups based on weights
@@ -167,7 +205,8 @@ assign_seeds <- function(N, w) {
 ##'   `"sudkivu"`
 ##'   
 ##' @param initial_infections The initial number of infections
-##' 
+##' @param use_ve_D logical, indicating whether model should allow for vaccine
+##' efficacy against death (above and beyond protection against infection)
 ##' @param overrides A list, containing any parameters for which you want to
 ##'   override the default values
 ##' 
@@ -176,7 +215,7 @@ assign_seeds <- function(N, w) {
 ##' @export
 ##' 
 #' @export
-parameters_fixed <- function(region, initial_infections, overrides = list()) {
+parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overrides = list()) {
 
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu"))) {
@@ -186,59 +225,96 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
   age_bins <- get_age_bins()
+  idx_compartment <- get_compartment_indices()
 
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
+  idx_unvax <- idx_compartment$vax$unvaccinated
+  idx_historic_vax <- idx_compartment$vax$historic
+  
+  ## standard vaccination parameters, we may want to move this entire section to
+  ## the transform in future if we want to allow for vaccine uncertainty
+  ## VE against infection
+  ve_I <- c(0.736, 0, 0.736, 0.818) # Berry et al.
+  ## VE against onward transmission
+  ve_T <- rep(0, n_vax)
+  
+  
   N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
   N_prioritisation_steps <- 1
+  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  
 
   ## Seed infections in the unvaccinated group in a region-specific manner
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  Ea0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  Ea0 <- X0
+
+  
   if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
-    sw_index <- which(colnames(demographic_params$m_gen_pop) == "SW")
-    Ea0[sw_index, 2] <- initial_infections
+    index_sw <- which(colnames(demographic_params$m_gen_pop) == "SW")
+    Ea0[index_sw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
-    gen_pop_index <- seq_len(nrow(age_bins))
-    seeding_infections <- assign_seeds(initial_infections, w = RR_z[gen_pop_index])
+    index_gen_pop <- seq_len(nrow(age_bins))
+    seeding_infections <- assign_seeds(initial_infections, w = RR_z[index_gen_pop])
 
-    Ea0[gen_pop_index, 2] <- seeding_infections
+    Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
     stop("something is wrong with the name of the region - change to sudkivu or equateur")
   }
-
-  # CFR from Whittles 2024, 5-year bands to 40
-
-  CFR <- rep(0, n_group)
-  names(CFR) <- names(demographic_params$N0)
-  CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
-  CFR[which(age_bins$start >= 40)] <- 0.01
-  CFR["SW"] <- CFR["20-24"]
-  CFR["PBS"] <- CFR["35-39"]
-
-  vaccination_campaign_length <- 1
-
-  ## update with assignment into smallpox vaccination compartment (j=1)
-  ## if we have a small population then seeding with 5 infections per compt and strata could be a problem (e.g. with N=10000 too few SW)
-  if(all(rowSums(Ea0)<N0)){
-      S0 <- matrix(0,nrow=demographic_params$n_group,
-                   ncol=demographic_params$n_vax)
-      S0[,2] <- round((N0-rowSums(Ea0))*demographic_params$sus_prop)
-      #rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
-      S0[,1] <- N0-rowSums(Ea0)-S0[,2]
-      ##rowSums(S0)+rowSums(Ea0)==N0
-  }else{
-    stop("combination of population size and seeding infections is incompatible, please review.")
+  
+  p_unvaccinated <- demographic_params$p_unvaccinated
+  ## update with assignment into smallpox vaccination compartment (j = 1)
+  ## if we have a small population then seeding with 5 infections per compt and
+  ## strata could be a problem (e.g. with N = 10,000 too few SW)
+  ## split population into historically- / un-vaccinated first before seeding
+  ## need to think about how this will interact with equilibrium position for
+  ## seeding in endemic areas.
+  S0 <- X0
+  S0[, idx_unvax] <- round(N0 * p_unvaccinated)
+  S0[, idx_historic_vax] <- N0 - S0[, idx_unvax]
+  S0 <- S0 - Ea0
+  if (any (S0 < 0)) {
+    stop("population size and seeding infections is incompatible")
   }
 
+  CFR_unvax <- rep(0, n_group)
+  names(CFR_unvax) <- names(demographic_params$N0)
+  # CFR from Whittles 2024, 5-year bands to 40
+  CFR_unvax[which(age_bins$end < 40)] <-
+    c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
+  CFR_unvax[which(age_bins$start >= 40)] <- 0.01
+
+  # Create matrix [group | vax strata]
+  # Vax strata: 1. historic smallpox; 2. unvaccinated; 3. one-dose; 4. two-dose
+  # initially all strata contain CFR by age for unvaccinated, which we then
+  # modify to incorporate any VE against death 
+  CFR <- matrix(CFR_unvax, nrow = n_group, ncol = n_vax)
+  rownames(CFR) <- names(CFR_unvax)
+  
+  if (use_ve_D) {
+  # If allowing for vaccine protection against death
+    CFR_historic_vax <- CFR_unvax
+    CFR_historic_vax[which(age_bins$end < 40)] <-
+      c(0.048, 0.025, 0.016, 0.012, 0.009, 0.007, 0.006, 0.005)
+    CFR_historic_vax[which(age_bins$start >= 40)] <- 0.004
+
+    # use same CFR for all vaccinated regardless of efficacy
+    CFR[, -idx_unvax] <- CFR_historic_vax
+  }
+
+  CFR["SW", ]  <- CFR["20-24", ]
+  CFR["PBS", ] <- CFR["35-39", ]
+
+  
+  vaccination_campaign_length <- 1
+  
   params_list = list(
     region = region,
     n_group = n_group,
@@ -259,18 +335,18 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
-    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
+    CFR = as.matrix(CFR),
     m_sex = demographic_params$m_sex,
     m_gen_pop = demographic_params$m_gen_pop,
     prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
     # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
-    vaccine_uptake = rep(0.8, n_group),
-    ve_T = rep(0, n_vax),
-    ve_I = rep(0, n_vax),
-    vaccination_coverage_target_1st_dose_prop = 0.8,
-    vaccination_coverage_target_2nd_dose_prop = 0.5,
+    vaccine_uptake = rep(0, n_group),
+    ve_I = ve_I,
+    ve_T = ve_T,
+    vaccination_coverage_target_1st_dose_prop = 0,
+    vaccination_coverage_target_2nd_dose_prop = 0,
     vaccination_campaign_length = vaccination_campaign_length,
-    daily_doses = matrix(1, nrow = vaccination_campaign_length, ncol = n_vax))
+    daily_doses = matrix(0, nrow = vaccination_campaign_length, ncol = n_vax))
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
