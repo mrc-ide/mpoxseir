@@ -360,8 +360,8 @@ initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
 initial(cases_inc, zero_every = 7) <- 0
 initial(deaths_inc, zero_every = 7) <- 0
-initial(cases_cumulative, zero_every = 7) <- 0
-initial(deaths_cumulative, zero_every = 7) <- 0
+initial(cases_cumulative) <- 0
+initial(deaths_cumulative) <- 0
 
 initial(cases_inc_00_04, zero_every = 7) <- 0
 initial(cases_inc_05_14, zero_every = 7) <- 0
