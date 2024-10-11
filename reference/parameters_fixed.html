@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mpoxseir</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2</span>
       </span>
     </div>
 
@@ -47,7 +47,12 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">parameters_fixed</span><span class="op">(</span><span class="va">region</span>, <span class="va">initial_infections</span>, overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">parameters_fixed</span><span class="op">(</span></span>
+<span>  <span class="va">region</span>,</span>
+<span>  <span class="va">initial_infections</span>,</span>
+<span>  use_ve_D <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  overrides <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -61,6 +66,11 @@
 
 <dt id="arg-initial-infections">initial_infections<a class="anchor" aria-label="anchor" href="#arg-initial-infections"></a></dt>
 <dd><p>The initial number of infections</p></dd>
+
+
+<dt id="arg-use-ve-d">use_ve_D<a class="anchor" aria-label="anchor" href="#arg-use-ve-d"></a></dt>
+<dd><p>logical, indicating whether model should allow for vaccine
+efficacy against death (above and beyond protection against infection)</p></dd>
 
 
 <dt id="arg-overrides">overrides<a class="anchor" aria-label="anchor" href="#arg-overrides"></a></dt>
