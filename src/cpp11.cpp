@@ -156,200 +156,229 @@ extern "C" SEXP _mpoxseir_dust_cpu_model_generic_vax_ode_statistics(SEXP ptr) {
   END_CPP11
 }
 // model-targeted-vax.cpp
-cpp11::sexp dust_model_targeted_vax_gpu_info();
-extern "C" SEXP _mpoxseir_dust_model_targeted_vax_gpu_info() {
+SEXP dust2_system_model_targeted_vax_alloc(cpp11::list r_pars, cpp11::sexp r_time, cpp11::list r_time_control, cpp11::sexp r_n_particles, cpp11::sexp r_n_groups, cpp11::sexp r_seed, cpp11::sexp r_deterministic, cpp11::sexp r_n_threads);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_alloc(SEXP r_pars, SEXP r_time, SEXP r_time_control, SEXP r_n_particles, SEXP r_n_groups, SEXP r_seed, SEXP r_deterministic, SEXP r_n_threads) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_model_targeted_vax_gpu_info());
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_time_control), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_groups), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_threads)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
+SEXP dust2_system_model_targeted_vax_run_to_time(cpp11::sexp ptr, cpp11::sexp r_time);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_run_to_time(SEXP ptr, SEXP r_time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_run_to_time(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-cpp11::sexp dust_cpu_model_targeted_vax_capabilities();
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_capabilities() {
+SEXP dust2_system_model_targeted_vax_state(cpp11::sexp ptr, cpp11::sexp r_index_state, cpp11::sexp r_index_particle, cpp11::sexp r_index_group, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_state(SEXP ptr, SEXP r_index_state, SEXP r_index_particle, SEXP r_index_group, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_capabilities());
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_state), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_particle), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_run(SEXP ptr, cpp11::sexp r_time_end);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_run(SEXP ptr, SEXP r_time_end) {
+SEXP dust2_system_model_targeted_vax_time(cpp11::sexp ptr);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_time(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_simulate(SEXP ptr, cpp11::sexp time_end);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_simulate(SEXP ptr, SEXP time_end) {
+SEXP dust2_system_model_targeted_vax_set_state_initial(cpp11::sexp ptr);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_set_state_initial(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_set_state_initial(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_run_adjoint(SEXP ptr);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_run_adjoint(SEXP ptr) {
+SEXP dust2_system_model_targeted_vax_set_state(cpp11::sexp ptr, cpp11::sexp r_state, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_set_state(SEXP ptr, SEXP r_state, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_set_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_state), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_set_index(SEXP ptr, cpp11::sexp r_index);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_set_index(SEXP ptr, SEXP r_index) {
+SEXP dust2_system_model_targeted_vax_reorder(cpp11::sexp ptr, cpp11::integers r_index);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_reorder(SEXP ptr, SEXP r_index) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_set_index(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_reorder(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::integers>>(r_index)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
+SEXP dust2_system_model_targeted_vax_rng_state(cpp11::sexp ptr);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_rng_state(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_rng_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_state(SEXP ptr, SEXP r_index);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_state(SEXP ptr, SEXP r_index) {
+SEXP dust2_system_model_targeted_vax_set_rng_state(cpp11::sexp ptr, cpp11::sexp r_rng_state);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_set_rng_state(SEXP ptr, SEXP r_rng_state) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_index)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_set_rng_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_rng_state)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_time(SEXP ptr);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_time(SEXP ptr) {
+SEXP dust2_system_model_targeted_vax_set_time(cpp11::sexp ptr, cpp11::sexp r_time);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_set_time(SEXP ptr, SEXP r_time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_set_time(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-void dust_cpu_model_targeted_vax_reorder(SEXP ptr, cpp11::sexp r_index);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_reorder(SEXP ptr, SEXP r_index) {
+SEXP dust2_system_model_targeted_vax_update_pars(cpp11::sexp ptr, cpp11::list pars);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_update_pars(SEXP ptr, SEXP pars) {
   BEGIN_CPP11
-    dust_cpu_model_targeted_vax_reorder(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index));
-    return R_NilValue;
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_update_pars(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(pars)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_resample(SEXP ptr, cpp11::doubles r_weights);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_resample(SEXP ptr, SEXP r_weights) {
+SEXP dust2_system_model_targeted_vax_simulate(cpp11::sexp ptr, cpp11::sexp r_times, cpp11::sexp r_index_state, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_simulate(SEXP ptr, SEXP r_times, SEXP r_index_state, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_resample(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::doubles>>(r_weights)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_simulate(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_times), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_state), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_rng_state(SEXP ptr, bool first_only, bool last_only);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_rng_state(SEXP ptr, SEXP first_only, SEXP last_only) {
+SEXP dust2_unfilter_model_targeted_vax_alloc(cpp11::list r_pars, cpp11::sexp r_time_start, cpp11::sexp r_time, cpp11::list r_time_control, cpp11::list r_data, cpp11::sexp r_n_particles, cpp11::sexp r_n_groups, cpp11::sexp r_n_threads, cpp11::sexp r_index_state);
+extern "C" SEXP _mpoxseir_dust2_unfilter_model_targeted_vax_alloc(SEXP r_pars, SEXP r_time_start, SEXP r_time, SEXP r_time_control, SEXP r_data, SEXP r_n_particles, SEXP r_n_groups, SEXP r_n_threads, SEXP r_index_state) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_rng_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<bool>>(first_only), cpp11::as_cpp<cpp11::decay_t<bool>>(last_only)));
+    return cpp11::as_sexp(dust2_unfilter_model_targeted_vax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_start), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_time_control), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_data), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_groups), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_state)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_set_rng_state(SEXP ptr, cpp11::raws rng_state);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_set_rng_state(SEXP ptr, SEXP rng_state) {
+SEXP dust2_filter_model_targeted_vax_alloc(cpp11::list r_pars, cpp11::sexp r_time_start, cpp11::sexp r_time, cpp11::list r_time_control, cpp11::list r_data, cpp11::sexp r_n_particles, cpp11::sexp r_n_groups, cpp11::sexp r_n_threads, cpp11::sexp r_index_state, cpp11::sexp r_seed);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_alloc(SEXP r_pars, SEXP r_time_start, SEXP r_time, SEXP r_time_control, SEXP r_data, SEXP r_n_particles, SEXP r_n_groups, SEXP r_n_threads, SEXP r_index_state, SEXP r_seed) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_set_rng_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::raws>>(rng_state)));
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_start), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_time_control), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_data), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_groups), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_state), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_set_data(SEXP ptr, cpp11::list data, bool shared);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_set_data(SEXP ptr, SEXP data, SEXP shared) {
+SEXP dust2_system_model_targeted_vax_compare_data(cpp11::sexp ptr, cpp11::list r_data, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_system_model_targeted_vax_compare_data(SEXP ptr, SEXP r_data, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
+    return cpp11::as_sexp(dust2_system_model_targeted_vax_compare_data(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_data), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_compare_data(SEXP ptr);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_compare_data(SEXP ptr) {
+SEXP dust2_unfilter_model_targeted_vax_update_pars(cpp11::sexp ptr, cpp11::list r_pars, cpp11::sexp r_index_group);
+extern "C" SEXP _mpoxseir_dust2_unfilter_model_targeted_vax_update_pars(SEXP ptr, SEXP r_pars, SEXP r_index_group) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_compare_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust2_unfilter_model_targeted_vax_update_pars(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
+SEXP dust2_unfilter_model_targeted_vax_run(cpp11::sexp ptr, cpp11::sexp r_initial, bool save_history, bool adjoint, cpp11::sexp r_index_group, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_unfilter_model_targeted_vax_run(SEXP ptr, SEXP r_initial, SEXP save_history, SEXP adjoint, SEXP r_index_group, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust2_unfilter_model_targeted_vax_run(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_initial), cpp11::as_cpp<cpp11::decay_t<bool>>(save_history), cpp11::as_cpp<cpp11::decay_t<bool>>(adjoint), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-void dust_cpu_model_targeted_vax_set_n_threads(SEXP ptr, int n_threads);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_set_n_threads(SEXP ptr, SEXP n_threads) {
+SEXP dust2_unfilter_model_targeted_vax_last_history(cpp11::sexp ptr, cpp11::sexp r_index_group, bool select_random_particle, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_unfilter_model_targeted_vax_last_history(SEXP ptr, SEXP r_index_group, SEXP select_random_particle, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    dust_cpu_model_targeted_vax_set_n_threads(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads));
-    return R_NilValue;
+    return cpp11::as_sexp(dust2_unfilter_model_targeted_vax_last_history(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(select_random_particle), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-int dust_cpu_model_targeted_vax_n_state(SEXP ptr);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_n_state(SEXP ptr) {
+SEXP dust2_unfilter_model_targeted_vax_last_state(cpp11::sexp ptr, cpp11::sexp r_index_group, bool select_random_particle, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_unfilter_model_targeted_vax_last_state(SEXP ptr, SEXP r_index_group, SEXP select_random_particle, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust2_unfilter_model_targeted_vax_last_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(select_random_particle), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-void dust_cpu_model_targeted_vax_set_stochastic_schedule(SEXP ptr, SEXP time);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_set_stochastic_schedule(SEXP ptr, SEXP time) {
+SEXP dust2_filter_model_targeted_vax_update_pars(cpp11::sexp ptr, cpp11::list r_pars, cpp11::sexp r_index_group);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_update_pars(SEXP ptr, SEXP r_pars, SEXP r_index_group) {
   BEGIN_CPP11
-    dust_cpu_model_targeted_vax_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
-    return R_NilValue;
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_update_pars(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group)));
   END_CPP11
 }
 // model-targeted-vax.cpp
-SEXP dust_cpu_model_targeted_vax_ode_statistics(SEXP ptr);
-extern "C" SEXP _mpoxseir_dust_cpu_model_targeted_vax_ode_statistics(SEXP ptr) {
+SEXP dust2_filter_model_targeted_vax_run(cpp11::sexp ptr, cpp11::sexp r_initial, bool save_history, bool adjoint, cpp11::sexp index_group, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_run(SEXP ptr, SEXP r_initial, SEXP save_history, SEXP adjoint, SEXP index_group, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_model_targeted_vax_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_run(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_initial), cpp11::as_cpp<cpp11::decay_t<bool>>(save_history), cpp11::as_cpp<cpp11::decay_t<bool>>(adjoint), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
+  END_CPP11
+}
+// model-targeted-vax.cpp
+SEXP dust2_filter_model_targeted_vax_last_history(cpp11::sexp ptr, cpp11::sexp r_index_group, bool select_random_particle, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_last_history(SEXP ptr, SEXP r_index_group, SEXP select_random_particle, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_last_history(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(select_random_particle), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
+  END_CPP11
+}
+// model-targeted-vax.cpp
+SEXP dust2_filter_model_targeted_vax_last_state(cpp11::sexp ptr, cpp11::sexp r_index_group, bool select_random_particle, bool preserve_particle_dimension, bool preserve_group_dimension);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_last_state(SEXP ptr, SEXP r_index_group, SEXP select_random_particle, SEXP preserve_particle_dimension, SEXP preserve_group_dimension) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_last_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_index_group), cpp11::as_cpp<cpp11::decay_t<bool>>(select_random_particle), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_particle_dimension), cpp11::as_cpp<cpp11::decay_t<bool>>(preserve_group_dimension)));
+  END_CPP11
+}
+// model-targeted-vax.cpp
+SEXP dust2_filter_model_targeted_vax_rng_state(cpp11::sexp ptr);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_rng_state(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_rng_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr)));
+  END_CPP11
+}
+// model-targeted-vax.cpp
+SEXP dust2_filter_model_targeted_vax_set_rng_state(cpp11::sexp ptr, cpp11::sexp r_rng_state);
+extern "C" SEXP _mpoxseir_dust2_filter_model_targeted_vax_set_rng_state(SEXP ptr, SEXP r_rng_state) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust2_filter_model_targeted_vax_set_rng_state(cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_rng_state)));
   END_CPP11
 }
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_mpoxseir_dust_cpu_model_generic_vax_alloc",                    (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_alloc,                    9},
-    {"_mpoxseir_dust_cpu_model_generic_vax_capabilities",             (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_capabilities,             0},
-    {"_mpoxseir_dust_cpu_model_generic_vax_compare_data",             (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_compare_data,             1},
-    {"_mpoxseir_dust_cpu_model_generic_vax_filter",                   (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_filter,                   5},
-    {"_mpoxseir_dust_cpu_model_generic_vax_n_state",                  (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_n_state,                  1},
-    {"_mpoxseir_dust_cpu_model_generic_vax_ode_statistics",           (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_ode_statistics,           1},
-    {"_mpoxseir_dust_cpu_model_generic_vax_reorder",                  (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_reorder,                  2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_resample",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_resample,                 2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_rng_state",                (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_rng_state,                3},
-    {"_mpoxseir_dust_cpu_model_generic_vax_run",                      (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_run,                      2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_run_adjoint",              (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_run_adjoint,              1},
-    {"_mpoxseir_dust_cpu_model_generic_vax_set_data",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_data,                 3},
-    {"_mpoxseir_dust_cpu_model_generic_vax_set_index",                (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_index,                2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_set_n_threads",            (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_n_threads,            2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_set_rng_state",            (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_rng_state,            2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_set_stochastic_schedule",  (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_stochastic_schedule,  2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_simulate",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_simulate,                 2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_state",                    (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_state,                    2},
-    {"_mpoxseir_dust_cpu_model_generic_vax_time",                     (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_time,                     1},
-    {"_mpoxseir_dust_cpu_model_generic_vax_update_state",             (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_update_state,             7},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_alloc",                   (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_alloc,                   9},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_capabilities",            (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_capabilities,            0},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_compare_data",            (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_compare_data,            1},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_filter",                  (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_filter,                  5},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_n_state",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_n_state,                 1},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_ode_statistics",          (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_ode_statistics,          1},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_reorder",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_reorder,                 2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_resample",                (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_resample,                2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_rng_state",               (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_rng_state,               3},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_run",                     (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_run,                     2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_run_adjoint",             (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_run_adjoint,             1},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_set_data",                (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_set_data,                3},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_set_index",               (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_set_index,               2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_set_n_threads",           (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_set_n_threads,           2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_set_rng_state",           (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_set_rng_state,           2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_set_stochastic_schedule", (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_set_stochastic_schedule, 2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_simulate",                (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_simulate,                2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_state",                   (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_state,                   2},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_time",                    (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_time,                    1},
-    {"_mpoxseir_dust_cpu_model_targeted_vax_update_state",            (DL_FUNC) &_mpoxseir_dust_cpu_model_targeted_vax_update_state,            7},
-    {"_mpoxseir_dust_model_generic_vax_gpu_info",                     (DL_FUNC) &_mpoxseir_dust_model_generic_vax_gpu_info,                     0},
-    {"_mpoxseir_dust_model_targeted_vax_gpu_info",                    (DL_FUNC) &_mpoxseir_dust_model_targeted_vax_gpu_info,                    0},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_alloc",              (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_alloc,              10},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_last_history",       (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_last_history,        5},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_last_state",         (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_last_state,          5},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_rng_state",          (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_rng_state,           1},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_run",                (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_run,                 7},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_set_rng_state",      (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_set_rng_state,       2},
+    {"_mpoxseir_dust2_filter_model_targeted_vax_update_pars",        (DL_FUNC) &_mpoxseir_dust2_filter_model_targeted_vax_update_pars,         3},
+    {"_mpoxseir_dust2_system_model_targeted_vax_alloc",              (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_alloc,               8},
+    {"_mpoxseir_dust2_system_model_targeted_vax_compare_data",       (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_compare_data,        4},
+    {"_mpoxseir_dust2_system_model_targeted_vax_reorder",            (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_reorder,             2},
+    {"_mpoxseir_dust2_system_model_targeted_vax_rng_state",          (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_rng_state,           1},
+    {"_mpoxseir_dust2_system_model_targeted_vax_run_to_time",        (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_run_to_time,         2},
+    {"_mpoxseir_dust2_system_model_targeted_vax_set_rng_state",      (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_set_rng_state,       2},
+    {"_mpoxseir_dust2_system_model_targeted_vax_set_state",          (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_set_state,           3},
+    {"_mpoxseir_dust2_system_model_targeted_vax_set_state_initial",  (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_set_state_initial,   1},
+    {"_mpoxseir_dust2_system_model_targeted_vax_set_time",           (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_set_time,            2},
+    {"_mpoxseir_dust2_system_model_targeted_vax_simulate",           (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_simulate,            5},
+    {"_mpoxseir_dust2_system_model_targeted_vax_state",              (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_state,               6},
+    {"_mpoxseir_dust2_system_model_targeted_vax_time",               (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_time,                1},
+    {"_mpoxseir_dust2_system_model_targeted_vax_update_pars",        (DL_FUNC) &_mpoxseir_dust2_system_model_targeted_vax_update_pars,         2},
+    {"_mpoxseir_dust2_unfilter_model_targeted_vax_alloc",            (DL_FUNC) &_mpoxseir_dust2_unfilter_model_targeted_vax_alloc,             9},
+    {"_mpoxseir_dust2_unfilter_model_targeted_vax_last_history",     (DL_FUNC) &_mpoxseir_dust2_unfilter_model_targeted_vax_last_history,      5},
+    {"_mpoxseir_dust2_unfilter_model_targeted_vax_last_state",       (DL_FUNC) &_mpoxseir_dust2_unfilter_model_targeted_vax_last_state,        5},
+    {"_mpoxseir_dust2_unfilter_model_targeted_vax_run",              (DL_FUNC) &_mpoxseir_dust2_unfilter_model_targeted_vax_run,               7},
+    {"_mpoxseir_dust2_unfilter_model_targeted_vax_update_pars",      (DL_FUNC) &_mpoxseir_dust2_unfilter_model_targeted_vax_update_pars,       3},
+    {"_mpoxseir_dust_cpu_model_generic_vax_alloc",                   (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_alloc,                    9},
+    {"_mpoxseir_dust_cpu_model_generic_vax_capabilities",            (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_capabilities,             0},
+    {"_mpoxseir_dust_cpu_model_generic_vax_compare_data",            (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_compare_data,             1},
+    {"_mpoxseir_dust_cpu_model_generic_vax_filter",                  (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_filter,                   5},
+    {"_mpoxseir_dust_cpu_model_generic_vax_n_state",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_n_state,                  1},
+    {"_mpoxseir_dust_cpu_model_generic_vax_ode_statistics",          (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_ode_statistics,           1},
+    {"_mpoxseir_dust_cpu_model_generic_vax_reorder",                 (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_reorder,                  2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_resample",                (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_resample,                 2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_rng_state",               (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_rng_state,                3},
+    {"_mpoxseir_dust_cpu_model_generic_vax_run",                     (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_run,                      2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_run_adjoint",             (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_run_adjoint,              1},
+    {"_mpoxseir_dust_cpu_model_generic_vax_set_data",                (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_data,                 3},
+    {"_mpoxseir_dust_cpu_model_generic_vax_set_index",               (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_index,                2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_set_n_threads",           (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_n_threads,            2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_set_rng_state",           (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_rng_state,            2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_set_stochastic_schedule", (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_set_stochastic_schedule,  2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_simulate",                (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_simulate,                 2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_state",                   (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_state,                    2},
+    {"_mpoxseir_dust_cpu_model_generic_vax_time",                    (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_time,                     1},
+    {"_mpoxseir_dust_cpu_model_generic_vax_update_state",            (DL_FUNC) &_mpoxseir_dust_cpu_model_generic_vax_update_state,             7},
+    {"_mpoxseir_dust_model_generic_vax_gpu_info",                    (DL_FUNC) &_mpoxseir_dust_model_generic_vax_gpu_info,                     0},
     {NULL, NULL, 0}
 };
 }

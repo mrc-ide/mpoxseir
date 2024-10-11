@@ -19,7 +19,7 @@ LinkingTo:
     dust2,
     monty
 Suggests:
-    odin.dust (>= 0.3.3),
+    odin2,
     testthat (>= 3.0.0)
 Imports:
     dust2,
@@ -29,6 +29,7 @@ Imports:
     plyr
 Config/testthat/edition: 3
 Remotes:
+    mrc-ide/odin2,
     mrc-ide/dust2,
     mrc-ide/monty,
     mrc-ide/mcstate,
