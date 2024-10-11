@@ -16,18 +16,21 @@ RoxygenNote: 7.3.2
 Requires: R >= 4.0.0
 LinkingTo:
     cpp11,
-    dust (>= 0.15.0)
+    dust2,
+    monty
 Suggests:
     odin.dust (>= 0.3.3),
     testthat (>= 3.0.0)
 Imports:
+    dust2,
     squire,
     dplyr,
     tidyr,
     plyr
 Config/testthat/edition: 3
 Remotes:
-    mrc-ide/dust,
+    mrc-ide/dust2,
+    mrc-ide/monty,
     mrc-ide/mcstate,
     mrc-ide/odin.dust,
     mrc-ide/squire

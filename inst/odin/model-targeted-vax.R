@@ -493,8 +493,6 @@ dim(CFR) <- c(n_group, n_vax)
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_vax)
 
-vaccination_campaign_length <- parameter()
-
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
 dim(n_vaccination_t_Eb) <- c(n_group, n_vax)
