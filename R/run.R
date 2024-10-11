@@ -1,26 +1,25 @@
 ##' A function that creates the transform function for use in the fitting
 ##' 
 ##' @title Create transform function
-##' 
-##' @param region The region for fitting, must be either `"equateur"` or 
-##'   `"sudkivu"`
-##'   
-##' @param initial_infections The initial number of infections
-##' 
-##' @param overrides A list, containing any parameters for which you want to
-##'   override the default fixed values
+##' @inheritParams parameters_fixed
 ##' 
 ##' @return A transform function
 ##'   
 ##' @export
 ##'
-create_transform_params <- function(region, initial_infections, overrides = list()) {
+create_transform_params <- function(region, initial_infections,
+                                    use_ve_D = FALSE, overrides = list()) {
 
-  pars <- parameters_fixed(region = region, initial_infections = initial_infections, overrides = overrides)
+  pars <- parameters_fixed(region = region,
+                           initial_infections = initial_infections,
+                           use_ve_D = use_ve_D,
+                           overrides = overrides)
 
-  function(transformed_pars) {  ## beta_z_max = zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
-                                ## R0_hh = R0 for household transmission (used to calculate beta_h)
-                                ## R0_sw_st = R0 for sex workers to people who buy sex)
+  function(transformed_pars) {
+    ## fitted params are:
+    ## beta_z_max = zoonotic beta for the age-group with the highest risk (used to calculate RR_z)
+    ## R0_hh = R0 for household transmission (used to calculate beta_h)
+    ## R0_sw_st = R0 for sex workers to people who buy sex)
     nms_group <- names(pars$N0)
 
     ## Updating values in pars with parameters passed into transform_params

@@ -2,6 +2,7 @@
 
 export(create_transform_params)
 export(get_age_bins)
+export(get_compartment_indices)
 export(model_index)
 export(model_targeted_vax)
 export(parameters_demographic)
