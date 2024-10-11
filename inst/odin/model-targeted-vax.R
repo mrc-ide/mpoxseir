@@ -18,13 +18,13 @@ dim(daily_doses_time) <- parameter(rank = 1)
 
 ## with this we need to ensure daily_doses final time step is all 0 - done
 ## outside of the model in pre-processing
-daily_doses_t[] <- interpolate(daily_doses_time, daily_doses_value, "constant")
+daily_doses_t <- interpolate(daily_doses_time, daily_doses_value, "constant")
 dim(daily_doses_t) <- c(n_vax)
 
 ## allocate the daily doses according to prioritisation strategy
 
 ## the number of different prioritisation strategies that we are considering
-N_prioritisation_steps <- parameter()
+N_prioritisation_steps <- parameter(type = "integer", constant = TRUE)
 ## what this corresponds to in terms of groups is encoded here
 ## this is independent of dose / applies to both doeses
 prioritisation_strategy <- parameter()
@@ -435,8 +435,8 @@ ve_I <- parameter()
 #ve_D[,] <- user() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
-n_vax <- parameter()
-n_group <- parameter()
+n_vax <- parameter(type = "integer", constant = TRUE)
+n_group <- parameter(type = "integer", constant = TRUE)
 
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
