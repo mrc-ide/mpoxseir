@@ -11,14 +11,15 @@
 ## first and last columns must be 0; last row must be 0 (pre-processing job)
 ## column j corresponds to the people in j receiving a vaccine (so moving
 ## to j + 1)
-daily_doses <- parameter()
-dim(daily_doses) <- c(vaccination_campaign_length, n_vax)
+daily_doses_value <- parameter(constant = TRUE)
+dim(daily_doses_value) <- parameter(rank = 2)
+daily_doses_time <- parameter(constant = TRUE)
+dim(daily_doses_time) <- parameter(rank = 1)
 
 ## with this we need to ensure daily_doses final time step is all 0 - done
 ## outside of the model in pre-processing
-daily_doses_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length))
-  daily_doses[vaccination_campaign_length, j] else daily_doses[time, j]
-dim(daily_doses_t) <- c(1, n_vax)
+daily_doses_t[] <- interpolate(daily_doses_time, daily_doses_value, "constant")
+dim(daily_doses_t) <- c(n_vax)
 
 ## allocate the daily doses according to prioritisation strategy
 
@@ -119,14 +120,14 @@ n_vaccination_t_S[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_S[, 2] <- min(
-  floor((daily_doses_t[1, 2] * S[i, 2] *
+  floor((daily_doses_t[2] * S[i, 2] *
            prioritisation_strategy[i, prioritisation_step_1st_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
   S[i, 2])
 
 ## allocate 2nd doses
 n_vaccination_t_S[, 3] <- min(
-  floor((daily_doses_t[1, 3] * S[i, 3] *
+  floor((daily_doses_t[3] * S[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   S[i, 3])
@@ -136,14 +137,14 @@ n_vaccination_t_Ea[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_Ea[, 2] <- min(
-  floor((daily_doses_t[1, 2] * Ea[i, 2] *
+  floor((daily_doses_t[2] * Ea[i, 2] *
            prioritisation_strategy[i, prioritisation_step_1st_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
   Ea[i, 2])
 
 ## allocate 2nd doses
 n_vaccination_t_Ea[, 3] <- min(
-  floor((daily_doses_t[1, 3] * Ea[i, 3] *
+  floor((daily_doses_t[3] * Ea[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   Ea[i, 3])
@@ -153,14 +154,14 @@ n_vaccination_t_Eb[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_Eb[, 2] <- min(
-  floor((daily_doses_t[1, 2] * Eb[i, 2] *
+  floor((daily_doses_t[2] * Eb[i, 2] *
            prioritisation_strategy[i, prioritisation_step_1st_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
   Eb[i, 2])
 
 ## allocate 2nd doses
 n_vaccination_t_Eb[, 3] <- min(
-  floor((daily_doses_t[1, 3] * Eb[i, 3] *
+  floor((daily_doses_t[3] * Eb[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   Eb[i, 3])
@@ -170,14 +171,14 @@ n_vaccination_t_R[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_R[, 2] <- min(
-  floor((daily_doses_t[1, 2] * R[i, 2] *
+  floor((daily_doses_t[2] * R[i, 2] *
            prioritisation_strategy[i, prioritisation_step_1st_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
   R[i, 2])
 
 ## allocate 2nd doses
 n_vaccination_t_R[, 3] <- min(
-  floor((daily_doses_t[1, 3] * R[i, 3] *
+  floor((daily_doses_t[3] * R[i, 3] *
            prioritisation_strategy[i, prioritisation_step_2nd_dose] *
            vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
   R[i, 3])
