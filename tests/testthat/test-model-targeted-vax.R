@@ -2,9 +2,13 @@ test_that("run is equal to reference", {
   pars <- reference_pars_targeted_vax()
   nms <- reference_names()
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
+  y <- dust2::dust_system_simulate(sys, t)
+  
   rownames(res) <- names(unlist(m$info()$index))
 
   expect_true(any(res["cases_inc", , ] > 0))

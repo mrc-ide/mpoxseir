@@ -12,12 +12,10 @@ reference_pars_targeted_vax <- function() {
   # rowSums(S0)==dem_pars$N0
   dem_pars$m_sex["SW","PBS"] <- dem_pars$m_sex["PBS","SW"] <- max(dem_pars$m_gen_pop)
 
-  vaccination_campaign_length <- 10
-  daily_doses <- matrix(0,ncol=n_vax,
-                        nrow=vaccination_campaign_length)
+  daily_doses_time <- c(1, 11)
+  daily_doses_value <- matrix(0, ncol = n_vax, nrow = 2)
   # nothing happens for j=1 and 2 doses are the maximum
-  daily_doses[,2] <- daily_doses[,3] <- 1000
-  daily_doses[vaccination_campaign_length,] <- 0
+  daily_doses_value[1, 2] <- daily_doses_value[1, 3] <- 1000
 
   N_prioritisation_steps <- 3
   prioritisation_strategy <- cbind(c(1,1,1,rep(0,n_group-3)),# kids
@@ -60,8 +58,8 @@ reference_pars_targeted_vax <- function() {
               n_group = n_group,
               n_vax = n_vax,
               #n_vaccination_allocation_SER = c(0.85,0.05,0.05,0.05),
-              vaccination_campaign_length = vaccination_campaign_length,
-              daily_doses = daily_doses,
+              daily_doses_time = daily_doses_time,
+              daily_doses_value = daily_doses_value,
               N_prioritisation_steps = N_prioritisation_steps,
               prioritisation_strategy = prioritisation_strategy,
               #vaccination_coverage_target = vaccination_coverage_target,
