@@ -7,9 +7,9 @@ test_that("run is equal to reference", {
   dust2::dust_system_set_state_initial(sys)
   
   t <- seq(1, 21)
-  y <- dust2::dust_system_simulate(sys, t)
+  res <- dust2::dust_system_simulate(sys, t)
   
-  rownames(res) <- names(unlist(m$info()$index))
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   expect_true(any(res["cases_inc", , ] > 0))
   expect_true(any(res["deaths_inc", , ] > 0))
