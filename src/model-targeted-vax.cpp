@@ -650,11 +650,11 @@ public:
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
       int j = 2;
-      internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * Ea[shared->dim_Ea_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), Ea[shared->dim_Ea_1 * 1 + i - 1]);
+      internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * Ea[shared->dim_Ea_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), Ea[shared->dim_Ea_1 * 1 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
       int j = 3;
-      internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * Ea[shared->dim_Ea_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), Ea[shared->dim_Ea_1 * 2 + i - 1]);
+      internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * Ea[shared->dim_Ea_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), Ea[shared->dim_Ea_1 * 2 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
       for (int j = 1; j <= shared->dim_n_vaccination_t_Eb_2; ++j) {
@@ -663,11 +663,11 @@ public:
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
       int j = 2;
-      internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * Eb[shared->dim_Eb_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), Eb[shared->dim_Eb_1 * 1 + i - 1]);
+      internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * Eb[shared->dim_Eb_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), Eb[shared->dim_Eb_1 * 1 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
       int j = 3;
-      internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * Eb[shared->dim_Eb_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), Eb[shared->dim_Eb_1 * 2 + i - 1]);
+      internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * Eb[shared->dim_Eb_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), Eb[shared->dim_Eb_1 * 2 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
       for (int j = 1; j <= shared->dim_n_vaccination_t_R_2; ++j) {
@@ -676,11 +676,11 @@ public:
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
       int j = 2;
-      internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * R[shared->dim_R_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), R[shared->dim_R_1 * 1 + i - 1]);
+      internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * R[shared->dim_R_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), R[shared->dim_R_1 * 1 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
       int j = 3;
-      internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * R[shared->dim_R_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), R[shared->dim_R_1 * 2 + i - 1]);
+      internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * R[shared->dim_R_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), R[shared->dim_R_1 * 2 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
       for (int j = 1; j <= shared->dim_n_vaccination_t_S_2; ++j) {
@@ -689,11 +689,11 @@ public:
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
       int j = 2;
-      internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * S[shared->dim_S_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), S[shared->dim_S_1 * 1 + i - 1]);
+      internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 1 + 0] * S[shared->dim_S_1 * 1 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_1st_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose1.data(), 0, shared->dim_n_eligible_for_dose1)), S[shared->dim_S_1 * 1 + i - 1]));
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
       int j = 3;
-      internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * S[shared->dim_S_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), S[shared->dim_S_1 * 2 + i - 1]);
+      internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[shared->dim_daily_doses_t_1 * 2 + 0] * S[shared->dim_S_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), S[shared->dim_S_1 * 2 + i - 1]));
     }
     real_type prioritisation_step_1st_dose_proposal = (odin_sum2<real_type>(internal.target_met_t.data(), 0, shared->dim_target_met_t_1, 2, 3, shared->dim_target_met_t_1) == shared->n_group ? prioritisation_step_1st_dose + 1 : prioritisation_step_1st_dose);
     real_type prioritisation_step_2nd_dose_proposal = (odin_sum2<real_type>(internal.target_met_t.data(), 0, shared->dim_target_met_t_1, 3, 4, shared->dim_target_met_t_1) == shared->n_group ? prioritisation_step_2nd_dose + 1 : prioritisation_step_2nd_dose);
