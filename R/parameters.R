@@ -210,7 +210,7 @@ proportion_in_age_bins <- function(min_age, max_age) {
   # Calculate the proportion of overlap for each bin
   proportions <- overlap_size / bin_size
   
-  return(proportions)
+  proportions
 }
 
 ##' A function that gets the compartment indices used in the model
