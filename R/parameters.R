@@ -58,9 +58,6 @@ parameters_demographic <- function() {
          ASW = sum(N_ASW),
          PBS = sum(N_PBS),
          HCW = sum(N_HCW))
-  
-  # check allocated properly
-  sum(N) - sum(N_age)
 
   # Set up mixing matrices: 1) general population and 2) sexual contact
   # Squire gives unbalanced per-capita daily rates, we need to
@@ -128,11 +125,6 @@ parameters_demographic <- function() {
 
   M[lower.tri(M)] <- t(M)[lower.tri(M)] # populate lower triangle
 
-  ## check matrices are decomposed properly
-  sum(upper.tri(M, diag = TRUE) * M)
-  sum(upper.tri(M_age, diag = TRUE) * M_age)
-  round(rowSums(M)[seq_len(n_age)] - rowSums(M_age))
-  
   # Convert to per-capita rates by dividing by population
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
@@ -156,10 +148,12 @@ parameters_demographic <- function() {
 
   list(
     n_group = n_group,
-    N0 = setNames(N, nms_group),
+    N0 = N,
+    N_age = N_age,
     m_gen_pop = m,
     m_sex = m_sex,
     total_contacts_nonsexual = M,
+    total_contacts_age = M_age,
     #total_contacts_sex = M_sex,
     n_vax = idx_compartment$dim$vax,
     p_unvaccinated = p_unvaccinated,
