@@ -20,42 +20,44 @@ parameters_demographic <- function() {
   country <- "Democratic Republic of Congo"
   data <- squire::get_population(country)
   N_age <- c(data$n[1:15], sum(data$n[16:17])) # combine 75+
+  names(N_age) <- age_bins$label
 
-  ## Add in Sex workers (SW) and People who Buy Sex (PBS)
+  ## Add in (child/adult) sex workers, (C/ASW), people who buy sex (PBS),
+  ## and healthcare workers (HCW)
   
-  idx_12_49 <- age_bins$start>=10 & age_bins$end <= 49
+  ## CSW: age 12-17
+  w_12_17 <- proportion_in_age_bins(12, 17)
+  # 60% 10-14 + 60% 15-19
+  N_12_17 <- N_age * w_12_17
   
-  ## CSW
-  ## splitting this for child (12 - 17) and adult SWs (18 - 49)
-  idx_12_17 <- age_bins$start >=10 & age_bins$end <= 19
-  idx_18_49  <- age_bins$start >= 15 & age_bins$end <= 49
-  
-  N_12_17 <- N_age * idx_12_17
-  ## adjust for different age bands
-  ## 60% of those in 10 - 14 can be child SWs
-  N_12_17[which(age_bins=="10-14")] <- 0.6*N_12_17[which(age_bins=="10-14")]
-  ## 60% of those in 15 - 19 can be child SWs
-  N_12_17[which(age_bins=="15-19")] <- 0.6*N_12_17[which(age_bins=="15-19")]
-  
-  N_18_49 <- N_age * idx_18_49
-  ## adjust for different age bands - 40% of those in 15 - 19 would be adult SWs
-  N_18_49[which(age_bins=="15-19")] <- 0.4*N_18_49[which(age_bins=="15-19")]
+  ## ASW: age 18-49
+  w_18_49  <- proportion_in_age_bins(18, 49)
+  N_18_49 <- N_age * w_18_49
 
-  p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al
-  N_SW_children <- round(p_SW * N_12_17)
-  N_SW_adults <- round(p_SW * N_18_49)
-
+  p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
+  N_CSW <- round(p_SW * N_12_17)
+  N_ASW <- round(p_SW * N_18_49)
+  
+  ## HCW / PBS: age 20-49
+  w_20_49 <- proportion_in_age_bins(20, 49)
+  N_20_49 <- N_age * w_20_49
+  
   ## PBS
   # not changing this based on age as we only heard about young SWs not young PBS
-  
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
-  idx_15_49  <- age_bins$start >= 15 & age_bins$end <= 49
-  N_15_49 <- N_age * idx_15_49
+  # we assume all greater than 20 to avoid vaccine issues
+  N_PBS <- round(p_PBS * N_20_49)
   
-  N_PBS <- round(p_PBS * N_15_49)
+  
+  ## HCW
+  p_HCW <- 0 # for now
+  N_HCW <- round(p_HCW, N_20_49)
 
-  N <- c(N_age - N_SW_adults - N_PBS - N_SW_children, 
-         sum(N_SW_adults), sum(N_PBS), sum(N_SW_children))
+  N <- c(N_age - N_ASW - N_PBS - N_CSW - N_HCW,
+         CSW = sum(N_CSW),
+         ASW = sum(N_ASW),
+         PBS = sum(N_PBS),
+         HCW = sum(N_HCW))
   
   # check allocated properly
   sum(N) - sum(N_age)
@@ -65,7 +67,7 @@ parameters_demographic <- function() {
   # 1. scale these by the population size to get total daily contacts between
   #    age group i and age group j
   # 2. balance the matrix so total contacts i->j == j->i
-  # 3. add in non-age groups (SW + PBS) and attribute contacts
+  # 3. add in non-age groups (CSW, ASW, PBS, HCW) and attribute non-sexual contacts
   # 4. convert back to rates
 
   m_age <- squire::get_mixing_matrix(country)
@@ -74,96 +76,93 @@ parameters_demographic <- function() {
   ## balance the matrix so M[i,j] == M[j,i]
   M_age <- (M_raw + t(M_raw)) / 2
 
-  # Need to split total contacts i->j by gen pop / SW / PBS
+  # Need to split total contacts i->j by gen pop / CSW / ASW / PBS
   # assume homogenous mixing in day-to-day contacts (will add sex in fitting)
+  # create a matrix with the probability of being in each key pop by age
+  
+  p_kp <- cbind(CSW = p_SW * w_12_17,
+                ASW = p_SW * w_18_49,
+                PBS = p_PBS * w_20_49,
+                HCW = p_HCW * w_20_49)
+  nms_kp <- colnames(p_kp)
+  p_kp <- cbind(gen = 1 - rowSums(p_kp), p_kp)
 
-  # decompose total contact matrix by number in pair that could be KP (0/1/2)
-  
-  M0 <- M_age * outer(!idx_12_49, !idx_12_49) # neither could be KP
-  ## border case of 10 - 14 (reduce contacts to 40% of the total contacts in this band e.g. 10 and 11 year olds)
-  M0[which(age_bins=="10-14"),!idx_12_49] <- 0.4 * M_age[which(age_bins=="10-14"),!idx_12_49]
-  M0[!idx_12_49,which(age_bins=="10-14")] <- 0.4 * M_age[!idx_12_49,which(age_bins=="10-14")]
-  M0[which(age_bins=="10-14"),which(age_bins=="10-14")] <- 0.4 * M_age[which(age_bins=="10-14"),which(age_bins=="10-14")]
-  
-  ### is there another border case in the 15 - 17 year olds? 
-  ## where do the other 60% of the contacts in 10 - 14 go?
-  
-  M1 <- M_age * outer(idx_12_49, idx_12_49, FUN = "xor") # only 1 could be KP
-  ## border case of 10 - 14 (reduce contacts to 60% of this band, e.g. 12, 13, 14)
-  M1[which(age_bins=="10-14"),] <- 0.6 * M1[which(age_bins=="10-14"),]
-  M1[,which(age_bins=="10-14")] <- 0.6 * M1[,which(age_bins=="10-14")]
-  
-  M2 <- M_age * outer(idx_12_49, idx_12_49) # both could be KP
-  ## border case of 10 - 14
-  M2[which(age_bins=="10-14"),] <- 0.6 * M2[which(age_bins=="10-14"),]
-  M2[,which(age_bins=="10-14")] <- 0.6 * M2[,which(age_bins=="10-14")]
+  ## For each i,j pair in M_age, split contacts up
 
-  p_KP <- p_SW + p_PBS
-  p <- c(1 - p_KP, p_SW, p_PBS)
+  idx_compartment <- get_compartment_indices()
+  nms_group <- names(idx_compartment$group)
+  n_group <- idx_compartment$dim$group
+  n_age <- nrow(age_bins)
+  
+  M <- matrix(0, n_group, n_group,  dimnames = list(nms_group, nms_group))
+  
+  ## Take the unique entries of M_age (upper triangular including diagonal) and
+  ## Consider one by one, splitting into gen <-> gen / gen <-> key / key <-> key
+  ## contacts for each i,j combo
+  for (i in seq_len(n_age)) {
+    for (j in seq(i, n_age)) {
+      # Calculate proportion of age: i -> j contacts that are between gen / key pops
+      # p sums to 1 and can be used to allocate all of M_age[i,j]
+      # can consider p as the proportion of total contacts that involve
+      # person 1. being in k and person 2. being in l, where k,l = gen, kp1, ...
+      p <- outer(p_kp[i, ], p_kp[j, ])
+      n <- M_age[i, j] * p
+      # Separate out gen pop -> gen pop contacts and assign to age group
+      M[i, j] <- n["gen", "gen"]
+      # Count contacts between gen pop age group i and key pops aged j
+      # Add to total contacts between age group i and each key pop. 
+      # Repeat for age j as we only consider upper triangular so must allocate
+      # all of M_age[i, j]. This holds for i=j as p separates this out into
+      # 1.gen aged i -> 2.key aged i; and 1.key aged i -> 2.gen aged i
+      M[i, nms_kp] <- M[i, nms_kp] + n["gen", nms_kp] 
+      M[j, nms_kp] <- M[j, nms_kp] + n[nms_kp, "gen"]
 
-  # Split contact matrix by all 6 combinations of contact between groups
-  M_gen_pop <- M0 + (1 - p_KP) * M1 + (1 - p_KP)^2 * M2 # gen pop x gen pop
-  M_gen_SW  <- M1 * p_SW  + M2 * dmultinom(c(1, 1, 0), 2, p) # gen pop x SW 
-  M_gen_PBS <- M1 * p_PBS + M2 * dmultinom(c(1, 0, 1), 2, p) # gen pop x PBS
-  M_SW_SW <- M2 * p_SW ^ 2 # SW x SW
-  M_PBS_PBS <- M2 * p_PBS ^ 2 # PBS x PBS
-  M_SW_PBS <- M2 * dmultinom(c(0, 1, 1), 2, p) # SW x PBS
+      # Count contacts between key pops aged i and key pops aged j
+      n_kp <- n[nms_kp, nms_kp]
+      # add in reverse direction contacts (as described above), omitting diagonal
+      # to avoid double counting
+      M[nms_kp, nms_kp] <- M[nms_kp, nms_kp] + n_kp + t(n_kp * lower.tri(n_kp)) 
+
+    }
+  }
+
+  M[lower.tri(M)] <- t(M)[lower.tri(M)] # populate lower triangle
 
   ## check matrices are decomposed properly
-  ## LILITH right now they are not sorry
-  sum(M_gen_pop + M_gen_PBS + M_gen_SW + M_SW_SW + M_PBS_PBS + M_SW_PBS - M_age)
-
-  marginalise <- function(M) (rowSums(M) + diag(M)) / 2
-
-  n_age <- length(N_age)
-  idx_age <- seq_len(n_age)
-  n_group <- n_age + 3
-  nms_group <- c(age_bins$label, "SW_adults", "PBS", "SW_children")
-
-  ### General population
-  # Construct new contact matrix including groups
-  M_all <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
-  M_all[idx_age, idx_age] <- M_gen_pop
-  M_all["SW_adults", idx_age] <- M_all[idx_age, "SW_adults"] <- marginalise(M_gen_SW)
-  M_all["PBS", idx_age] <- M_all[idx_age, "PBS"] <- marginalise(M_gen_PBS)
-  M_all["SW_adults", "SW_adults"] <- sum(marginalise(M_SW_SW))
-  ## LILITH - guessed
-  M_all["SW_children", "SW_children"] <- sum(marginalise(M_SW_SW))
-  M_all["PBS", "PBS"] <- sum(marginalise(M_PBS_PBS))
-  M_all["SW_adults", "PBS"] <- M_all["PBS", "SW_adults"] <- sum(marginalise(M_SW_PBS))
-  ## LILITH - guessed
-  M_all["SW_children", "PBS"] <- M_all["PBS", "SW_children"] <- sum(marginalise(M_SW_PBS))
-  ## LILITH - assumed no mixing of SW_children and SW_adults
-
-  # check that total contacts are the same as original
-  sum(marginalise(M_all)) - sum(marginalise(M_age)) ## check total number of contacts
-
+  sum(upper.tri(M, diag = TRUE) * M)
+  sum(upper.tri(M_age, diag = TRUE) * M_age)
+  round(rowSums(M)[seq_len(n_age)] - rowSums(M_age))
+  
   # Convert to per-capita rates by dividing by population
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
-  m_all <- M_all / N
+  m <- M / N
+  m[is.na(m)] <- 0 # correct for any zero population denominators (e.g. HCW)
 
 
   ## set up sexual contact matrix for parameterisation in transform function
   m_sex <- matrix(0, n_group, n_group, dimnames = list(nms_group, nms_group))
 
-  # proportion of susceptibles estimated to have smallpox vaccine
-  sus_prop <- c(rep(1,8),0.54,0.29,0.29,0.23,0.21,0.21,0.21,0.21,1,1,1)
-
   # province populations
   province_pop = list("equateur" = 1712000,
                       "sudkivu" = 6565000)
 
+  # proportion of susceptibles estimated to be unvaccinated (historically)
+  p_unvaccinated <- setNames(rep(0, n_group), nms_group)
+  p_unvaccinated[which(age_bins$end < 40)] <- 1
+  p_unvaccinated[which(age_bins$start >= 40)] <-
+    c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
+  p_unvaccinated[nms_kp] <- 1 # assume no prior vaccination in KPs
 
   list(
     n_group = n_group,
     N0 = setNames(N, nms_group),
-    m_gen_pop = m_all,
+    m_gen_pop = m,
     m_sex = m_sex,
-    total_contacts_gen_pop = M_all,
+    total_contacts_nonsexual = M,
     #total_contacts_sex = M_sex,
-    n_vax = 4,
-    sus_prop = sus_prop,
+    n_vax = idx_compartment$dim$vax,
+    p_unvaccinated = p_unvaccinated,
     province_pop = province_pop
   )
 }
@@ -186,6 +185,66 @@ get_age_bins <- function() {
   label[length(label)] <- paste0(max(start), "+")
 
   data.frame(label = label, start = start, end = end)
+}
+
+##' A function that calculates the proportion of each age group than lies inside
+##' a given interval
+##' 
+##' @title calculate the proportion of each age group that lies between `min_age`
+##' and `max_age` (inclusive) based on uniform distribution within each age band
+##' @param min_age a scalar giving the bottom of the age range
+##' @param min_age a scalar giving the top of the age range
+##' @return a vector of length n_age = 16 giving the proportion for each age band
+##'   
+proportion_in_age_bins <- function(min_age, max_age) {
+  bins <- get_age_bins()
+  
+  # Calculate the overlap range for each bin
+  overlap_start <- pmax(bins$start, min_age)
+  overlap_end <- pmin(bins$end, max_age)
+  
+  # Calculate the size of the bin and the overlap
+  bin_size <- bins$end - bins$start + 1
+  overlap_size <- pmax(0, overlap_end - overlap_start + 1)
+  
+  # Calculate the proportion of overlap for each bin
+  proportions <- overlap_size / bin_size
+  
+  return(proportions)
+}
+
+##' A function that gets the compartment indices used in the model
+##' 
+##' @title Get compartment indices used throughout the model
+##' 
+##' @return A list containing entries: `dim` giving the dimensions of each
+##' compartment, currently: group = 18, vax = 4;
+##' `group`, a named list of the array indices corresponding to the
+##' first dimension of model compartments: 16 5-year age bands + SW + PBS;
+##' and `vax`, a named list of the vaccine strata used in
+##' the second dimension of model compartments:
+##' 1. historic smallpox; 2. unvaccinated; 3. one-dose; 4. two-dose.
+##' 
+##' Use this function wherever you need to refer to these standards in your code
+##' to avoid duplication, and make modifying universally easier.
+##'   
+##' @export
+get_compartment_indices <- function() {
+  age_bins <- get_age_bins()
+  nms_kp <- c("CSW", "ASW", "PBS", "HCW")
+  n_kp <- length(nms_kp)
+  n_group <- nrow(age_bins) + n_kp
+
+  groups <- seq_len(n_group)
+  names(groups) <- c(age_bins$label, nms_kp)
+  
+  n_vax <- 4
+  vax_strata <- seq_len(n_vax)
+  names(vax_strata) <- c("historic", "unvaccinated", "one_dose", "two_dose")
+  
+  list(dim = list(group = n_group, vax = n_vax),
+       group = as.list(groups),
+       vax = as.list(vax_strata))
 }
 
 # Function to allocate N individuals into m groups based on weights
@@ -215,7 +274,8 @@ assign_seeds <- function(N, w) {
 ##'   `"sudkivu"`
 ##'   
 ##' @param initial_infections The initial number of infections
-##' 
+##' @param use_ve_D logical, indicating whether model should allow for vaccine
+##' efficacy against death (above and beyond protection against infection)
 ##' @param overrides A list, containing any parameters for which you want to
 ##'   override the default values
 ##' 
@@ -224,7 +284,7 @@ assign_seeds <- function(N, w) {
 ##' @export
 ##' 
 #' @export
-parameters_fixed <- function(region, initial_infections, overrides = list()) {
+parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overrides = list()) {
 
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu"))) {
@@ -234,61 +294,98 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic()
   age_bins <- get_age_bins()
+  idx_compartment <- get_compartment_indices()
 
   n_group <- demographic_params$n_group
   n_vax <- demographic_params$n_vax
+  idx_unvax <- idx_compartment$vax$unvaccinated
+  idx_historic_vax <- idx_compartment$vax$historic
+  
+  ## standard vaccination parameters, we may want to move this entire section to
+  ## the transform in future if we want to allow for vaccine uncertainty
+  ## VE against infection
+  ve_I <- c(0.736, 0, 0.736, 0.818) # Berry et al.
+  ## VE against onward transmission
+  ve_T <- rep(0, n_vax)
+  
+  
   N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
   N_prioritisation_steps <- 1
+  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  
 
   ## Seed infections in the unvaccinated group in a region-specific manner
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  Ea0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  Ea0 <- X0
+
+  
   if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
-    sw_index <- which(colnames(demographic_params$m_gen_pop) %in% c("SW_adults","SW_children"))
-    Ea0[sw_index[1], 2] <- round(initial_infections * N0["SW_adults"]/(N0["SW_adults"]+N0["SW_children"]))
-    Ea0[sw_index[2], 2] <- initial_infections - Ea0[sw_index[1], 2]
+    index_sw <- which(colnames(demographic_params$m_gen_pop) == "SW")
+    Ea0[index_sw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
-    gen_pop_index <- seq_len(nrow(age_bins))
-    seeding_infections <- assign_seeds(initial_infections, w = RR_z[gen_pop_index])
+    index_gen_pop <- seq_len(nrow(age_bins))
+    seeding_infections <- assign_seeds(initial_infections, w = RR_z[index_gen_pop])
 
-    Ea0[gen_pop_index, 2] <- seeding_infections
+    Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
     stop("something is wrong with the name of the region - change to sudkivu or equateur")
   }
-
-  # CFR from Whittles 2024, 5-year bands to 40
-
-  CFR <- rep(0, n_group)
-  names(CFR) <- names(demographic_params$N0)
-  CFR[which(age_bins$end < 40)] <- c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
-  CFR[which(age_bins$start >= 40)] <- 0.01
-  CFR["SW_adults"] <- CFR["20-24"]
-  CFR["PBS"] <- CFR["35-39"]
-  CFR["SW_children"] <- CFR["10-14"]
-
-  vaccination_campaign_length <- 1
-
-  ## update with assignment into smallpox vaccination compartment (j=1)
-  ## if we have a small population then seeding with 5 infections per compt and strata could be a problem (e.g. with N=10000 too few SW)
-  if(all(rowSums(Ea0)<N0)){
-      S0 <- matrix(0,nrow=demographic_params$n_group,
-                   ncol=demographic_params$n_vax)
-      S0[,2] <- round((N0-rowSums(Ea0))*demographic_params$sus_prop)
-      #rbinom(size=N0,prob=demographic_params$sus_prop,n=length(N0)) - Ea0[,2]
-      S0[,1] <- N0-rowSums(Ea0)-S0[,2]
-      ##rowSums(S0)+rowSums(Ea0)==N0
-  }else{
-    stop("combination of population size and seeding infections is incompatible, please review.")
+  
+  p_unvaccinated <- demographic_params$p_unvaccinated
+  ## update with assignment into smallpox vaccination compartment (j = 1)
+  ## if we have a small population then seeding with 5 infections per compt and
+  ## strata could be a problem (e.g. with N = 10,000 too few SW)
+  ## split population into historically- / un-vaccinated first before seeding
+  ## need to think about how this will interact with equilibrium position for
+  ## seeding in endemic areas.
+  S0 <- X0
+  S0[, idx_unvax] <- round(N0 * p_unvaccinated)
+  S0[, idx_historic_vax] <- N0 - S0[, idx_unvax]
+  S0 <- S0 - Ea0
+  if (any (S0 < 0)) {
+    stop("population size and seeding infections is incompatible")
   }
 
+  CFR_unvax <- rep(0, n_group)
+  names(CFR_unvax) <- names(demographic_params$N0)
+  # CFR from Whittles 2024, 5-year bands to 40
+  CFR_unvax[which(age_bins$end < 40)] <-
+    c(0.102, 0.054, 0.035, 0.026, 0.02, 0.016, 0.013, 0.012)
+  CFR_unvax[which(age_bins$start >= 40)] <- 0.01
+
+  # Create matrix [group | vax strata]
+  # Vax strata: 1. historic smallpox; 2. unvaccinated; 3. one-dose; 4. two-dose
+  # initially all strata contain CFR by age for unvaccinated, which we then
+  # modify to incorporate any VE against death 
+  CFR <- matrix(CFR_unvax, nrow = n_group, ncol = n_vax)
+  rownames(CFR) <- names(CFR_unvax)
+  
+  if (use_ve_D) {
+  # If allowing for vaccine protection against death
+    CFR_historic_vax <- CFR_unvax
+    CFR_historic_vax[which(age_bins$end < 40)] <-
+      c(0.048, 0.025, 0.016, 0.012, 0.009, 0.007, 0.006, 0.005)
+    CFR_historic_vax[which(age_bins$start >= 40)] <- 0.004
+
+    # use same CFR for all vaccinated regardless of efficacy
+    CFR[, -idx_unvax] <- CFR_historic_vax
+  }
+
+  CFR["CSW", ] <- CFR["15-19", ]
+  CFR["ASW", ] <- CFR["20-24", ]
+  CFR["PBS", ] <- CFR["35-39", ]
+  CFR["HCW", ] <- CFR["35-39", ]
+
+  
+  vaccination_campaign_length <- 1
+  
   params_list = list(
     region = region,
     n_group = n_group,
@@ -309,18 +406,18 @@ parameters_fixed <- function(region, initial_infections, overrides = list()) {
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."
     gamma_Id = 1 / 10, # Jezek 1988
-    CFR = matrix(CFR, nrow = n_group, ncol = n_vax, byrow = FALSE),
+    CFR = as.matrix(CFR),
     m_sex = demographic_params$m_sex,
     m_gen_pop = demographic_params$m_gen_pop,
     prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
     # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
-    vaccine_uptake = rep(0.8, n_group),
-    ve_T = rep(0, n_vax),
-    ve_I = rep(0, n_vax),
-    vaccination_coverage_target_1st_dose_prop = 0.8,
-    vaccination_coverage_target_2nd_dose_prop = 0.5,
+    vaccine_uptake = rep(0, n_group),
+    ve_I = ve_I,
+    ve_T = ve_T,
+    vaccination_coverage_target_1st_dose_prop = 0,
+    vaccination_coverage_target_2nd_dose_prop = 0,
     vaccination_campaign_length = vaccination_campaign_length,
-    daily_doses = matrix(1, nrow = vaccination_campaign_length, ncol = n_vax))
+    daily_doses = matrix(0, nrow = vaccination_campaign_length, ncol = n_vax))
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
