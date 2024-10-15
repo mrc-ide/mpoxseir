@@ -703,15 +703,14 @@ public:
       internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_t[2] * S[shared->dim_S_1 * 2 + i - 1] * shared->prioritisation_strategy[shared->dim_prioritisation_strategy_1 * (prioritisation_step_2nd_dose - 1) + i - 1] * shared->vaccine_uptake[i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2.data(), 0, shared->dim_n_eligible_for_dose2)), S[shared->dim_S_1 * 2 + i - 1]));
     }
     real_type new_deaths_00_04 = odin_sum2<real_type>(internal.n_IdD.data(), 0, 1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    real_type new_deaths_05_14 = odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + static_cast<real_type>(0.5) * odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
-    real_type new_deaths_15_plus = odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + static_cast<real_type>(0.5) * odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + odin_sum2<real_type>(internal.n_IdD.data(), 17, 20, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     real_type new_deaths_HCW = odin_sum2<real_type>(internal.n_IdD.data(), 19, 20, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     real_type new_deaths_PBS = odin_sum2<real_type>(internal.n_IdD.data(), 18, 19, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     real_type new_deaths_SW = odin_sum2<real_type>(internal.n_IdD.data(), 16, 18, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
+    real_type new_deaths_SW_12_14 = dust::random::binomial<real_type>(rng_state, odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1), static_cast<real_type>(0.5));
     real_type prioritisation_step_1st_dose_proposal = (odin_sum2<real_type>(internal.target_met_t.data(), 0, shared->dim_target_met_t_1, 2, 3, shared->dim_target_met_t_1) == shared->n_group ? prioritisation_step_1st_dose + 1 : prioritisation_step_1st_dose);
     real_type prioritisation_step_2nd_dose_proposal = (odin_sum2<real_type>(internal.target_met_t.data(), 0, shared->dim_target_met_t_1, 3, 4, shared->dim_target_met_t_1) == shared->n_group ? prioritisation_step_2nd_dose + 1 : prioritisation_step_2nd_dose);
     for (int i = 1; i <= shared->dim_prop_infectious; ++i) {
-      internal.prop_infectious[i - 1] = odin_sum2<real_type>(internal.I_infectious.data(), i - 1, i, 0, shared->dim_I_infectious_2, shared->dim_I_infectious_1) / (real_type) odin_sum2<real_type>(N, i - 1, i, 0, shared->dim_N_2, shared->dim_N_1);
+      internal.prop_infectious[i - 1] = (odin_sum2<real_type>(N, i - 1, i, 0, shared->dim_N_2, shared->dim_N_1) == 0 ? 0 : odin_sum2<real_type>(internal.I_infectious.data(), i - 1, i, 0, shared->dim_I_infectious_2, shared->dim_I_infectious_1) / (real_type) odin_sum2<real_type>(N, i - 1, i, 0, shared->dim_N_2, shared->dim_N_1));
     }
     state_next[6] = deaths_cumulative + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[4] = deaths_inc * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
@@ -735,6 +734,8 @@ public:
         internal.delta_S_n_vaccination[i - 1 + shared->dim_delta_S_n_vaccination_1 * (j - 1)] = (j == 1 ? 0 : (j == 2 ? (- internal.n_vaccination_t_S[shared->dim_n_vaccination_t_S_1 * (j - 1) + i - 1]) : (j == shared->n_vax ? (internal.n_vaccination_t_S[shared->dim_n_vaccination_t_S_1 * (j - 1 - 1) + i - 1]) : (- internal.n_vaccination_t_S[shared->dim_n_vaccination_t_S_1 * (j - 1) + i - 1] + internal.n_vaccination_t_S[shared->dim_n_vaccination_t_S_1 * (j - 1 - 1) + i - 1]))));
       }
     }
+    real_type new_deaths_05_14 = odin_sum2<real_type>(internal.n_IdD.data(), 1, 3, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + new_deaths_SW_12_14;
+    real_type new_deaths_SW_15_17 = odin_sum2<real_type>(internal.n_IdD.data(), 16, 17, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) - new_deaths_SW_12_14;
     for (int i = 1; i <= shared->dim_s_ij_gen_pop_1; ++i) {
       for (int j = 1; j <= shared->dim_s_ij_gen_pop_2; ++j) {
         internal.s_ij_gen_pop[i - 1 + shared->dim_s_ij_gen_pop_1 * (j - 1)] = shared->m_gen_pop[shared->dim_m_gen_pop_1 * (j - 1) + i - 1] * internal.prop_infectious[j - 1];
@@ -751,14 +752,10 @@ public:
       }
     }
     state_next[25] = deaths_cumulative_00_04 + new_deaths_00_04;
-    state_next[26] = deaths_cumulative_05_14 + new_deaths_05_14;
-    state_next[27] = deaths_cumulative_15_plus + new_deaths_15_plus;
     state_next[30] = deaths_cumulative_HCW + new_deaths_HCW;
     state_next[28] = deaths_cumulative_PBS + new_deaths_PBS;
     state_next[29] = deaths_cumulative_SW + new_deaths_SW;
     state_next[13] = deaths_inc_00_04 * is_same_week + new_deaths_00_04;
-    state_next[14] = deaths_inc_05_14 * is_same_week + new_deaths_05_14;
-    state_next[15] = deaths_inc_15_plus * is_same_week + new_deaths_15_plus;
     state_next[18] = deaths_inc_HCW * is_same_week + new_deaths_HCW;
     state_next[16] = deaths_inc_PBS * is_same_week + new_deaths_PBS;
     state_next[17] = deaths_inc_SW * is_same_week + new_deaths_SW;
@@ -791,11 +788,14 @@ public:
         internal.n_EbI[i - 1 + shared->dim_n_EbI_1 * (j - 1)] = dust::random::binomial<real_type>(rng_state, Eb[shared->dim_Eb_1 * (j - 1) + i - 1] + internal.delta_Eb_n_vaccination[shared->dim_delta_Eb_n_vaccination_1 * (j - 1) + i - 1], shared->p_EI);
       }
     }
+    real_type new_deaths_15_plus = odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + new_deaths_SW_15_17 + odin_sum2<real_type>(internal.n_IdD.data(), 17, 20, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     for (int i = 1; i <= shared->dim_R_1; ++i) {
       for (int j = 1; j <= shared->dim_R_2; ++j) {
         state_next[shared->offset_variable_R + i - 1 + shared->dim_R_1 * (j - 1)] = R[shared->dim_R_1 * (j - 1) + i - 1] + internal.delta_R_n_vaccination[shared->dim_delta_R_n_vaccination_1 * (j - 1) + i - 1] + internal.delta_R[shared->dim_delta_R_1 * (j - 1) + i - 1];
       }
     }
+    state_next[26] = deaths_cumulative_05_14 + new_deaths_05_14;
+    state_next[14] = deaths_inc_05_14 * is_same_week + new_deaths_05_14;
     for (int i = 1; i <= shared->dim_delta_Eb_1; ++i) {
       for (int j = 1; j <= shared->dim_delta_Eb_2; ++j) {
         internal.delta_Eb[i - 1 + shared->dim_delta_Eb_1 * (j - 1)] = internal.n_EaEb[shared->dim_n_EaEb_1 * (j - 1) + i - 1] - internal.n_EbI[shared->dim_n_EbI_1 * (j - 1) + i - 1];
@@ -811,6 +811,8 @@ public:
         internal.p_SE[i - 1 + shared->dim_p_SE_1 * (j - 1)] = 1 - dust::math::exp(- internal.lambda[shared->dim_lambda_1 * (j - 1) + i - 1] * shared->dt);
       }
     }
+    state_next[27] = deaths_cumulative_15_plus + new_deaths_15_plus;
+    state_next[15] = deaths_inc_15_plus * is_same_week + new_deaths_15_plus;
     for (int i = 1; i <= shared->dim_delta_Id_1; ++i) {
       for (int j = 1; j <= shared->dim_delta_Id_2; ++j) {
         internal.delta_Id[i - 1 + shared->dim_delta_Id_1 * (j - 1)] = internal.n_EbId[shared->dim_n_EbId_1 * (j - 1) + i - 1] - internal.n_IdD[shared->dim_n_IdD_1 * (j - 1) + i - 1];
@@ -842,11 +844,10 @@ public:
       }
     }
     real_type new_cases_00_04 = odin_sum2<real_type>(internal.n_SEa.data(), 0, 1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    real_type new_cases_05_14 = odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + static_cast<real_type>(0.5) * odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
-    real_type new_cases_15_plus = odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + static_cast<real_type>(0.5) * odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + odin_sum2<real_type>(internal.n_SEa.data(), 17, 20, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     real_type new_cases_HCW = odin_sum2<real_type>(internal.n_SEa.data(), 19, 20, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     real_type new_cases_PBS = odin_sum2<real_type>(internal.n_SEa.data(), 18, 19, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     real_type new_cases_SW = odin_sum2<real_type>(internal.n_SEa.data(), 16, 18, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    real_type new_cases_SW_12_14 = dust::random::binomial<real_type>(rng_state, odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1), static_cast<real_type>(0.5));
     for (int i = 1; i <= shared->dim_Id_1; ++i) {
       for (int j = 1; j <= shared->dim_Id_2; ++j) {
         state_next[shared->offset_variable_Id + i - 1 + shared->dim_Id_1 * (j - 1)] = Id[shared->dim_Id_1 * (j - 1) + i - 1] + internal.delta_Id[shared->dim_delta_Id_1 * (j - 1) + i - 1];
@@ -859,6 +860,8 @@ public:
     }
     state_next[5] = cases_cumulative + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
     state_next[3] = cases_inc * is_same_week + odin_sum2<real_type>(internal.n_SEa.data(), 0, shared->dim_n_SEa_1, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    real_type new_cases_05_14 = odin_sum2<real_type>(internal.n_SEa.data(), 1, 3, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + new_cases_SW_12_14;
+    real_type new_cases_SW_15_17 = odin_sum2<real_type>(internal.n_SEa.data(), 16, 17, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) - new_cases_SW_12_14;
     for (int i = 1; i <= shared->dim_Ea_1; ++i) {
       for (int j = 1; j <= shared->dim_Ea_2; ++j) {
         state_next[shared->offset_variable_Ea + i - 1 + shared->dim_Ea_1 * (j - 1)] = Ea[shared->dim_Ea_1 * (j - 1) + i - 1] + internal.delta_Ea_n_vaccination[shared->dim_delta_Ea_n_vaccination_1 * (j - 1) + i - 1] + internal.delta_Ea[shared->dim_delta_Ea_1 * (j - 1) + i - 1];
@@ -870,17 +873,18 @@ public:
       }
     }
     state_next[19] = cases_cumulative_00_04 + new_cases_00_04;
-    state_next[20] = cases_cumulative_05_14 + new_cases_05_14;
-    state_next[21] = cases_cumulative_15_plus + new_cases_15_plus;
     state_next[24] = cases_cumulative_HCW + new_cases_HCW;
     state_next[22] = cases_cumulative_PBS + new_cases_PBS;
     state_next[23] = cases_cumulative_SW + new_cases_SW;
     state_next[7] = cases_inc_00_04 * is_same_week + new_cases_00_04;
-    state_next[8] = cases_inc_05_14 * is_same_week + new_cases_05_14;
-    state_next[9] = cases_inc_15_plus * is_same_week + new_cases_15_plus;
     state_next[12] = cases_inc_SW * is_same_week + new_cases_HCW;
     state_next[10] = cases_inc_PBS * is_same_week + new_cases_PBS;
     state_next[11] = cases_inc_SW * is_same_week + new_cases_SW;
+    real_type new_cases_15_plus = odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + new_cases_SW_15_17 + odin_sum2<real_type>(internal.n_SEa.data(), 17, 20, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
+    state_next[20] = cases_cumulative_05_14 + new_cases_05_14;
+    state_next[8] = cases_inc_05_14 * is_same_week + new_cases_05_14;
+    state_next[21] = cases_cumulative_15_plus + new_cases_15_plus;
+    state_next[9] = cases_inc_15_plus * is_same_week + new_cases_15_plus;
   }
   real_type compare_data(const real_type * state, const data_type& data, rng_state_type& rng_state) {
     const real_type cases_inc = state[3];

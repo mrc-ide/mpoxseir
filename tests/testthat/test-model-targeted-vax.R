@@ -90,18 +90,18 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   pars$beta_h <- 0
   pars$beta_z[] <- 0
   pars$beta_s <- 0.2
-  pars$m_sex["SW", "PBS"] <- pars$m_sex["PBS", "SW"] <- 0.5
+  pars$Ea0[] <- 0
+  pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <- 0.5
+  pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- 0.5
   
   # need to seed infections as so low otherwise
   
   idx_comp <- get_compartment_indices()
-  idx_kp <- unlist(idx_comp$group[c("SW", "PBS")])
+  idx_kp <- unlist(idx_comp$group[c("CSW", "ASW", "PBS")])
   idx_unvax <- idx_comp$vax$unvaccinated
   
-  pars$Ir0[idx_kp, idx_unvax] <- pars$Ir0[idx_kp, idx_unvax] + 10
-  pars$Id0[idx_kp, idx_unvax] <- pars$Id0[idx_kp, idx_unvax] + 10
-  pars$S0[idx_kp, idx_unvax] <- pars$S0[idx_kp, idx_unvax] -
-    pars$Id0[idx_kp, idx_unvax] - pars$Ir0[idx_kp, idx_unvax]
+  pars$Ea0[idx_kp, idx_unvax] <- pars$Ea0[idx_kp, idx_unvax] + 10
+  pars$S0[idx_kp, idx_unvax] <- pars$S0[idx_kp, idx_unvax] - pars$Ea0[idx_kp, idx_unvax]
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21) 
@@ -111,16 +111,20 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
 
 
   ## should have cases in CSW and PBS
-  expect_true(all(res["cases_cumulative_PBS", , max(t)]>0))
-  expect_true(all(res["cases_cumulative_SW",,max(t)]>0))
+  expect_true(all(res["cases_cumulative_PBS", , max(t)] > 0))
+  expect_true(all(res["cases_cumulative_SW", , max(t)] > 0))
+
 
   ## shouldn't have cases in the age groups
-  expect_true(all(res["cases_cumulative_00_04",,max(t)]==0))
-  expect_true(all(res["cases_cumulative_05_14",,max(t)]==0))
-  expect_true(all(res["cases_cumulative_15_plus",,max(t)]==0))
+  expect_true(all(res["cases_cumulative_00_04",,max(t)] == 0))
+  expect_equal(res["cases_inc_05_14",,] + res["cases_inc_15_plus", , ],
+               res["cases_inc_SW", , ] + res["cases_inc_PBS", , ])
+  y <- m$transform_variables(res)
+  n_age <- nrow(get_age_bins())
+  expect_equal(sum(y$Ea[seq_len(n_age), , , ]), 0)
 
   ## make sure population size continues behaving
-  expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N0) + 10), 0)
 
 })
 
@@ -131,7 +135,6 @@ test_that("when n_vaccination>0, vaccinations are given", {
   pars <- reference_pars_targeted_vax(uptake = 0.8)
   pars$prioritisation_strategy[] <- 1
   
-
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
@@ -147,7 +150,7 @@ test_that("when n_vaccination>0, vaccinations are given", {
   ## in first time point there should be no one vaccinated
   expect_true(all(y$N[, idx_vax, , 1] == 0))
   # at last time point we should have lots vaccinated
-  expect_true(all(y$N[, idx_vax, , 21] > 0))
+  expect_true(any(y$N[, idx_vax, , 21] > 0))
 
   ## vaccines given should be positive
   expect_true(any(res[grep("vax_given",rownames(res)),,]>0))

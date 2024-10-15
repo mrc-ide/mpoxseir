@@ -257,9 +257,11 @@ update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] + R[i, j] +
 # X_15_plus includes all 50% CSW (ages 15-17), and all ASW, PBS, HCW
 
 new_cases_00_04 <- sum(n_SEa[1, ])
-new_cases_05_14 <- sum(n_SEa[2:3, ]) + 0.5 * sum(n_SEa[17, ])
-new_cases_15_plus <- sum(n_SEa[4:16, ]) + 0.5 * sum(n_SEa[17, ]) +
-  sum(n_SEa[18:20, ])
+new_cases_SW_12_14 <- rbinom(sum(n_SEa[17, ]), 0.5)
+new_cases_SW_15_17 <- sum(n_SEa[17, ]) - new_cases_SW_12_14
+new_cases_05_14 <- sum(n_SEa[2:3, ]) + new_cases_SW_12_14
+new_cases_15_plus <-
+  sum(n_SEa[4:16, ]) + new_cases_SW_15_17 + sum(n_SEa[18:20, ])
 new_cases_SW <- sum(n_SEa[17:18, ])
 new_cases_PBS <- sum(n_SEa[19, ])
 new_cases_HCW <- sum(n_SEa[20, ])
@@ -286,9 +288,11 @@ update(cases_cumulative_HCW) <- cases_cumulative_HCW + new_cases_HCW
 
 
 new_deaths_00_04 <- sum(n_IdD[1, ])
-new_deaths_05_14 <- sum(n_IdD[2:3, ]) + 0.5 * sum(n_IdD[17, ])
-new_deaths_15_plus <- sum(n_IdD[4:16, ]) + 0.5 * sum(n_IdD[17, ]) +
-  sum(n_IdD[18:20, ])
+new_deaths_SW_12_14 <- rbinom(sum(n_IdD[17, ]), 0.5)
+new_deaths_SW_15_17 <- sum(n_IdD[17, ]) - new_deaths_SW_12_14
+new_deaths_05_14 <- sum(n_IdD[2:3, ]) + new_deaths_SW_12_14
+new_deaths_15_plus <-
+  sum(n_IdD[4:16, ]) + new_deaths_SW_15_17 + sum(n_IdD[18:20, ])
 new_deaths_SW <- sum(n_IdD[17:18, ])
 new_deaths_PBS <- sum(n_IdD[19, ])
 new_deaths_HCW <- sum(n_IdD[20, ])
@@ -347,7 +351,8 @@ m_sex[, ] <- user()
 # I adjusted for reduced transmissibility
 I_infectious[, ] <- I[i, j] * (1 - ve_T[j])
 
-prop_infectious[] <- sum(I_infectious[i, ]) / sum(N[i, ])
+prop_infectious[] <-
+  if (sum(N[i, ]) == 0) 0 else sum(I_infectious[i, ]) / sum(N[i, ])
 # Generating Force of Infection
 # for susceptible age i, % contacts infectious age j
 s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
