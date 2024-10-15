@@ -193,7 +193,7 @@ get_age_bins <- function() {
 ##' @title calculate the proportion of each age group that lies between `min_age`
 ##' and `max_age` (inclusive) based on uniform distribution within each age band
 ##' @param min_age a scalar giving the bottom of the age range
-##' @param min_age a scalar giving the top of the age range
+##' @param max_age a scalar giving the top of the age range
 ##' @return a vector of length n_age = 16 giving the proportion for each age band
 ##'   
 proportion_in_age_bins <- function(min_age, max_age) {

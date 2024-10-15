@@ -8,7 +8,9 @@ and \code{max_age} (inclusive) based on uniform distribution within each age ban
 proportion_in_age_bins(min_age, max_age)
 }
 \arguments{
-\item{min_age}{a scalar giving the top of the age range}
+\item{min_age}{a scalar giving the bottom of the age range}
+
+\item{max_age}{a scalar giving the top of the age range}
 }
 \value{
 a vector of length n_age = 16 giving the proportion for each age band
