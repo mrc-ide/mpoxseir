@@ -566,8 +566,7 @@ model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
 compare(cases_05_14) ~ poisson(model_cases_05_14)
 
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + cases_inc_PBS + cases_inc_SW +
-  rexp(exp_noise)
+model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
 compare(cases_15_plus) ~ poisson(model_cases_15_plus)
 
 # deaths
@@ -584,6 +583,5 @@ model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
 compare(deaths_05_14) ~ poisson(model_deaths_05_14)
 
 deaths_15_plus <- data()
-model_deaths_15_plus <- deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW +
-  rexp(exp_noise)
+model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
 compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
