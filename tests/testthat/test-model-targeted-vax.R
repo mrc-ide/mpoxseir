@@ -121,6 +121,7 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   
   t <- seq(1, 21)
   res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
 
@@ -133,7 +134,6 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   expect_true(all(res["cases_cumulative_00_04",,max(t)] == 0))
   expect_equal(res["cases_inc_05_14",,] + res["cases_inc_15_plus", , ],
                res["cases_inc_SW", , ] + res["cases_inc_PBS", , ])
-  y <- m$transform_variables(res)
   n_age <- nrow(get_age_bins())
   expect_equal(sum(y$Ea[seq_len(n_age), , , ]), 0)
 
@@ -174,8 +174,8 @@ test_that("when n_vaccination>0, vaccinations are given", {
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
   
   ## when time is after vaccination_campaign_length, no vaccines are given
-  expect_equal(sum(y$vax_given_S[,  t >= max(pars$daily_doses_time)]), 0)
-  expect_true(all(y$vax_given_S[,  t >= max(pars$daily_doses_time)] > 0))
+  expect_equal(sum(y$vax_given_S[,  t > max(pars$daily_doses_time)]), 0)
+  expect_true(all(y$vax_given_S[,  t == max(pars$daily_doses_time)] > 0))
   
   ## the vaccines given do not exceed the total set out in the strategy
   expect_true(max(res["total_vax", , ]) <= sum(pars$daily_doses))
@@ -280,11 +280,15 @@ test_that("1st and 2nd prioritisation steps can be different depending on the ta
   # low vaccination target coverage
   pars$vaccination_coverage_target_1st_dose_prop <- 0.1
   pars$vaccination_campaign_length <- 15
-  pars$daily_doses <- matrix(0,ncol=pars$n_vax,
-                        nrow=pars$vaccination_campaign_length)
-  # give loads of vaccines to push through prioiritsation quickly
-  pars$daily_doses[1:10,2] <- pars$daily_doses[11:15,3] <- 1000000
-  pars$daily_doses[pars$vaccination_campaign_length,] <- 0
+  
+  # give loads of vaccines to push through prioritisation quickly
+  pars$daily_doses_time <- c(1, 10, 15)
+  pars$daily_doses_value <- matrix(0, nrow = pars$n_vax,
+                                      ncol = length(pars$daily_doses_time))
+  pars$daily_doses_value[2, 1] <- pars$daily_doses_value[3, 2] <- 1000000
+  pars$daily_doses <- 
+    interpolate_daily_doses(pars$daily_doses_time, pars$daily_doses_value)
+  
 
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -294,7 +298,8 @@ test_that("1st and 2nd prioritisation steps can be different depending on the ta
   res <- dust2::dust_system_simulate(sys, t)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
-  expect_false(all(res["prioritisation_step_1st_dose",,]==res["prioritisation_step_2nd_dose",,]))
+  expect_false(all(res["prioritisation_step_1st_dose", , ] == 
+                     res["prioritisation_step_2nd_dose", , ]))
 
   # extra check here for good measure
   expect_true(all((sum(pars$daily_doses) - res["total_vax",,max(t)])>0))
