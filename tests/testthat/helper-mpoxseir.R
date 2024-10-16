@@ -44,7 +44,6 @@ reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
 }
 
 
-
 reference_names <- function() {
   n_group <- parameters_demographic()$n_group
   n_vax <- parameters_demographic()$n_vax
