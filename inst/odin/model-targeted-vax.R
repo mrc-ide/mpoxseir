@@ -563,7 +563,7 @@ model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
 cases_05_14 ~ Poisson(model_cases_05_14)
 
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + cases_inc_PBS + cases_inc_SW + Exponential(exp_noise)
+model_cases_15_plus <- cases_inc_15_plus + Exponential(exp_noise)
 cases_15_plus ~ Poisson(model_cases_15_plus)
 
 # deaths
@@ -580,5 +580,5 @@ model_deaths_05_14 <- deaths_inc_05_14 + Exponential(exp_noise)
 deaths_05_14 ~ Poisson(model_deaths_05_14)
 
 deaths_15_plus <- data()
-model_deaths_15_plus <- deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW + Exponential(exp_noise)
+model_deaths_15_plus <- deaths_inc_15_plus + Exponential(exp_noise)
 deaths_15_plus ~ Poisson(model_deaths_15_plus)

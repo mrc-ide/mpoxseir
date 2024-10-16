@@ -986,22 +986,18 @@ public:
     const auto cases_inc_00_04 = state[6];
     const auto cases_inc_05_14 = state[7];
     const auto cases_inc_15_plus = state[8];
-    const auto cases_inc_PBS = state[9];
-    const auto cases_inc_SW = state[10];
     const auto deaths_inc_00_04 = state[12];
     const auto deaths_inc_05_14 = state[13];
     const auto deaths_inc_15_plus = state[14];
-    const auto deaths_inc_PBS = state[15];
-    const auto deaths_inc_SW = state[16];
     real_type ll = 0;
     const real_type model_cases = cases_inc + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_00_04 = cases_inc_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_05_14 = cases_inc_05_14 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
-    const real_type model_cases_15_plus = cases_inc_15_plus + cases_inc_PBS + cases_inc_SW + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
+    const real_type model_cases_15_plus = cases_inc_15_plus + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_deaths = deaths_inc + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_deaths_00_04 = deaths_inc_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_deaths_05_14 = deaths_inc_05_14 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
-    const real_type model_deaths_15_plus = deaths_inc_15_plus + deaths_inc_PBS + deaths_inc_SW + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
+    const real_type model_deaths_15_plus = deaths_inc_15_plus + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     if (!std::isnan(data.cases)) {
       ll += monty::density::poisson(data.cases, model_cases, true);
     }
