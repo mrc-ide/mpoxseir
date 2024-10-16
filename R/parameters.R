@@ -235,7 +235,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   ## standard vaccination parameters, we may want to move this entire section to
   ## the transform in future if we want to allow for vaccine uncertainty
   ## VE against infection
-  ve_I <- c(0.736, 0, 0.736, 0.818) # Berry et al.
+  ve_I <- matrix(rep(c(0.736, 0, 0.736, 0.818),n_group),
+                 nrow=n_group,ncol=n_vax,byrow=TRUE)
   ## VE against onward transmission
   ve_T <- rep(0, n_vax)
   

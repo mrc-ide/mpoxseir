@@ -324,7 +324,7 @@ s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 lambda[, ] <- ((beta_h * sum(s_ij_gen_pop[i, ])) +
-                 (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1 - ve_I[j])
+                 (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1 - ve_I[i,j])
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
@@ -434,7 +434,7 @@ CFR[, ] <- user()
 
 #vaccine efficacy parameters
 ve_T[] <- user()
-ve_I[] <- user()
+ve_I[,] <- user()
 #ve_D[,] <- user() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
