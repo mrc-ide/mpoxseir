@@ -34,3 +34,9 @@ test_that("negative numbers are not allowed", {
   expect_error(assert_mpoxseir_date(c(10, -1, 29)),
                "Negative dates, mpoxseir_date likely applied twice")
 })
+
+test_that("ISO dates only", {
+  expect_error(
+    as_date("02-05-2024"),
+    "Expected ISO dates or R dates - please convert")
+})
