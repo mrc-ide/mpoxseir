@@ -23,9 +23,9 @@ dim(daily_doses) <- c(vaccination_campaign_length, n_vax)
 
 ## with this we need to ensure daily_doses final time step is all 0 - done
 ## outside of the model in pre-processing
-daily_doses_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length))
-  daily_doses[vaccination_campaign_length, j] else daily_doses[time, j]
-dim(daily_doses_t) <- c(1, n_vax)
+daily_doses_t[] <- if (as.integer(time) >= (vaccination_campaign_length))
+  daily_doses[vaccination_campaign_length, i] else daily_doses[time, i]
+dim(daily_doses_t) <- n_vax
 
 ## allocate the daily doses according to prioritisation strategy
 
@@ -127,28 +127,28 @@ n_vaccination_t_R[, ] <- 0
 
 ## allocate 1st doses
 n_vaccination_t_S[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * S[i, 2] *
+  min(floor((daily_doses_t[2] * S[i, 2] *
                prioritisation_strategy[i, prioritisation_step_1st_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
       S[i, 2])
   
 
 n_vaccination_t_Ea[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * Ea[i, 2] *
+  min(floor((daily_doses_t[2] * Ea[i, 2] *
                prioritisation_strategy[i, prioritisation_step_1st_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
       Ea[i, 2])
   
 
 n_vaccination_t_Eb[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * Eb[i, 2] *
+  min(floor((daily_doses_t[2] * Eb[i, 2] *
                prioritisation_strategy[i, prioritisation_step_1st_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
       Eb[i, 2])
   
 
 n_vaccination_t_R[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * R[i, 2] *
+  min(floor((daily_doses_t[2] * R[i, 2] *
                prioritisation_strategy[i, prioritisation_step_1st_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
       R[i, 2])
@@ -157,38 +157,37 @@ n_vaccination_t_R[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
 
 ## allocate 2nd doses
 n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * S[i, 3] *
+  min(floor((daily_doses_t[3] * S[i, 3] *
                prioritisation_strategy[i, prioritisation_step_2nd_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
       S[i, 3])
   
 
 n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * Ea[i, 3] *
+  min(floor((daily_doses_t[3] * Ea[i, 3] *
                prioritisation_strategy[i, prioritisation_step_2nd_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
       Ea[i, 3])
   
 
 n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * Eb[i, 3] *
+  min(floor((daily_doses_t[3] * Eb[i, 3] *
                prioritisation_strategy[i, prioritisation_step_2nd_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
       Eb[i, 3])
   
 
 n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * R[i, 3] *
+  min(floor((daily_doses_t[3] * R[i, 3] *
                prioritisation_strategy[i, prioritisation_step_2nd_dose] *
                vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
       R[i, 3])
 
 
-## net vaccination change for relevant classes (S,Ea,Eb,R)
+## net vaccination change for relevant classes (S, Ea, Eb, R)
 ## logic here depends on vaccine class you are in (e.g. can only increase
 ## through j)
-## j=1 corresponds to previous smallpox vaccination
-## this is generic so accounts for n_vax whatever it is
+
 delta_S_n_vaccination[, ] <- if (j == 1) 0 else
   if (j == 2) (-n_vaccination_t_S[i, j]) else
     if (j == n_vax) (n_vaccination_t_S[i, j - 1]) else
@@ -248,41 +247,76 @@ update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] + R[i, j] +
 #update(N[, ]) <- S[i, j] + E[i, j] + I[i, j] + R[i, j] + D[i, j]
 
 # weekly cases
+# group indices 
+# [1: 0-4,    2: 5-9,    3: 10-14,  4: 15-19,  5: 20-24,  6: 25-29,
+#  7: 30-34,  8: 35-39,  9: 40-44, 10: 45-49, 11: 50-54, 12: 55-59,
+# 13: 60-64, 14: 65-69, 15: 70-74, 16: 75+,   17: CSW,   18: ASW,
+# 19: PBS,   20: HCW]
+# Note that:
+# X_05_14 includes 50% CSW (ages 12-14)
+# X_15_plus includes all 50% CSW (ages 15-17), and all ASW, PBS, HCW
+
+new_cases_00_04 <- sum(n_SEa[1, ])
+new_cases_SW_12_14 <- rbinom(sum(n_SEa[17, ]), 0.5)
+new_cases_SW_15_17 <- sum(n_SEa[17, ]) - new_cases_SW_12_14
+new_cases_05_14 <- sum(n_SEa[2:3, ]) + new_cases_SW_12_14
+new_cases_15_plus <-
+  sum(n_SEa[4:16, ]) + new_cases_SW_15_17 + sum(n_SEa[18:20, ])
+new_cases_SW <- sum(n_SEa[17:18, ])
+new_cases_PBS <- sum(n_SEa[19, ])
+new_cases_HCW <- sum(n_SEa[20, ])
+
 is_same_week <- step %% steps_per_week > 0
 update(cases_inc) <- cases_inc * is_same_week + sum(n_SEa[, ])
-update(cases_inc_00_04) <- cases_inc_00_04 * is_same_week + sum(n_SEa[1, ])
-update(cases_inc_05_14) <- cases_inc_05_14 * is_same_week + sum(n_SEa[2:3, ])
+update(cases_inc_00_04) <- cases_inc_00_04 * is_same_week + new_cases_00_04
+update(cases_inc_05_14) <- cases_inc_05_14 * is_same_week + new_cases_05_14
 update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week +
-  sum(n_SEa[4:16, ])
-update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + sum(n_SEa[17, ])
-update(cases_inc_SW) <- cases_inc_SW * is_same_week + sum(n_SEa[18, ])
+  new_cases_15_plus
+  
+update(cases_inc_SW) <- cases_inc_SW * is_same_week + new_cases_SW
+update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + new_cases_PBS
+update(cases_inc_HCW) <- cases_inc_SW * is_same_week + new_cases_HCW
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
-update(cases_cumulative_00_04) <- cases_cumulative_00_04 + sum(n_SEa[1, ])
-update(cases_cumulative_05_14) <- cases_cumulative_05_14 + sum(n_SEa[2:3, ])
-update(cases_cumulative_15_plus) <- cases_cumulative_15_plus +
-  sum(n_SEa[4:16, ])
-update(cases_cumulative_PBS) <- cases_cumulative_PBS + sum(n_SEa[17, ])
-update(cases_cumulative_SW) <- cases_cumulative_SW + sum(n_SEa[18, ])
+update(cases_cumulative_00_04) <- cases_cumulative_00_04 + new_cases_00_04
+update(cases_cumulative_05_14) <- cases_cumulative_05_14 + new_cases_05_14
+update(cases_cumulative_15_plus) <- cases_cumulative_15_plus + new_cases_15_plus
+update(cases_cumulative_SW) <- cases_cumulative_SW + new_cases_SW
+update(cases_cumulative_PBS) <- cases_cumulative_PBS + new_cases_PBS
+update(cases_cumulative_HCW) <- cases_cumulative_HCW + new_cases_HCW
 
+
+new_deaths_00_04 <- sum(n_IdD[1, ])
+new_deaths_SW_12_14 <- rbinom(sum(n_IdD[17, ]), 0.5)
+new_deaths_SW_15_17 <- sum(n_IdD[17, ]) - new_deaths_SW_12_14
+new_deaths_05_14 <- sum(n_IdD[2:3, ]) + new_deaths_SW_12_14
+new_deaths_15_plus <-
+  sum(n_IdD[4:16, ]) + new_deaths_SW_15_17 + sum(n_IdD[18:20, ])
+new_deaths_SW <- sum(n_IdD[17:18, ])
+new_deaths_PBS <- sum(n_IdD[19, ])
+new_deaths_HCW <- sum(n_IdD[20, ])
 # weekly deaths
 update(deaths_inc) <- deaths_inc * is_same_week + sum(n_IdD[, ])
-update(deaths_inc_00_04) <- deaths_inc_00_04 * is_same_week + sum(n_IdD[1, ])
-update(deaths_inc_05_14) <- deaths_inc_05_14 * is_same_week + sum(n_IdD[2:3, ])
-update(deaths_inc_15_plus) <- deaths_inc_15_plus * is_same_week +
-  sum(n_IdD[4:16, ])
-update(deaths_inc_PBS) <- deaths_inc_PBS * is_same_week + sum(n_IdD[17, ])
-update(deaths_inc_SW) <- deaths_inc_SW * is_same_week + sum(n_IdD[18, ])
+update(deaths_inc_00_04) <- deaths_inc_00_04 * is_same_week + new_deaths_00_04
+update(deaths_inc_05_14) <- deaths_inc_05_14 * is_same_week + new_deaths_05_14
+update(deaths_inc_15_plus) <-
+  deaths_inc_15_plus * is_same_week + new_deaths_15_plus
+
+update(deaths_inc_SW) <- deaths_inc_SW * is_same_week + new_deaths_SW
+update(deaths_inc_PBS) <- deaths_inc_PBS * is_same_week + new_deaths_PBS
+update(deaths_inc_HCW) <- deaths_inc_HCW * is_same_week + new_deaths_HCW
 
 # cumulative deaths
 update(deaths_cumulative) <- deaths_cumulative + sum(n_IdD[, ])
-update(deaths_cumulative_00_04) <- deaths_cumulative_00_04 + sum(n_IdD[1, ])
-update(deaths_cumulative_05_14) <- deaths_cumulative_05_14 + sum(n_IdD[2:3, ])
-update(deaths_cumulative_15_plus) <- deaths_cumulative_15_plus +
-  sum(n_IdD[4:16, ])
-update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + sum(n_IdD[17, ])
-update(deaths_cumulative_SW) <- deaths_cumulative_SW + sum(n_IdD[18, ])
+update(deaths_cumulative_00_04) <- deaths_cumulative_00_04 + new_deaths_00_04
+update(deaths_cumulative_05_14) <- deaths_cumulative_05_14 + new_deaths_05_14
+update(deaths_cumulative_15_plus) <-
+  deaths_cumulative_15_plus + new_deaths_15_plus
+
+update(deaths_cumulative_SW) <- deaths_cumulative_SW + new_deaths_SW
+update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + new_deaths_PBS
+update(deaths_cumulative_HCW) <- deaths_cumulative_HCW + new_deaths_HCW
 
 update(S_tot) <- sum(S[, ])
 update(E_tot) <- sum(E[, ])
@@ -317,7 +351,8 @@ m_sex[, ] <- user()
 # I adjusted for reduced transmissibility
 I_infectious[, ] <- I[i, j] * (1 - ve_T[j])
 
-prop_infectious[] <- sum(I_infectious[i, ]) / sum(N[i, ])
+prop_infectious[] <-
+  if (sum(N[i, ]) == 0) 0 else sum(I_infectious[i, ]) / sum(N[i, ])
 # Generating Force of Infection
 # for susceptible age i, % contacts infectious age j
 s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
@@ -371,22 +406,26 @@ initial(cases_inc_05_14) <- 0
 initial(cases_inc_15_plus) <- 0
 initial(cases_inc_PBS) <- 0
 initial(cases_inc_SW) <- 0
+initial(cases_inc_HCW) <- 0
 initial(deaths_inc_00_04) <- 0
 initial(deaths_inc_05_14) <- 0
 initial(deaths_inc_15_plus) <- 0
 initial(deaths_inc_PBS) <- 0
 initial(deaths_inc_SW) <- 0
+initial(deaths_inc_HCW) <- 0
 
 initial(cases_cumulative_00_04) <- 0
 initial(cases_cumulative_05_14) <- 0
 initial(cases_cumulative_15_plus) <- 0
 initial(cases_cumulative_PBS) <- 0
 initial(cases_cumulative_SW) <- 0
+initial(cases_cumulative_HCW) <- 0
 initial(deaths_cumulative_00_04) <- 0
 initial(deaths_cumulative_05_14) <- 0
 initial(deaths_cumulative_15_plus) <- 0
 initial(deaths_cumulative_PBS) <- 0
 initial(deaths_cumulative_SW) <- 0
+initial(deaths_cumulative_HCW) <- 0
 
 initial(vax_given_S) <- 0
 initial(vax_given_Ea) <- 0
