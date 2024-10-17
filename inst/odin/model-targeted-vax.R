@@ -14,27 +14,51 @@ update(time) <- (step + 1) * dt
 ## j = 3: 1 dose
 ## j = 4: 2 doses
 
+## Emergency use of the MVA-BN has not been granted for children (u18s) in DRC and so we split vaccination into two components depending on age
+## below are indicators for children vs adult groups
+## use of _raw indicates that we split the indicator for the boundary category and multiple by this in the 
+children_ind_raw[] <- user()
+dim(children_ind_raw) <- c(n_group)
+adults_ind_raw[] <- user()
+dim(adults_ind_raw) <- c(n_group)
+
+children_ind[] <- if(children_ind_raw[i]>0) 1 else 0
+dim(children_ind) <- c(n_group)
+adults_ind[] <- if(adults_ind_raw[i]>0) 1 else 0
+dim(adults_ind) <- c(n_group)
+
 ## specify the daily number of vaccinations that can happen at each time point
 ## first and last columns must be 0; last row must be 0 (pre-processing job)
 ## column j corresponds to the people in j receiving a vaccine (so moving
 ## to j + 1)
-daily_doses[, ] <- user()
-dim(daily_doses) <- c(vaccination_campaign_length, n_vax)
+daily_doses_children[, ] <- user()
+dim(daily_doses_children) <- c(vaccination_campaign_length_children, n_vax)
+
+daily_doses_adults[, ] <- user()
+dim(daily_doses_adults) <- c(vaccination_campaign_length_adults, n_vax)
 
 ## with this we need to ensure daily_doses final time step is all 0 - done
 ## outside of the model in pre-processing
-daily_doses_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length))
-  daily_doses[vaccination_campaign_length, j] else daily_doses[time, j]
-dim(daily_doses_t) <- c(1, n_vax)
+daily_doses_children_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length_children))
+  daily_doses_children[vaccination_campaign_length_children, j] else daily_doses_children[time, j]
+dim(daily_doses_children_t) <- c(1, n_vax)
+
+daily_doses_adults_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length_adults))
+  daily_doses_adults[vaccination_campaign_length_adults, j] else daily_doses_adults[time, j]
+dim(daily_doses_adults_t) <- c(1, n_vax)
 
 ## allocate the daily doses according to prioritisation strategy
 
 ## the number of different prioritisation strategies that we are considering
-N_prioritisation_steps <- user()
+N_prioritisation_steps_children <- user()
+N_prioritisation_steps_adults <- user()
 ## what this corresponds to in terms of groups is encoded here
-## this is independent of dose / applies to both doeses
-prioritisation_strategy[, ] <- user()
-dim(prioritisation_strategy) <- c(n_group, N_prioritisation_steps)
+## this is independent of dose / applies to both doses
+prioritisation_strategy_children[, ] <- user()
+dim(prioritisation_strategy_children) <- c(n_group, N_prioritisation_steps_children)
+
+prioritisation_strategy_adults[, ] <- user()
+dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 
 ## vaccination targets: for each group, what is the level of coverage we want to
 ## see before we move onto the next set of groups to target?
@@ -42,74 +66,110 @@ dim(prioritisation_strategy) <- c(n_group, N_prioritisation_steps)
 ## pre-processing to save faffing around in here.
 ## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0
 ## and j=1 this stays at 0
-vaccination_coverage_target_1st_dose_prop <- user()
-vaccination_coverage_target_2nd_dose_prop <- user()
+vaccination_coverage_target_1st_dose_children_prop <- user()
+vaccination_coverage_target_1st_dose_adults_prop <- user()
+vaccination_coverage_target_2nd_dose_adults_prop <- user()
 
 ## what is the current state of the vaccination targets? e.g. what
 ## prioritisation step are we on, this depends on whether we have met our
 ## targets
 
 ## has the target been met
-## for cols 1 (smallpox vax) and 2 (unvaccinated) this doesn't matter
-target_met_t[, ] <- 0
-dim(target_met_t) <- c(n_group, n_vax)
+## for cols 1 (smallpox vax) and 2 (unvaccinated) this doesn't matter for neither children or adults, for children col 4 (2nd dose) also doesn't matter
+target_met_children_t[,] <- 0
+dim(target_met_children_t) <- c(n_group, n_vax)
 
+target_met_adults_t[, ] <- 0
+dim(target_met_adults_t) <- c(n_group, n_vax)
+
+
+## children
+## 1st doses
+## if you have a 2nd dose this implies you also have had a 1st dose so account
+## for this in the 1st dose target - this now isn't strictly relevant for children but leaving it in in case we do expand this to 2 doses in future
+target_met_children_t[, 3] <-
+  if ((sum(N[, 3:4])*children_ind_raw[i]) > 
+      round(prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] * children_ind_raw[i] *
+            vaccination_coverage_target_1st_dose_children_prop * sum(N[i, 1:4])))
+    1 else 0
+
+
+## adults 
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target
-target_met_t[, 3] <-
-  if (sum(N[, 3:4]) >
-      round(prioritisation_strategy[i, prioritisation_step_1st_dose] *
-            vaccination_coverage_target_1st_dose_prop * sum(N[i, 1:4])))
+target_met_adults_t[, 3] <-
+  if ((sum(N[, 3:4])*adults_ind_raw[i])>
+      round(prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] * adults_ind_raw[i] * 
+            vaccination_coverage_target_1st_dose_adults_prop * sum(N[i, 1:4])))
     1 else 0
 
 
 ## 2nd doses
-target_met_t[, 4] <-
-  if (sum(N[, 4]) >
-      round(prioritisation_strategy[i, prioritisation_step_2nd_dose] *
-            vaccination_coverage_target_2nd_dose_prop * sum(N[i, 1:4])))
+target_met_adults_t[, 4] <-
+  if ((sum(N[, 4])*adults_ind_raw[i]) >
+      round(prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] * adults_ind_raw[i] *
+            vaccination_coverage_target_2nd_dose_adults_prop * sum(N[i, 1:4])))
     1 else 0
 
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
 ## like it to be done properly)
-prioritisation_step_1st_dose_proposal <-
-  if (sum(target_met_t[, 3]) == n_group) prioritisation_step_1st_dose + 1 else
-    prioritisation_step_1st_dose
 
-update(prioritisation_step_1st_dose) <-
-  if (prioritisation_step_1st_dose_proposal > N_prioritisation_steps)
-    N_prioritisation_steps else prioritisation_step_1st_dose_proposal
+## children
+prioritisation_step_1st_dose_children_proposal <-
+  if (sum(target_met_children_t[, 3]) == n_group) prioritisation_step_1st_dose_children + 1 else
+    prioritisation_step_1st_dose_children
 
-prioritisation_step_2nd_dose_proposal <-
-  if (sum(target_met_t[, 4]) == n_group) prioritisation_step_2nd_dose + 1 else
-    prioritisation_step_2nd_dose
+update(prioritisation_step_1st_dose_children) <-
+  if (prioritisation_step_1st_dose_children_proposal > N_prioritisation_steps_children)
+    N_prioritisation_steps_children else prioritisation_step_1st_dose_children_proposal
 
-update(prioritisation_step_2nd_dose) <-
-  if (prioritisation_step_2nd_dose_proposal > N_prioritisation_steps)
-    N_prioritisation_steps else prioritisation_step_2nd_dose_proposal
+
+## adults
+prioritisation_step_1st_dose_adults_proposal <-
+  if (sum(target_met_adults_t[, 3]) == n_group) prioritisation_step_1st_dose_adults + 1 else
+    prioritisation_step_1st_dose_adults
+
+update(prioritisation_step_1st_dose_adults) <-
+  if (prioritisation_step_1st_dose_adults_proposal > N_prioritisation_steps_adults)
+    N_prioritisation_steps_adults else prioritisation_step_1st_dose_adults_proposal
+
+prioritisation_step_2nd_dose_adults_proposal <-
+  if (sum(target_met_adults_t[, 4]) == n_group) prioritisation_step_2nd_dose_adults + 1 else
+    prioritisation_step_2nd_dose_adults
+
+update(prioritisation_step_2nd_dose_adults) <-
+  if (prioritisation_step_2nd_dose_adults_proposal > N_prioritisation_steps_adults)
+    N_prioritisation_steps_adults else prioritisation_step_2nd_dose_adults_proposal
 
 
 #prioritisation_step <- user()
 #initial(prioritisation_step) <- 1
-initial(prioritisation_step_1st_dose) <- 1
-initial(prioritisation_step_2nd_dose) <- 1
+initial(prioritisation_step_1st_dose_children) <- 1
+initial(prioritisation_step_1st_dose_adults) <- 1
+initial(prioritisation_step_2nd_dose_adults) <- 1
 
 ## now that we know the step we are on, we know who is eligible per age group to
 ## be vaccinated
 
+
+## who can get a children's dose
+### UPDATE INDICES
+n_eligible_for_dose1_children[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) *
+  prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]
+dim(n_eligible_for_dose1_children) <- c(n_group)
 ## who can get a 1st dose
 ## now we have to look in the preceding j class (e.g. who in unvaccinated j = 1
 ## can get a 1st dose and move to j = 2) as these are the people who will be
 ## eligible
-n_eligible_for_dose1[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) *
-  prioritisation_strategy[i, prioritisation_step_1st_dose]
-dim(n_eligible_for_dose1) <- c(n_group)
+n_eligible_for_dose1_adults[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) *
+  prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]
+dim(n_eligible_for_dose1_adults) <- c(n_group)
 ## who can get a 2nd dose
-n_eligible_for_dose2[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3]) *
-  prioritisation_strategy[i, prioritisation_step_2nd_dose]
-dim(n_eligible_for_dose2) <- c(n_group)
+n_eligible_for_dose2_adults[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3]) *
+  prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults]
+dim(n_eligible_for_dose2_adults) <- c(n_group)
 
 ## vaccine uptake
 ## account for the fact that some groups (in n_group) may be less inclined to
@@ -125,62 +185,95 @@ n_vaccination_t_Ea[, ] <- 0
 n_vaccination_t_Eb[, ] <- 0
 n_vaccination_t_R[, ] <- 0
 
+
+### children 1st doses 
 ## allocate 1st doses
-n_vaccination_t_S[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * S[i, 2] *
-               prioritisation_strategy[i, prioritisation_step_1st_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+n_vaccination_t_S[, 2] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[1, 2] * S[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_children[])),
+      S[i, 2])
+
+
+n_vaccination_t_Ea[, 2] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[1, 2] * Ea[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_children[])),
+      Ea[i, 2])
+
+
+n_vaccination_t_Eb[, 2] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[1, 2] * Eb[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_children[])),
+      Eb[i, 2])
+
+
+n_vaccination_t_R[, 2] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[1, 2] * R[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_children[])),
+      R[i, 2])
+
+
+### adults
+
+## allocate 1st doses
+n_vaccination_t_S[, 2] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 2] * S[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_adults[])),
       S[i, 2])
   
 
-n_vaccination_t_Ea[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * Ea[i, 2] *
-               prioritisation_strategy[i, prioritisation_step_1st_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+n_vaccination_t_Ea[, 2] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 2] * Ea[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_adults[])),
       Ea[i, 2])
   
 
-n_vaccination_t_Eb[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * Eb[i, 2] *
-               prioritisation_strategy[i, prioritisation_step_1st_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+n_vaccination_t_Eb[, 2] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 2] * Eb[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_adults[])),
       Eb[i, 2])
   
 
-n_vaccination_t_R[, 2] <- if (sum(n_eligible_for_dose1[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 2] * R[i, 2] *
-               prioritisation_strategy[i, prioritisation_step_1st_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose1[])),
+n_vaccination_t_R[, 2] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 2] * R[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose1_adults[])),
       R[i, 2])
   
 
 
 ## allocate 2nd doses
-n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * S[i, 3] *
-               prioritisation_strategy[i, prioritisation_step_2nd_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
+n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 3] * S[i, 3] *
+               prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose2_adults[])),
       S[i, 3])
   
 
-n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * Ea[i, 3] *
-               prioritisation_strategy[i, prioritisation_step_2nd_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
+n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 3] * Ea[i, 3] *
+               prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose2_adults[])),
       Ea[i, 3])
   
 
-n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * Eb[i, 3] *
-               prioritisation_strategy[i, prioritisation_step_2nd_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
+n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 3] * Eb[i, 3] *
+               prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose2_adults[])),
       Eb[i, 3])
   
 
-n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2[]) == 0) 0 else
-  min(floor((daily_doses_t[1, 3] * R[i, 3] *
-               prioritisation_strategy[i, prioritisation_step_2nd_dose] *
-               vaccine_uptake[i]) / sum(n_eligible_for_dose2[])),
+n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[1, 3] * R[i, 3] *
+               prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
+               vaccine_uptake[i]) / sum(n_eligible_for_dose2_adults[])),
       R[i, 3])
 
 
@@ -496,7 +589,8 @@ dim(CFR) <- c(n_group, n_vax)
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group,n_vax)
 
-vaccination_campaign_length <- user()
+vaccination_campaign_length_children <- user()
+vaccination_campaign_length_adults <- user()
 
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
