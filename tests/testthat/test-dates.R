@@ -1,4 +1,4 @@
-test_that("mpoxseir_date can convert to dates into 2020", {
+test_that("mpoxseir_date can convert to dates from start of 2023", {
   expect_equal(mpoxseir_date("2023-01-01"), 0)
   expect_equal(mpoxseir_date("2024-12-31"), 364 + 366) # 2024 is a leap year!
   r <- seq(as_date("2023-01-01"), as_date("2024-12-31"), by = 1)
