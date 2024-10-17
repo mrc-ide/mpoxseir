@@ -1,3 +1,7 @@
+# mpoxseir 0.1.7
+
+* Redefined mpoxseir date so that "2023-01-01" corresponds to mpoxseir date 0
+
 # mpoxseir 0.1.6
 
 * Add mpoxseir_date functions

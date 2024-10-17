@@ -25,8 +25,8 @@ An integer, being the number of days into 2023
 \description{
 We need to map "dates" onto \code{\link[dust:dust]{dust::dust}}'s concept of model
 "step" and we do this by mapping a date such as \code{2024-03-02} into
-the number of days into (and beyond) 2023 (62 here, with the 1st of January
-being day 1). We call this integer number an "mpoxseir date".
+the number of days since the start of 2023 (426 here, with the 1st of
+January being day 0). We call this integer number an "mpoxseir date".
 }
 \details{
 There are several related functions here
@@ -52,8 +52,8 @@ mpoxseir::mpoxseir_date("2023-01-01")
 mpoxseir::mpoxseir_date(c("2024-03-01", "2024-10-01"))
 
 # Reverse the conversion:
-mpoxseir::mpoxseir_date_as_date(1)
-mpoxseir::mpoxseir_date_as_date(c(61, 275))
+mpoxseir::mpoxseir_date_as_date(0)
+mpoxseir::mpoxseir_date_as_date(c(425, 639))
 
 # Double conversion not possible with mpoxseir_date...
 try(mpoxseir::mpoxseir_date(61))

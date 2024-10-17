@@ -1,8 +1,8 @@
-test_that("mpoxseir_date can convert to dates into 2023", {
-  expect_equal(mpoxseir_date("2023-01-01"), 1)
-  expect_equal(mpoxseir_date("2024-12-31"), 365 + 366) # 2024 is a leap year!
+test_that("mpoxseir_date can convert to dates from start of 2023", {
+  expect_equal(mpoxseir_date("2023-01-01"), 0)
+  expect_equal(mpoxseir_date("2024-12-31"), 364 + 366) # 2024 is a leap year!
   r <- seq(as_date("2023-01-01"), as_date("2024-12-31"), by = 1)
-  expect_equal(mpoxseir_date(r), 1:(365 + 366))
+  expect_equal(mpoxseir_date(r), 0:(364 + 366))
   
   expect_equal(mpoxseir_date_as_date(mpoxseir_date(r)), r)
   
@@ -22,9 +22,9 @@ test_that("assert mpoxseir date throws on non mpoxseir dates", {
 
 
 test_that("helper function can convert somewhat helpfully", {
-  expect_equal(as_mpoxseir_date("2023-02-01"), 32)
-  expect_equal(as_mpoxseir_date(as_date("2023-02-01")), 32)
-  expect_equal(as_mpoxseir_date(32), 32)
+  expect_equal(as_mpoxseir_date("2023-02-01"), 31)
+  expect_equal(as_mpoxseir_date(as_date("2023-02-01")), 31)
+  expect_equal(as_mpoxseir_date(31), 31)
 })
 
 

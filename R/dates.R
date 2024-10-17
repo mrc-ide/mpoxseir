@@ -1,7 +1,7 @@
 ##' We need to map "dates" onto [`dust::dust`]'s concept of model
 ##' "step" and we do this by mapping a date such as `2024-03-02` into
-##' the number of days into (and beyond) 2023 (62 here, with the 1st of January
-##' being day 1). We call this integer number an "mpoxseir date".
+##' the number of days since the start of 2023 (426 here, with the 1st of
+##' January being day 0). We call this integer number an "mpoxseir date".
 ##'
 ##' There are several related functions here
 ##'
@@ -35,8 +35,8 @@
 ##' mpoxseir::mpoxseir_date(c("2024-03-01", "2024-10-01"))
 ##'
 ##' # Reverse the conversion:
-##' mpoxseir::mpoxseir_date_as_date(1)
-##' mpoxseir::mpoxseir_date_as_date(c(61, 275))
+##' mpoxseir::mpoxseir_date_as_date(0)
+##' mpoxseir::mpoxseir_date_as_date(c(425, 639))
 ##'
 ##' # Double conversion not possible with mpoxseir_date...
 ##' try(mpoxseir::mpoxseir_date(61))
@@ -47,11 +47,11 @@
 ##' mpoxseir::as_date("2024-03-01")
 ##' try(mpoxseir::as_date("03-01-2024"))
 mpoxseir_date <- function(date) {
-  days_into_2023 <- as.numeric(as_date(date) - as_date("2022-12-31"))
-  if (any(days_into_2023 < 0)) {
+  days_since_start_2023 <- as.numeric(as_date(date) - as_date("2023-01-01"))
+  if (any(days_since_start_2023 < 0)) {
     stop("Negative dates, mpoxseir_date likely applied twice")
   }
-  days_into_2023
+  days_since_start_2023
 }
 
 
@@ -59,7 +59,7 @@ mpoxseir_date <- function(date) {
 ##' @rdname mpoxseir_date
 mpoxseir_date_as_date <- function(date) {
   assert_mpoxseir_date(date)
-  as_date("2022-12-31") + date
+  as_date("2023-01-01") + date
 }
 
 
