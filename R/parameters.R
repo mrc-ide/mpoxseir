@@ -245,21 +245,26 @@ get_compartment_indices <- function() {
 ## A function that indicates whether the group is classed as an adult or child, and for the border case what the prop is
 get_adult_child_ind <- function(){
   
+  comp_ind <- get_compartment_indices()
+  groups <- comp_ind$group %>% unlist() %>% names() %>% data.frame()
+  colnames(groups) <- "label"
+  
   age_bins <- get_age_bins()
+  age_bins$children <- proportion_in_age_bins(0,17)
+  age_bins$adults <- proportion_in_age_bins(18,100)
+
+  groups_ind <- data.frame(merge(groups,age_bins %>% select(-start,-end),
+                                 all.x=TRUE,
+                      sort=FALSE))
   
-  age_bins$children <- ifelse(age_bins$end<=14,1,0)
-  age_bins$children[which(age_bins$label=="15-19")] <- 3/5
+  groups_ind[which(groups_ind$label=="CSW"),c("children","adults")] <- c(1,0)
+  groups_ind[which(groups_ind$label=="ASW"),c("children","adults")] <- groups_ind[which(groups_ind$label=="PBS"),c("children","adults")] <- groups_ind[which(groups_ind$label=="HCW"),c("children","adults")] <- c(0,1)
   
-  age_bins$adults <- ifelse(age_bins$end>=19,1,0)
-  age_bins$adults[which(age_bins$label=="15-19")] <- 1-age_bins$children[which(age_bins$label=="15-19")]
-  
-  
-  ## key pops
-  ### follow the order as in the updated PR
-  
-  n_group <- nrow(age_bins) + 2
-  groups <- seq_len(n_group)
-  names(groups) <- c(age_bins$label, "SW", "PBS")
+  return(list(
+    groups_ind = groups_ind,
+    children_ind = groups_ind$children,
+    adults_ind = groups_ind$adults 
+  ))
   
 }
 
