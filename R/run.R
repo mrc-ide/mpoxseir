@@ -34,9 +34,10 @@ create_transform_params <- function(region, initial_infections,
     ## is based on duration_infectious_by_age in unvaccinated individuals (i.e. with the unvaxxed CFR)
     k <- 1 # number of compartments per infectious disease state
     dt <- 1 # timestep
+    idx <- get_compartment_indices()
     
     if (pars$n_vax > 1) {
-      CFR <- pars$CFR[, 1]
+      CFR <- pars$CFR[, idx$vax$unvaccinated]
     } else {
      CFR <- pars$CFR
     }
@@ -57,15 +58,28 @@ create_transform_params <- function(region, initial_infections,
     pars$beta_z <- pars$RR_z * pars$beta_z_max
 
     # Converting the inputted R0_sw_st into the rates required for the mixing matrix
-    idx_SW <- which(nms_group == "SW")
-    idx_PBS <- which(nms_group == "PBS")
-    N_SW <- pars$N0[idx_SW]
-    N_PBS <- pars$N0[idx_PBS]
+    # we never resolve the product m[i, j] = beta_s * c[i, j] here, so beta_s is
+    # set to 1. I.e. we are working with transmission rates, rather than transmission
+    # probabilities + contact rates.
 
-    m_sw_pbs <- (pars$R0_sw_st / duration_infectious_by_age[idx_SW])
-    m_pbs_sw <- m_sw_pbs  * (N_SW / N_PBS)
-    pars$m_sex[idx_SW, idx_PBS] <- m_sw_pbs
-    pars$m_sex[idx_PBS, idx_SW] <- m_pbs_sw
+    N_CSW <- pars$N0["CSW"]
+    N_ASW <- pars$N0["ASW"]
+    N_PBS <- pars$N0["PBS"]
+
+    Delta_PBS <- duration_infectious_by_age[idx$group$PBS]
+    
+    # transmission rate from CSW / ASW to PBS is the same
+    m_csw_pbs <- pars$R0_sw_st / Delta_PBS * N_PBS / (N_CSW + N_ASW)
+    m_asw_pbs <- m_csw_pbs
+    # transmission from PBS -> CSW / ASW is proportional to their group sizes
+    m_pbs_csw <- m_csw_pbs * N_CSW / N_PBS
+    m_pbs_asw <- m_csw_pbs * N_ASW / N_PBS
+
+    pars$m_sex[idx$group$CSW, idx$group$PBS] <- m_csw_pbs
+    pars$m_sex[idx$group$ASW, idx$group$PBS] <- m_asw_pbs
+    pars$m_sex[idx$group$PBS, idx$group$CSW] <- m_pbs_csw
+    pars$m_sex[idx$group$PBS, idx$group$ASW] <- m_pbs_asw
+
     pars$beta_s <- 1
 
     pars
