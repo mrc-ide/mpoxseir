@@ -7,6 +7,28 @@ reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
   
   pars$beta_h <- pars$beta_s <- 0.2 / 12.11
   pars$beta_z <- rep(0.4 / 12.11, n_group)
+  
+  # vaccination
+  
+  ### these are the params we need to consider 
+  
+  # prioritisation_strategy_children = matrix(1, nrow = n_group, ncol = N_prioritisation_steps_children),
+  # prioritisation_strategy_adults = matrix(1, nrow = n_group, ncol = N_prioritisation_steps_adults),
+  # vaccine_uptake = rep(0, n_group),
+  # ve_I = ve_I,
+  # ve_T = ve_T,
+  # vaccination_coverage_target_1st_dose_children_prop = 0,
+  # vaccination_coverage_target_1st_dose_adults_prop = 0,
+  # vaccination_coverage_target_1st_dose_adults_prop = 0,
+  # vaccination_campaign_length_children = vaccination_campaign_length_children,
+  # vaccination_campaign_length_adults = vaccination_campaign_length_adults,
+  # daily_doses_children = matrix(0, nrow = vaccination_campaign_length_children,
+  #                               ncol = n_vax),
+  # daily_doses_adults = matrix(0, nrow = vaccination_campaign_length_adults,
+  #                             ncol = n_vax))
+  
+  # children
+  
 
   pars$vaccination_campaign_length <- 10
   daily_doses <- matrix(0, nrow = pars$vaccination_campaign_length, ncol = n_vax)
