@@ -1,9 +1,11 @@
 
+
 reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
   pars <- parameters_fixed(region, initial_infections = 10)
   n_group <- pars$n_group
   n_vax <- pars$n_vax
   idx <- get_compartment_indices()
+  age_bins <- get_age_bins()
   
   pars$beta_h <- pars$beta_s <- 0.2 / 12.11
   pars$beta_z <- rep(0.4 / 12.11, n_group)
@@ -29,24 +31,36 @@ reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
   
   # children
   
+  pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <-
+    pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- max(pars$m_gen_pop)
 
   pars$vaccination_campaign_length <- 10
   daily_doses <- matrix(0, nrow = pars$vaccination_campaign_length, ncol = n_vax)
   # nothing happens for j=1 and 2 doses are the maximum
-
+  
   daily_doses[, idx$vax$unvaccinated] <- daily_doses[, idx$vax$one_dose] <- 1000
   daily_doses[pars$vaccination_campaign_length, ] <- 0
 
+
   pars$daily_doses <- daily_doses
   pars$N_prioritisation_steps <- 3
-  pars$prioritisation_strategy <- cbind(c(1,1,1,rep(0,n_group-3)),# kids
-                                        c(1,1,1,rep(0,n_group-5),1,1), # kids + CSW
-                                        c(rep(1,n_group))) # all
+  
+  vax_kids <- setNames(rep(0, n_group), names(idx$group))
+  vax_kids[which(age_bins$end < 15)] <- 1
+  vax_kids_SW <- vax_kids
+  vax_kids_SW[c("CSW", "ASW")] <- 1
+  
+  pars$prioritisation_strategy <- cbind(
+    vax_kids, # kids
+    vax_kids_SW, # kids + SW
+    rep(1, n_group)) # all
   pars$vaccination_coverage_target_1st_dose_prop <- 0.8
   pars$vaccination_coverage_target_2nd_dose_prop <- 0.5
   pars$vaccine_uptake[] <- uptake
 
+
   pars
+
 }
 
 
