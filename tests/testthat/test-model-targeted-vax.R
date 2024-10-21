@@ -470,7 +470,9 @@ test_that("children vax targets are being reached as we expect before prioritisa
     
     if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])!=0)){
       # preceding time step expect target to be met
-          expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])>=pars$prioritisation_strategy_children[g,1]))
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])>=pars$prioritisation_strategy_children[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_children[g,1]))
       
     }
   }
@@ -482,13 +484,15 @@ test_that("children vax targets are being reached as we expect before prioritisa
     group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
     
     if(all(colSums(res[paste0("N",group_idx),,(time_3rd_step_children-1)])!=0)){
-      # preceding time step expect target to be met
-      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_3rd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_children-1)])>=pars$prioritisation_strategy_children[g,2]))
-    }
+    # preceding time step expect target to be met
+    expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_3rd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_children-1)])>=pars$prioritisation_strategy_children[g,2]))
+      # if the first part of the test passes then there isn't a need to reassess the first time step here
     
   }
   
-})
+  }
+  
+  })
 
 
 test_that("adult vax 1st dose targets are being reached as we expect before prioritisation step moves", {
@@ -522,6 +526,10 @@ test_that("adult vax 1st dose targets are being reached as we expect before prio
     
     if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
       expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
+      
+      
     }
     
   }
@@ -562,14 +570,13 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
     
     if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
       expect_true(all(sum(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(sum(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
     }
     
   }
   
 })
-
-
-
 
 
 test_that("Test compiled compare components", {
