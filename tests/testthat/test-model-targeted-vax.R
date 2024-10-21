@@ -580,7 +580,7 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
 
 
 test_that("Test compiled compare components", {
-  pars <- reference_pars_targeted_vax(uptake = 1)
+  pars <- reference_pars_targeted_vax()
   pars$exp_noise <- Inf
   nms <- reference_names()
   
