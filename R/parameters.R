@@ -15,6 +15,8 @@
 parameters_demographic <- function() {
   
   age_bins <- get_age_bins()
+  group_bins <- get_group_bins()
+  row.names(group_bins) <- group_bins$label
 
   ## Set up population denominators
   country <- "Democratic Republic of Congo"
@@ -26,12 +28,15 @@ parameters_demographic <- function() {
   ## and healthcare workers (HCW)
   
   ## CSW: age 12-17
-  w_12_17 <- proportion_in_age_bins(12, 17)
+  
+  w_12_17 <- proportion_in_age_bins(group_bins["CSW", "start"],
+                                    group_bins["CSW", "end"])
   # 60% 10-14 + 60% 15-19
   N_12_17 <- N_age * w_12_17
   
   ## ASW: age 18-49
-  w_18_49  <- proportion_in_age_bins(18, 49)
+  w_18_49  <- proportion_in_age_bins(group_bins["ASW", "start"],
+                                     group_bins["ASW", "end"])
   N_18_49 <- N_age * w_18_49
 
   p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
@@ -39,7 +44,8 @@ parameters_demographic <- function() {
   N_ASW <- round(p_SW * N_18_49)
   
   ## HCW / PBS: age 20-49
-  w_20_49 <- proportion_in_age_bins(20, 49)
+  w_20_49 <- proportion_in_age_bins(group_bins["PBS", "start"],
+                                    group_bins["PBS", "end"])
   N_20_49 <- N_age * w_20_49
   
   ## PBS
@@ -224,13 +230,11 @@ proportion_in_age_bins <- function(min_age, max_age) {
 ##'   
 ##' @export
 get_compartment_indices <- function() {
-  age_bins <- get_age_bins()
-  nms_kp <- c("CSW", "ASW", "PBS", "HCW")
-  n_kp <- length(nms_kp)
-  n_group <- nrow(age_bins) + n_kp
+  group_bins <- get_group_bins()
+  n_group <- nrow(group_bins)
 
   groups <- seq_len(n_group)
-  names(groups) <- c(age_bins$label, nms_kp)
+  names(groups) <- group_bins$label
   
   n_vax <- 4
   vax_strata <- seq_len(n_vax)
@@ -243,29 +247,19 @@ get_compartment_indices <- function() {
 
 
 ## A function that indicates whether the group is classed as an adult or child, and for the border case what the prop is
-get_adult_child_ind <- function(){
-  
-  comp_ind <- get_compartment_indices()
-  groups <- comp_ind$group %>% unlist() %>% names() %>% data.frame()
-  colnames(groups) <- "label"
+get_group_bins <- function() {
   
   age_bins <- get_age_bins()
-  age_bins$children <- proportion_in_age_bins(0,17)
-  age_bins$adults <- proportion_in_age_bins(18,100)
-
-  groups_ind <- data.frame(merge(groups,age_bins,
-                                 all.x=TRUE,
-                      sort=FALSE))
+  age_bins$children <- proportion_in_age_bins(0, 17)
   
-  groups_ind[which(groups_ind$label=="CSW"),c("children","adults")] <- c(1,0)
-  groups_ind[which(groups_ind$label=="ASW"),c("children","adults")] <- groups_ind[which(groups_ind$label=="PBS"),c("children","adults")] <- groups_ind[which(groups_ind$label=="HCW"),c("children","adults")] <- c(0,1)
+  groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
+                       start = c(12, 18, 20, 20),
+                       end = c(17, 49, 49, 49),
+                       children = c(1, 0, 0, 0))
+  ret <- rbind(age_bins, groups)
+  ret$adults <- 1 - ret$children
   
-  list(
-    groups_ind = groups_ind,
-    children_ind = groups_ind$children,
-    adults_ind = groups_ind$adults 
-  )
-  
+  ret
 }
 
 
@@ -408,15 +402,25 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   
   ## vaccination default 
   
-  ## indicators for children and adults
-  children_ind_raw <- get_adult_child_ind()$children_ind
-  adults_ind_raw <- get_adult_child_ind()$adults_ind
+  ## Initially final coverage within children / adults is set to be the proportion
+  ## in each age group (i.e. 100% coverage, given age). For example, 15-19yo 
+  ## would have 60% target coverage of the child vaccines and 40% of the adult
+  ## This may cause issues in future if vaccines that can be given to adults / 
+  ## children have different efficacies.
   
   vaccination_campaign_length_children <- 1
   vaccination_campaign_length_adults <- 1
 
   N_prioritisation_steps_children <- 1
   N_prioritisation_steps_adults <- 1
+  
+  group_bins <- get_group_bins()
+  prioritisation_strategy_children <- matrix(group_bins$children,
+                                             nrow = n_group,
+                                             ncol = N_prioritisation_steps_children)
+  prioritisation_strategy_adults <- matrix(group_bins$adults,
+                                             nrow = n_group,
+                                             ncol = N_prioritisation_steps_adults)
   
   params_list = list(
     region = region,
@@ -442,8 +446,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     m_gen_pop = demographic_params$m_gen_pop,
     N_prioritisation_steps_children = N_prioritisation_steps_children,
     N_prioritisation_steps_adults = N_prioritisation_steps_adults,
-    prioritisation_strategy_children = matrix(children_ind_raw, nrow = n_group, ncol = N_prioritisation_steps_children),
-    prioritisation_strategy_adults = matrix(adults_ind_raw, nrow = n_group, ncol = N_prioritisation_steps_adults),
+    prioritisation_strategy_children = prioritisation_strategy_children,
+    prioritisation_strategy_adults = prioritisation_strategy_adults,
     ve_I = ve_I,
     ve_T = ve_T,
     vaccination_campaign_length_children = vaccination_campaign_length_children,
@@ -452,8 +456,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
                                   ncol = n_vax),
     daily_doses_adults = matrix(0, nrow = vaccination_campaign_length_adults,
                                 ncol = n_vax),
-    children_ind_raw = children_ind_raw,
-    adults_ind_raw = adults_ind_raw)
+    children_ind_raw = group_bins$children,
+    adults_ind_raw = group_bins$adults)
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
