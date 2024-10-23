@@ -264,18 +264,9 @@ n_vaccination_t_R[,2] <- n_vaccination_t_R_children[i] + n_vaccination_t_R_adult
 ## for the boundary case do an extra check that we haven't gone over the number of people in each compartment 
 
 n_vaccination_t_S[4,2] <- min(n_vaccination_t_S[4, 2], S[4, 2])
-
-n_vaccination_t_Ea[4,2] <- if(n_vaccination_t_Ea[4,2]>Ea[4,2]) 
-  Ea[4,2] else
-    n_vaccination_t_Ea[4,2]
-
-n_vaccination_t_Eb[4,2] <- if(n_vaccination_t_Eb[4,2]>Eb[4,2]) 
-  Eb[4,2] else
-    n_vaccination_t_Eb[4,2]
-
-n_vaccination_t_R[4,2] <- if(n_vaccination_t_R[4,2]>R[4,2]) 
-  R[4,2] else
-    n_vaccination_t_R[4,2]
+n_vaccination_t_Ea[4,2] <- min(n_vaccination_t_Ea[4, 2], Ea[4, 2])
+n_vaccination_t_Eb[4,2] <- min(n_vaccination_t_Eb[4, 2], Eb[4, 2])
+n_vaccination_t_R[4,2] <- min(n_vaccination_t_R[4, 2], R[4, 2])
 
 
 ## allocate 2nd doses (adults only for now)
