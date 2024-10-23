@@ -33,9 +33,9 @@ daily_doses_adults[, ] <- user()
 dim(daily_doses_adults) <- c(vaccination_campaign_length_adults, n_vax)
 
 ## with this we need to ensure daily_doses for children and adults final time step is all 0 - done outside of the model in pre-processing
-daily_doses_children_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length_children))
-  daily_doses_children[vaccination_campaign_length_children, j] else daily_doses_children[time, j]
-dim(daily_doses_children_t) <- c(1, n_vax)
+daily_doses_children_t[ ] <- if (as.integer(time) >= (vaccination_campaign_length_children))
+  daily_doses_children[vaccination_campaign_length_children, i] else daily_doses_children[time, i]
+dim(daily_doses_children_t) <- n_vax
 
 daily_doses_adults_t[, ] <- if (as.integer(time) >= (vaccination_campaign_length_adults))
   daily_doses_adults[vaccination_campaign_length_adults, j] else daily_doses_adults[time, j]
