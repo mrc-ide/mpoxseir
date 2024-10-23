@@ -79,11 +79,7 @@ dim(target_met_adults_t) <- c(n_group, n_vax)
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target - this now isn't strictly relevant for children but leaving it in in case we do expand this to 2 doses in future
 target_met_children_t[, 3] <-
-  if ((sum(N[i, 3:4])*children_ind_raw[i]) > # number of vaxxed kids in relevant compartments 
-      round(prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] * #children_ind_raw[i] *
-            #vaccination_coverage_target_1st_dose_children_prop * 
-            sum(N[i, 1:4])))
-    1 else 0
+  ((sum(N[i, 3:4]) * children_ind_raw[i]) > prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
 
 ## adults 
@@ -91,20 +87,13 @@ target_met_children_t[, 3] <-
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target
 target_met_adults_t[, 3] <-
-  if ((sum(N[i, 3:4])*adults_ind_raw[i])>
-      round(prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] * #adults_ind_raw[i] * 
-            #vaccination_coverage_target_1st_dose_adults_prop * 
-            sum(N[i, 1:4])))
-    1 else 0
+  ((sum(N[i, 3:4]) * adults_ind_raw[i]) >  prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] * sum(N[i, ]))
 
 
 ## 2nd doses
 target_met_adults_t[, 4] <-
-  if ((sum(N[i, 4])*adults_ind_raw[i]) >
-      round(prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] * #adults_ind_raw[i] *
-            #vaccination_coverage_target_2nd_dose_adults_prop * 
-            sum(N[i, 1:4])))
-    1 else 0
+  ((sum(N[i, 4]) * adults_ind_raw[i]) >  prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] * sum(N[i, ]))  
+
 
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
@@ -120,7 +109,6 @@ dim(coverage_achieved_1st_dose_adults) <- c(n_group)
 
 coverage_achieved_2nd_dose_adults[] <- ceiling(prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults])
 dim(coverage_achieved_2nd_dose_adults) <- c(n_group)
-
 
 ## children
 prioritisation_step_1st_dose_children_proposal <-
