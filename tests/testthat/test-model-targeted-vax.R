@@ -128,12 +128,43 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
 
 })
 
+test_that("when daily_doses==0, no vaccinations are given", {
+  pars <- reference_pars_targeted_vax()
+  
+  # inputs
+  pars$daily_doses_adults[,] <- 0
+  pars$daily_doses_children[,] <- 0
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  idx <- m$info()$index
+  rownames(res) <- names(unlist(idx))
+  y <- m$transform_variables(res)
+  names(y) <- names(idx)
+  idx_comp <- get_compartment_indices()
+  idx_vax <- c(idx_comp$vax$one_dose, idx_comp$vax$two_dose)
+  
+  ## no one should be vaccinated at any time point
+  expect_true(all(y$N[, idx_vax, , ] == 0))
+  
+  ## vaccines given should be 0
+  expect_true(any(res[grep("vax_given",rownames(res)),,]==0))
+  
+  ## population check
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
+  
+})
 
 
 
-test_that("when n_vaccination>0, vaccinations are given", {
-  pars <- reference_pars_targeted_vax(uptake = 0.8)
-  pars$prioritisation_strategy[] <- 1
+test_that("when daily_doses>0, vaccinations are given", {
+  pars <- reference_pars_targeted_vax()
+  
+  # inputs
+  # check inputs
+  expect_true(sum(pars$daily_doses_children)>0)
+  expect_true(sum(pars$daily_doses_adults)>0)
   
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
@@ -144,8 +175,6 @@ test_that("when n_vaccination>0, vaccinations are given", {
   names(y) <- names(idx)
   idx_comp <- get_compartment_indices()
   idx_vax <- c(idx_comp$vax$one_dose, idx_comp$vax$two_dose)
-
-
 
   ## in first time point there should be no one vaccinated
   expect_true(all(y$N[, idx_vax, , 1] == 0))
@@ -163,59 +192,58 @@ test_that("when n_vaccination>0, vaccinations are given", {
   expect_true(all(y$vax_given_S[, ,  t == pars$vaccination_campaign_length] > 0))
   
   ## the vaccines given do not exceed the total set out in the strategy
-  expect_true(max(res["total_vax", , ]) <= sum(pars$daily_doses))
+  expect_true(max(res["total_vax", , ]) <= (sum(pars$daily_doses_children)+sum(pars$daily_doses_adults)))
 
 })
 
 
 
-test_that("if prioritisation_step==1, vaccines are only given in groups 1 - 3", {
+test_that("vaccines are only given in the prioritised groups", {
   pars <- reference_pars_targeted_vax()
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
-
-  if(all(res["prioritisation_step_1st_dose",,]==1)){
-    expect_true(all(res[paste0("S",(2*pars$n_group+4):(3*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Ea",
-                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Eb",
-                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("R",
-                               (2*pars$n_group+4):(3*pars$n_group)),,]==0))
+  
+  ## identify which child groups aren't prioritised for vaccination in the first step 
+  idx_novax_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_children[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
+  # only return the indices of interest, including only those related to 1st and 2nd doses 
+  idx_novax_children <- idx_novax_children[which(idx_novax_children!=0&idx_novax_children>=2*pars$n_group)]
+  
+  if(all(res["prioritisation_step_1st_dose_children",,]==1)){
+    expect_true(all(res[paste0("S",idx_novax_children),,]==0))
+    expect_true(all(res[paste0("Ea",idx_novax_children),,]==0))
+    expect_true(all(res[paste0("Eb",idx_novax_children),,]==0))
+    expect_true(all(res[paste0("R",idx_novax_children),,]==0))
   }
-
-  if(all(res["prioritisation_step_2nd_dose",,]==1)){
-    expect_true(all(res[paste0("S",(3*pars$n_group+4):(4*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Ea",
-                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("Eb",
-                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
-    expect_true(all(res[paste0("R",
-                               (3*pars$n_group+4):(4*pars$n_group)),,]==0))
+  
+  ## repeat above for adults, including first and second doses 
+  idx_novax_adults <- (rep(ceiling(pars$adults_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_adults[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
+  # only return the indices of interest, including only those related to 1st and 2nd doses 
+  idx_novax_adults_1st_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=2*pars$n_group)]
+  
+  if(all(res["prioritisation_step_1st_dose_adults",,]==1)){
+    expect_true(all(res[paste0("S",idx_novax_adults_1st_dose),,]==0))
+    expect_true(all(res[paste0("Ea",idx_novax_adults_1st_dose),,]==0))
+    expect_true(all(res[paste0("Eb",idx_novax_adults_1st_dose),,]==0))
+    expect_true(all(res[paste0("R",idx_novax_adults_1st_dose),,]==0))
+  }
+  
+  # only return the indices of interest (2nd doses) 
+  idx_novax_adults_2nd_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=3*pars$n_group)]
+  
+  if(all(res["prioritisation_step_2nd_dose_adults",,]==1)){
+    expect_true(all(res[paste0("S",idx_novax_adults_2nd_dose),,]==0))
+    expect_true(all(res[paste0("Ea",idx_novax_adults_2nd_dose),,]==0))
+    expect_true(all(res[paste0("Eb",idx_novax_adults_2nd_dose),,]==0))
+    expect_true(all(res[paste0("R",idx_novax_adults_2nd_dose),,]==0))
   }
 
 })
-
-test_that("if vaccine_uptake = 0.5, half the expected vaccines are given out", {
-  pars <- reference_pars_targeted_vax(uptake = 0.5)
-
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
-  t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
-
-  # doses given out should be roughly half of those allocated (roughly comes from rounding due to lack of multinomial)
-  expect_true(all(res["total_vax", , max(t)]<=0.5*sum(pars$daily_doses)))
-
-
-})
-
 
 test_that("no one moves in or out of j=1 (previous smallpox vaccine)", {
-  pars <- reference_pars_targeted_vax(uptake = 1)
+  pars <- reference_pars_targeted_vax()
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
@@ -232,13 +260,18 @@ test_that("no one moves in or out of j=1 (previous smallpox vaccine)", {
 
 
 test_that("1st and 2nd doses are given", {
-  pars <- reference_pars_targeted_vax(uptake = 1)
+  pars <- reference_pars_targeted_vax()
+  
+  # check inputs
+  expect_true(sum(pars$daily_doses_children)>0)
+  expect_true(sum(pars$daily_doses_adults)>0)
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
+  # check outputs
   # 1st doses are given
   expect_true(all(res["total_vax_1stdose",,max(t)]>0))
   # 2nd doses are given
@@ -246,53 +279,308 @@ test_that("1st and 2nd doses are given", {
 
 })
 
-
-test_that("1st and 2nd prioritisation steps can be different depending on the targets", {
-
-  pars <- reference_pars_targeted_vax(uptake = 1)
-  # low vaccination target coverage
-  pars$vaccination_coverage_target_1st_dose_prop <- 0.1
-  pars$vaccination_campaign_length <- 15
-  pars$daily_doses <- matrix(0,ncol=pars$n_vax,
-                        nrow=pars$vaccination_campaign_length)
-  # give loads of vaccines to push through prioiritsation quickly
-  pars$daily_doses[1:10,2] <- pars$daily_doses[11:15,3] <- 1000000
-  pars$daily_doses[pars$vaccination_campaign_length,] <- 0
-
+test_that("2nd doses are not given to children", {
+  pars <- reference_pars_targeted_vax()
+  
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  expect_false(all(res["prioritisation_step_1st_dose",,]==res["prioritisation_step_2nd_dose",,]))
+  # 2nd doses are given
+  expect_true(all(res["total_vax_2nddose",,max(t)]>0))
+  
+  # children_idx
+  idx_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax)) *seq(1:(pars$n_group*pars$n_vax))
+  # 2nd dose compartments
+  idx_children <- idx_children[which(idx_children!=0&idx_children>=3*pars$n_group)]
+
+  idx_children_2nd_dose <- paste0(rep("N", each = length(idx_children)),
+                                  idx_children)
+  
+  expect_true(all(res[idx_children_2nd_dose,,]==0))
+  
+})
+
+test_that("prioritisation steps can progress", {
+  
+  pars <- reference_pars_targeted_vax()
+  
+  # set up parameters to push things through quickly 
+  pars$daily_doses_children <- pars$daily_doses_children * 100
+  pars$daily_doses_adults <- pars$daily_doses_adults * 10
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, pars$vaccination_campaign_length_adults)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]!=1))
+  expect_true(any(res["prioritisation_step_1st_dose_adults",,max(t)]!=1))
+  expect_true(any(res["prioritisation_step_2nd_dose_adults",,max(t)]!=1))
+  
+})
+
+
+test_that("1st/2nd dose and adult/child prioritisation steps can be different depending on the targets", {
+
+  pars <- reference_pars_targeted_vax()
+  
+  # low vaccination target coverage
+  pars$prioritisation_strategy_children[,1] <- pars$prioritisation_strategy_children[,1]/4
+  pars$prioritisation_strategy_adults[,1] <- pars$prioritisation_strategy_adults[,1]/4
+  
+  # give lots of vaccines to push through quickly 
+  pars$daily_doses_children <- pars$daily_doses_children*100
+  pars$daily_doses_adults <- pars$daily_doses_adults*100
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  # 1st doses children vs adults
+  expect_false(all(res["prioritisation_step_1st_dose_children",,]==res["prioritisation_step_1st_dose_adults",,]))
+  # adults 1st vs 2 doses
+  expect_false(all(res["prioritisation_step_1st_dose_adults",,]==res["prioritisation_step_2nd_dose_adults",,]))
+  # adults 2nd dose vs children 1st dose
+  expect_false(all(res["prioritisation_step_1st_dose_children",,]==res["prioritisation_step_2nd_dose_adults",,]))
 
   # extra check here for good measure
-  expect_true(all((sum(pars$daily_doses) - res["total_vax",,max(t)])>0))
+  expect_true(all(((sum(pars$daily_doses_children)+sum(pars$daily_doses_adults)) - res["total_vax",,max(t)])>=0))
 
 })
 
+
 test_that("no 2nd doses are given if no 1st doses are given", {
 
-  pars <- reference_pars_targeted_vax(uptake = 1)
-  # no 1st doses allocated
-  pars$daily_doses[,2] <- 0
+  pars <- reference_pars_targeted_vax()
+  # no 1st doses allocated, but 2nd doses still positive
+  pars$daily_doses_adults[,2] <- 0
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
 
-  ## check no 1st doses given
-  expect_true(all(res["total_vax_1stdose",,]==0))
+  idx_adults <- ceiling(pars$adults_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_adults <- idx_adults[which(idx_adults!=0&idx_adults>2*pars$n_group)]
+  
+  idx_adults_vax <- paste0(rep("N", each = length(idx_adults)),
+                                idx_adults)
+  
+  ## no 1st doses given to adults
+  expect_true(all(res[idx_adults_vax,,]==0))
 
-  ## check no 2nd doses given
+  ## check no 2nd doses given at all
   expect_true(all(res["total_vax_2nddose",,]==0))
 
 })
 
+test_that("vaccination of children still occurs if adult vaccination is turned off", {
+  
+  pars <- reference_pars_targeted_vax()
+  # no adult doses
+  pars$daily_doses_adults[,] <- 0
+  # children still have doses
+  expect_true(any(pars$daily_doses_children>0))
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  # expect 1st doses given
+  expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  
+  # expect no 2nd doses given
+  expect_true(all(res["total_vax_2nddose",,max(t)]==0))
+  
+  # check that the doses aren't in the adult groups
+  idx_adults <- ceiling(pars$adults_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_adults <- idx_adults[which(idx_adults!=0&idx_adults>2*pars$n_group)]
+  
+  idx_adults_vax <- paste0(rep("N", each = length(idx_adults)),
+                           idx_adults)
+  
+  ## none of the 1st doses given are given to adults
+  expect_true(all(res[idx_adults_vax,,]==0))
+  
+})
+
+
+test_that("vaccination of adults still occurs if child vaccination is turned off", {
+  
+  pars <- reference_pars_targeted_vax()
+  # adult doses
+  expect_true(any(pars$daily_doses_adults>0))
+  # no children doses
+  pars$daily_doses_children[,] <- 0
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  # expect 1st doses given
+  expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  
+  # expect 2nd doses given
+  expect_true(all(res["total_vax_2nddose",,max(t)]>0))
+  
+  # check that the doses aren't in the child groups
+  idx_children <- ceiling(pars$children_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_children <- idx_children[which(idx_children!=0&idx_children>2*pars$n_group)]
+  
+  idx_children_vax <- paste0(rep("N", each = length(idx_children)),
+                           idx_children)
+  
+  ## none of the 1st doses given are given to children
+  expect_true(all(res[idx_children_vax,,]==0))
+  
+})
+
+test_that("children vax targets are being reached as we expect before prioritisation step moves", {
+  
+  pars <- reference_pars_targeted_vax()
+  
+  # give lots of vaccines to push through quickly
+  pars$daily_doses_children <- pars$daily_doses_children*100
+  
+  # confirm 3 child prioritisation steps
+  expect_true(ncol(pars$prioritisation_strategy_children)==3)
+
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  ## for the test to work we need to have moved to at least prioritisation step 3
+  expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]==3))
+  
+  # when do children move to the next step
+  time_2nd_step_children <- which(res["prioritisation_step_1st_dose_children",1,]==2)[1]
+  time_3rd_step_children <- which(res["prioritisation_step_1st_dose_children",1,]==3)[1]
+  
+  ## moving from step 1 to step 2
+  for(g in (1:pars$n_group)){
+    
+    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+    
+    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])!=0)){
+      # preceding time step expect target to be met
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])>=pars$prioritisation_strategy_children[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_children[g,1]))
+      
+    }
+  }
+  
+  ## moving from step 2 to step 3 
+  for(g in 1:pars$n_group){
+    
+    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+    
+    if(all(colSums(res[paste0("N",group_idx),,(time_3rd_step_children-1)])!=0)){
+    # preceding time step expect target to be met
+    expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_3rd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_children-1)])>=pars$prioritisation_strategy_children[g,2]))
+      # if the first part of the test passes then there isn't a need to reassess the first time step here
+    
+  }
+  
+  }
+  
+  })
+
+
+test_that("adult vax 1st dose targets are being reached as we expect before prioritisation step moves", {
+  
+  pars <- reference_pars_targeted_vax()
+  
+  # give lots of vaccines to push through quickly
+  pars$daily_doses_adults <- pars$daily_doses_adults *10
+  #pars$prioritisation_strategy_adults[20,] <- 0
+
+  # confirm 2 adult prioritisation steps
+  expect_true(ncol(pars$prioritisation_strategy_adult)==2)
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  ## for the test to work we need to have moved to at least prioritisation step 2
+  expect_true(any(res["prioritisation_step_1st_dose_adults",,max(t)]==2))
+  
+  # when do adult 1st doses move to the next step
+  time_2nd_step_adults <- which(res["prioritisation_step_1st_dose_adults",1,]==2)[1]
+
+  
+  ## moving from step 1 to step 2
+  for(g in 1:pars$n_group){
+    
+    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+    
+    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
+      
+      
+    }
+    
+  }
+  
+})
+
+
+test_that("adult vax 2nd dose targets are being reached as we expect before prioritisation step moves", {
+  
+  pars <- reference_pars_targeted_vax()
+  
+  # give lots of vaccines to push through quickly
+  pars$daily_doses_adults <- pars$daily_doses_adults *10
+  # and lower the target to make more achievable 
+  #pars$prioritisation_strategy_adults <- pars$prioritisation_strategy_adults/2
+  pars$prioritisation_strategy_adults[20,] <- 0
+  
+  # confirm 2 adult prioritisation steps
+  expect_true(ncol(pars$prioritisation_strategy_adult)==2)
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  ## for the test to work we need to have moved to at least prioritisation step 2
+  expect_true(any(res["prioritisation_step_2nd_dose_adults",,max(t)]==2))
+  
+  # when do adult 2nd doses go to the next step
+  time_2nd_step_adults <- which(res["prioritisation_step_2nd_dose_adults",1,]==2)[1]
+  
+  
+  ## moving from step 1 to step 2
+  for(g in 1:pars$n_group){
+    
+    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+    group_idx_vax <- group_idx[which(group_idx>(3*pars$n_group))]
+    
+    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
+      expect_true(all(sum(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
+      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+      expect_true(all(sum(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
+    }
+    
+  }
+  
+})
+
 
 test_that("Test compiled compare components", {
-  pars <- reference_pars_targeted_vax(uptake = 1)
+  pars <- reference_pars_targeted_vax()
   pars$exp_noise <- Inf
   nms <- reference_names()
   
@@ -335,8 +623,8 @@ test_that("Test compiled compare components", {
   
   ## check that using each datastream individually sums to using them all
   expect_equal(ll_all, rowSums(do.call(cbind, ll_parts)))
-    
+  
   ## check that all datastreams are supplying non-zero likelihood contributions
   expect_true(all(sapply(ll_parts, function(x) any(x != 0))))
-    
+  
 })

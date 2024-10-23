@@ -15,6 +15,8 @@
 parameters_demographic <- function() {
   
   age_bins <- get_age_bins()
+  group_bins <- get_group_bins()
+  row.names(group_bins) <- group_bins$label
 
   ## Set up population denominators
   country <- "Democratic Republic of Congo"
@@ -26,12 +28,15 @@ parameters_demographic <- function() {
   ## and healthcare workers (HCW)
   
   ## CSW: age 12-17
-  w_12_17 <- proportion_in_age_bins(12, 17)
+  
+  w_12_17 <- proportion_in_age_bins(group_bins["CSW", "start"],
+                                    group_bins["CSW", "end"])
   # 60% 10-14 + 60% 15-19
   N_12_17 <- N_age * w_12_17
   
   ## ASW: age 18-49
-  w_18_49  <- proportion_in_age_bins(18, 49)
+  w_18_49  <- proportion_in_age_bins(group_bins["ASW", "start"],
+                                     group_bins["ASW", "end"])
   N_18_49 <- N_age * w_18_49
 
   p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
@@ -39,7 +44,8 @@ parameters_demographic <- function() {
   N_ASW <- round(p_SW * N_18_49)
   
   ## HCW / PBS: age 20-49
-  w_20_49 <- proportion_in_age_bins(20, 49)
+  w_20_49 <- proportion_in_age_bins(group_bins["PBS", "start"],
+                                    group_bins["PBS", "end"])
   N_20_49 <- N_age * w_20_49
   
   ## PBS
@@ -224,13 +230,11 @@ proportion_in_age_bins <- function(min_age, max_age) {
 ##'   
 ##' @export
 get_compartment_indices <- function() {
-  age_bins <- get_age_bins()
-  nms_kp <- c("CSW", "ASW", "PBS", "HCW")
-  n_kp <- length(nms_kp)
-  n_group <- nrow(age_bins) + n_kp
+  group_bins <- get_group_bins()
+  n_group <- nrow(group_bins)
 
   groups <- seq_len(n_group)
-  names(groups) <- c(age_bins$label, nms_kp)
+  names(groups) <- group_bins$label
   
   n_vax <- 4
   vax_strata <- seq_len(n_vax)
@@ -240,6 +244,25 @@ get_compartment_indices <- function() {
        group = as.list(groups),
        vax = as.list(vax_strata))
 }
+
+
+## A function that indicates whether the group is classed as an adult or child, and for the border case what the prop is
+get_group_bins <- function() {
+  
+  age_bins <- get_age_bins()
+  age_bins$children <- proportion_in_age_bins(0, 17)
+  
+  groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
+                       start = c(12, 18, 20, 20),
+                       end = c(17, 49, 49, 49),
+                       children = c(1, 0, 0, 0))
+  ret <- rbind(age_bins, groups)
+  ret$adults <- 1 - ret$children
+  
+  ret
+}
+
+
 
 # Function to allocate N individuals into m groups based on weights
 assign_seeds <- function(N, w) {
@@ -298,14 +321,14 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   ## standard vaccination parameters, we may want to move this entire section to
   ## the transform in future if we want to allow for vaccine uncertainty
   ## VE against infection
-  ve_I <- c(0.736, 0, 0.736, 0.818) # Berry et al.
+  ve_I <- matrix(c(0.736, 0, 0.736, 0.818),
+                 nrow = n_group, ncol = n_vax, byrow = TRUE) ##VALUES TO BE UPDATED
   ## VE against onward transmission
   ve_T <- rep(0, n_vax)
   
   
   N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
-  N_prioritisation_steps <- 1
   RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
   
 
@@ -376,15 +399,33 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   CFR["ASW", ] <- CFR["20-24", ]
   CFR["PBS", ] <- CFR["35-39", ]
   CFR["HCW", ] <- CFR["35-39", ]
-
   
-  vaccination_campaign_length <- 1
+  ## vaccination default 
+  
+  ## Initially final coverage within children / adults is set to be the proportion
+  ## in each age group (i.e. 100% coverage, given age). For example, 15-19yo 
+  ## would have 60% target coverage of the child vaccines and 40% of the adult
+  ## This may cause issues in future if vaccines that can be given to adults / 
+  ## children have different efficacies.
+  
+  vaccination_campaign_length_children <- 1
+  vaccination_campaign_length_adults <- 1
+
+  N_prioritisation_steps_children <- 1
+  N_prioritisation_steps_adults <- 1
+  
+  group_bins <- get_group_bins()
+  prioritisation_strategy_children <- matrix(group_bins$children,
+                                             nrow = n_group,
+                                             ncol = N_prioritisation_steps_children)
+  prioritisation_strategy_adults <- matrix(group_bins$adults,
+                                             nrow = n_group,
+                                             ncol = N_prioritisation_steps_adults)
   
   params_list = list(
     region = region,
     n_group = n_group,
     n_vax = n_vax,
-    N_prioritisation_steps = N_prioritisation_steps,
     S0 = S0,
     Ea0 = Ea0,
     Eb0 = X0,
@@ -403,15 +444,20 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     CFR = as.matrix(CFR),
     m_sex = demographic_params$m_sex,
     m_gen_pop = demographic_params$m_gen_pop,
-    prioritisation_strategy = matrix(1, nrow = n_group, ncol = N_prioritisation_steps),
-    # vaccination_coverage_target = matrix(0.01, nrow = n_group, ncol = N_prioritisation_steps),
-    vaccine_uptake = rep(0, n_group),
+    N_prioritisation_steps_children = N_prioritisation_steps_children,
+    N_prioritisation_steps_adults = N_prioritisation_steps_adults,
+    prioritisation_strategy_children = prioritisation_strategy_children,
+    prioritisation_strategy_adults = prioritisation_strategy_adults,
     ve_I = ve_I,
     ve_T = ve_T,
-    vaccination_coverage_target_1st_dose_prop = 0,
-    vaccination_coverage_target_2nd_dose_prop = 0,
-    vaccination_campaign_length = vaccination_campaign_length,
-    daily_doses = matrix(0, nrow = vaccination_campaign_length, ncol = n_vax))
+    vaccination_campaign_length_children = vaccination_campaign_length_children,
+    vaccination_campaign_length_adults = vaccination_campaign_length_adults,
+    daily_doses_children = matrix(0, nrow = vaccination_campaign_length_children,
+                                  ncol = n_vax),
+    daily_doses_adults = matrix(0, nrow = vaccination_campaign_length_adults,
+                                ncol = n_vax),
+    children_ind_raw = group_bins$children,
+    adults_ind_raw = group_bins$adults)
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
