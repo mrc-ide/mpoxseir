@@ -20,8 +20,8 @@ dust2_system_model_targeted_vax_set_state_initial <- function(ptr) {
   .Call(`_mpoxseir_dust2_system_model_targeted_vax_set_state_initial`, ptr)
 }
 
-dust2_system_model_targeted_vax_set_state <- function(ptr, r_state, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_system_model_targeted_vax_set_state`, ptr, r_state, preserve_group_dimension)
+dust2_system_model_targeted_vax_set_state <- function(ptr, r_state) {
+  .Call(`_mpoxseir_dust2_system_model_targeted_vax_set_state`, ptr, r_state)
 }
 
 dust2_system_model_targeted_vax_reorder <- function(ptr, r_index) {
@@ -48,12 +48,12 @@ dust2_system_model_targeted_vax_simulate <- function(ptr, r_times, r_index_state
   .Call(`_mpoxseir_dust2_system_model_targeted_vax_simulate`, ptr, r_times, r_index_state, preserve_particle_dimension, preserve_group_dimension)
 }
 
-dust2_unfilter_model_targeted_vax_alloc <- function(r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_index_state) {
-  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_alloc`, r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_index_state)
+dust2_unfilter_model_targeted_vax_alloc <- function(r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads) {
+  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_alloc`, r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads)
 }
 
-dust2_filter_model_targeted_vax_alloc <- function(r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_index_state, r_seed) {
-  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_alloc`, r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_index_state, r_seed)
+dust2_filter_model_targeted_vax_alloc <- function(r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_seed) {
+  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_alloc`, r_pars, r_time_start, r_time, r_time_control, r_data, r_n_particles, r_n_groups, r_n_threads, r_seed)
 }
 
 dust2_system_model_targeted_vax_compare_data <- function(ptr, r_data, preserve_particle_dimension, preserve_group_dimension) {
@@ -64,32 +64,32 @@ dust2_unfilter_model_targeted_vax_update_pars <- function(ptr, r_pars, r_index_g
   .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_update_pars`, ptr, r_pars, r_index_group)
 }
 
-dust2_unfilter_model_targeted_vax_run <- function(ptr, r_initial, save_history, adjoint, r_index_group, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_run`, ptr, r_initial, save_history, adjoint, r_index_group, preserve_particle_dimension, preserve_group_dimension)
+dust2_unfilter_model_targeted_vax_run <- function(ptr, r_initial, save_history, adjoint, r_index_state, r_index_group, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_run`, ptr, r_initial, save_history, adjoint, r_index_state, r_index_group, preserve_particle_dimension, preserve_group_dimension)
 }
 
-dust2_unfilter_model_targeted_vax_last_history <- function(ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_last_history`, ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
+dust2_unfilter_model_targeted_vax_last_trajectories <- function(ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_last_trajectories`, ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
 }
 
-dust2_unfilter_model_targeted_vax_last_state <- function(ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_last_state`, ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
+dust2_unfilter_model_targeted_vax_last_state <- function(ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_unfilter_model_targeted_vax_last_state`, ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
 }
 
 dust2_filter_model_targeted_vax_update_pars <- function(ptr, r_pars, r_index_group) {
   .Call(`_mpoxseir_dust2_filter_model_targeted_vax_update_pars`, ptr, r_pars, r_index_group)
 }
 
-dust2_filter_model_targeted_vax_run <- function(ptr, r_initial, save_history, adjoint, index_group, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_run`, ptr, r_initial, save_history, adjoint, index_group, preserve_particle_dimension, preserve_group_dimension)
+dust2_filter_model_targeted_vax_run <- function(ptr, r_initial, save_history, adjoint, index_state, index_group, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_run`, ptr, r_initial, save_history, adjoint, index_state, index_group, preserve_particle_dimension, preserve_group_dimension)
 }
 
-dust2_filter_model_targeted_vax_last_history <- function(ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_last_history`, ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
+dust2_filter_model_targeted_vax_last_trajectories <- function(ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_last_trajectories`, ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
 }
 
-dust2_filter_model_targeted_vax_last_state <- function(ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
-  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_last_state`, ptr, r_index_group, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
+dust2_filter_model_targeted_vax_last_state <- function(ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension) {
+  .Call(`_mpoxseir_dust2_filter_model_targeted_vax_last_state`, ptr, select_random_particle, preserve_particle_dimension, preserve_group_dimension)
 }
 
 dust2_filter_model_targeted_vax_rng_state <- function(ptr) {
