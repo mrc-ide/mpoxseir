@@ -377,9 +377,6 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   CFR["PBS", ] <- CFR["35-39", ]
   CFR["HCW", ] <- CFR["35-39", ]
 
-  
-  vaccination_campaign_length <- 1
-  
   params_list = list(
     region = region,
     n_group = n_group,
@@ -410,8 +407,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     ve_T = ve_T,
     vaccination_coverage_target_1st_dose_prop = 0,
     vaccination_coverage_target_2nd_dose_prop = 0,
-    vaccination_campaign_length = vaccination_campaign_length,
-    daily_doses = matrix(0, nrow = vaccination_campaign_length, ncol = n_vax))
+    daily_doses_time = 1,
+    daily_doses_value = matrix(0, nrow = n_vax, ncol = 1))
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {

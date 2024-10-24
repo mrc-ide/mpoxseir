@@ -13,14 +13,15 @@ reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
   pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <-
     pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- max(pars$m_gen_pop)
 
-  pars$vaccination_campaign_length <- 10
-  daily_doses <- matrix(0, nrow = pars$vaccination_campaign_length, ncol = n_vax)
-  # nothing happens for j=1 and 2 doses are the maximum
+  daily_doses_time <- c(1, 10)
+  daily_doses_value <- matrix(0, nrow = n_vax, ncol = 2)
+  daily_doses_value[idx$vax$unvaccinated, 1] <- 
+    daily_doses_value[idx$vax$one_dose, 1] <- 1000
   
-  daily_doses[, idx$vax$unvaccinated] <- daily_doses[, idx$vax$one_dose] <- 1000
-  daily_doses[pars$vaccination_campaign_length, ] <- 0
+  daily_doses <- interpolate_daily_doses(daily_doses_time, daily_doses_value)
 
-
+  pars$daily_doses_time <- daily_doses_time
+  pars$daily_doses_value <- daily_doses_value
   pars$daily_doses <- daily_doses
   pars$N_prioritisation_steps <- 3
   
@@ -43,7 +44,6 @@ reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
 }
 
 
-
 reference_names <- function() {
   n_group <- parameters_demographic()$n_group
   n_vax <- parameters_demographic()$n_vax
@@ -51,4 +51,16 @@ reference_names <- function() {
   list(
     states = paste0(rep(states, each = n_group*n_vax), seq_len(n_group*n_vax))
   )
+}
+
+
+interpolate_daily_doses <- function(daily_doses_time, daily_doses_value) {
+  t(vapply(seq_len(nrow(daily_doses_value)),
+           function (i) {
+             approx(daily_doses_time, 
+                    daily_doses_value[i, ],
+                    xout = seq(daily_doses_time[1],
+                               daily_doses_time[length(daily_doses_time)]), 
+                    method = "constant")$y},
+           numeric(max(daily_doses_time))))
 }
