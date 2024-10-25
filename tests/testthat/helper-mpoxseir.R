@@ -1,42 +1,54 @@
 
 
-reference_pars_targeted_vax <- function(region = "equateur", uptake = 0) {
+reference_pars_targeted_vax <- function(region = "equateur") {
+  
   pars <- parameters_fixed(region, initial_infections = 10)
   n_group <- pars$n_group
   n_vax <- pars$n_vax
   idx <- get_compartment_indices()
   age_bins <- get_age_bins()
   
+  # these parameters are fitted so give dummy values for testing purposes
   pars$beta_h <- pars$beta_s <- 0.2 / 12.11
   pars$beta_z <- rep(0.4 / 12.11, n_group)
-  
-  pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <-
+  pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <- 
     pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- max(pars$m_gen_pop)
-
-  pars$vaccination_campaign_length <- 10
-  daily_doses <- matrix(0, nrow = pars$vaccination_campaign_length, ncol = n_vax)
-  # nothing happens for j=1 and 2 doses are the maximum
   
-  daily_doses[, idx$vax$unvaccinated] <- daily_doses[, idx$vax$one_dose] <- 1000
-  daily_doses[pars$vaccination_campaign_length, ] <- 0
-
-
-  pars$daily_doses <- daily_doses
-  pars$N_prioritisation_steps <- 3
+  # vaccination
+  # some basic parameters so vaccination runs for all tests but then can develop further for vax specific ones in the tests themselves
   
-  vax_kids <- setNames(rep(0, n_group), names(idx$group))
-  vax_kids[which(age_bins$end < 15)] <- 1
-  vax_kids_SW <- vax_kids
-  vax_kids_SW[c("CSW", "ASW")] <- 1
+  # daily doses
+  pars$vaccination_campaign_length_children <- 10
+  pars$daily_doses_children <- matrix(0,ncol=n_vax,
+                                 nrow=pars$vaccination_campaign_length_children)
+  pars$daily_doses_children[1:(pars$vaccination_campaign_length_children-1),
+                       2] <- 1000
   
-  pars$prioritisation_strategy <- cbind(
-    vax_kids, # kids
-    vax_kids_SW, # kids + SW
-    rep(1, n_group)) # all
-  pars$vaccination_coverage_target_1st_dose_prop <- 0.8
-  pars$vaccination_coverage_target_2nd_dose_prop <- 0.5
-  pars$vaccine_uptake[] <- uptake
+  pars$vaccination_campaign_length_adults <- 15
+  pars$daily_doses_adults <- matrix(0,ncol=n_vax,
+                               nrow=pars$vaccination_campaign_length_adults)
+  pars$daily_doses_adults[1:(pars$vaccination_campaign_length_adults-5),2] <- 1000
+  pars$daily_doses_adults[5:(pars$vaccination_campaign_length_adults-1),3] <- 1000
 
+  pars$N_prioritisation_steps_children <- 3
+  pars$N_prioritisation_steps_adults <- 2
+  
+  priority_children <- matrix(rep(pars$prioritisation_strategy_children,
+                                  times=pars$N_prioritisation_steps_children),
+                              ncol=pars$N_prioritisation_steps_children,
+                              byrow=FALSE)
+  priority_children[c(3,4,17),1] <- 0
+  priority_children[c(4,17),2] <- 0
+  
+  pars$prioritisation_strategy_children <- priority_children * 0.5
+  
+  priority_adults <- matrix(rep(pars$prioritisation_strategy_adults,
+                                times=pars$N_prioritisation_steps_adults),
+                            ncol=pars$N_prioritisation_steps_adults,
+                            byrow=FALSE)
+  priority_adults[c(4:16,20),1] <- 0
+  
+  pars$prioritisation_strategy_adults <- priority_adults * 0.5
 
   pars
 
