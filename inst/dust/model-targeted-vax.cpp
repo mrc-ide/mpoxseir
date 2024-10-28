@@ -710,11 +710,6 @@ public:
     state_next[7] = deaths_cumulative + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     state_next[5] = deaths_inc * is_same_week + odin_sum2<real_type>(internal.n_IdD.data(), 0, shared->dim_n_IdD_1, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
     for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
-      for (int j = 1; j <= shared->dim_n_vaccination_t_Ea_2; ++j) {
-        internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = 0;
-      }
-    }
-    for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
       int j = 2;
       internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = internal.n_vaccination_t_Ea_children[i - 1] + internal.n_vaccination_t_Ea_adults[i - 1];
     }
@@ -724,13 +719,13 @@ public:
        internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = dust::math::min(internal.n_vaccination_t_Ea[shared->dim_n_vaccination_t_Ea_1 * 1 + 3], Ea[shared->dim_Ea_1 * 1 + 3]);
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
+      for (int j = 1; j <= shared->dim_n_vaccination_t_Ea_2; ++j) {
+        internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = 0;
+      }
+    }
+    for (int i = 1; i <= shared->dim_n_vaccination_t_Ea_1; ++i) {
       int j = 3;
       internal.n_vaccination_t_Ea[i - 1 + shared->dim_n_vaccination_t_Ea_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_adults_t[2] * Ea[shared->dim_Ea_1 * 2 + i - 1] * shared->prioritisation_strategy_adults[shared->dim_prioritisation_strategy_adults_1 * (prioritisation_step_2nd_dose_adults - 1) + i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults)), Ea[shared->dim_Ea_1 * 2 + i - 1]));
-    }
-    for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
-      for (int j = 1; j <= shared->dim_n_vaccination_t_Eb_2; ++j) {
-        internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = 0;
-      }
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
       int j = 2;
@@ -742,13 +737,13 @@ public:
        internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = dust::math::min(internal.n_vaccination_t_Eb[shared->dim_n_vaccination_t_Eb_1 * 1 + 3], Eb[shared->dim_Eb_1 * 1 + 3]);
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
+      for (int j = 1; j <= shared->dim_n_vaccination_t_Eb_2; ++j) {
+        internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = 0;
+      }
+    }
+    for (int i = 1; i <= shared->dim_n_vaccination_t_Eb_1; ++i) {
       int j = 3;
       internal.n_vaccination_t_Eb[i - 1 + shared->dim_n_vaccination_t_Eb_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_adults_t[2] * Eb[shared->dim_Eb_1 * 2 + i - 1] * shared->prioritisation_strategy_adults[shared->dim_prioritisation_strategy_adults_1 * (prioritisation_step_2nd_dose_adults - 1) + i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults)), Eb[shared->dim_Eb_1 * 2 + i - 1]));
-    }
-    for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
-      for (int j = 1; j <= shared->dim_n_vaccination_t_R_2; ++j) {
-        internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = 0;
-      }
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
       int j = 2;
@@ -760,13 +755,13 @@ public:
        internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = dust::math::min(internal.n_vaccination_t_R[shared->dim_n_vaccination_t_R_1 * 1 + 3], R[shared->dim_R_1 * 1 + 3]);
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
+      for (int j = 1; j <= shared->dim_n_vaccination_t_R_2; ++j) {
+        internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = 0;
+      }
+    }
+    for (int i = 1; i <= shared->dim_n_vaccination_t_R_1; ++i) {
       int j = 3;
       internal.n_vaccination_t_R[i - 1 + shared->dim_n_vaccination_t_R_1 * (j - 1)] = (odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults) == 0 ? 0 : dust::math::min(dust::math::floor((internal.daily_doses_adults_t[2] * R[shared->dim_R_1 * 2 + i - 1] * shared->prioritisation_strategy_adults[shared->dim_prioritisation_strategy_adults_1 * (prioritisation_step_2nd_dose_adults - 1) + i - 1]) / (real_type) odin_sum1<real_type>(internal.n_eligible_for_dose2_adults.data(), 0, shared->dim_n_eligible_for_dose2_adults)), R[shared->dim_R_1 * 2 + i - 1]));
-    }
-    for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
-      for (int j = 1; j <= shared->dim_n_vaccination_t_S_2; ++j) {
-        internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = 0;
-      }
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
       int j = 2;
@@ -776,6 +771,11 @@ public:
        int i = 4;
        int j = 2;
        internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = dust::math::min(internal.n_vaccination_t_S[shared->dim_n_vaccination_t_S_1 * 1 + 3], S[shared->dim_S_1 * 1 + 3]);
+    }
+    for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
+      for (int j = 1; j <= shared->dim_n_vaccination_t_S_2; ++j) {
+        internal.n_vaccination_t_S[i - 1 + shared->dim_n_vaccination_t_S_1 * (j - 1)] = 0;
+      }
     }
     for (int i = 1; i <= shared->dim_n_vaccination_t_S_1; ++i) {
       int j = 3;
