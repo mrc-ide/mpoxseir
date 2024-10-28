@@ -54,10 +54,15 @@ parameters_demographic <- function() {
   # we assume all greater than 20 to avoid vaccine issues
   N_PBS <- round(p_PBS * N_20_49)
   
+  ## HCWs: age 20-69 (from https://apps.who.int/nhwaportal/)
+  w_20_69 <- proportion_in_age_bins(group_bins["HCW", "start"],
+                                    group_bins["HCW", "end"])
+  N_20_69 <- N_age * w_20_69
+  
   
   ## HCW
-  p_HCW <- 0 # for now
-  N_HCW <- round(p_HCW, N_20_49)
+  p_HCW <- 133809/sum(N_age) # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
+  N_HCW <- round(p_HCW * N_20_69)
 
   N <- c(N_age - N_ASW - N_PBS - N_CSW - N_HCW,
          CSW = sum(N_CSW),
@@ -254,7 +259,7 @@ get_group_bins <- function() {
   
   groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
                        start = c(12, 18, 20, 20),
-                       end = c(17, 49, 49, 49),
+                       end = c(17, 49, 49, 69),
                        children = c(1, 0, 0, 0))
   ret <- rbind(age_bins, groups)
   ret$adults <- 1 - ret$children
