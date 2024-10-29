@@ -1,6 +1,6 @@
 Package: mpoxseir
 Title: Stochastic compartmental model of mpox transmission
-Version: 0.1.8
+Version: 0.1.9
 Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
                     email = "l.whittles@imperial.ac.uk"),
              person("Ruth", "McCabe", role = c("aut")),
@@ -16,18 +16,22 @@ RoxygenNote: 7.3.2
 Requires: R >= 4.0.0
 LinkingTo:
     cpp11,
-    dust (>= 0.15.0)
+    dust2,
+    monty
 Suggests:
-    odin.dust (>= 0.3.3),
+    odin2,
     testthat (>= 3.0.0)
 Imports:
+    dust2,
     squire,
     dplyr,
     tidyr,
     plyr
 Config/testthat/edition: 3
 Remotes:
-    mrc-ide/dust,
+    mrc-ide/odin2,
+    mrc-ide/dust2,
+    mrc-ide/monty,
     mrc-ide/mcstate,
     mrc-ide/odin.dust,
     mrc-ide/squire
