@@ -373,7 +373,7 @@ update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week +
   
 update(cases_inc_SW) <- cases_inc_SW * is_same_week + new_cases_SW
 update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + new_cases_PBS
-update(cases_inc_HCW) <- cases_inc_SW * is_same_week + new_cases_HCW
+update(cases_inc_HCW) <- cases_inc_HCW * is_same_week + new_cases_HCW
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])

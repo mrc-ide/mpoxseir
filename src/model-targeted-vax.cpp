@@ -601,6 +601,7 @@ public:
     const real_type cases_inc_15_plus = state[10];
     const real_type cases_inc_SW = state[12];
     const real_type cases_inc_PBS = state[11];
+    const real_type cases_inc_HCW = state[13];
     const real_type cases_cumulative = state[6];
     const real_type cases_cumulative_00_04 = state[20];
     const real_type cases_cumulative_05_14 = state[21];
@@ -1014,7 +1015,7 @@ public:
     state_next[23] = cases_cumulative_PBS + new_cases_PBS;
     state_next[24] = cases_cumulative_SW + new_cases_SW;
     state_next[8] = cases_inc_00_04 * is_same_week + new_cases_00_04;
-    state_next[13] = cases_inc_SW * is_same_week + new_cases_HCW;
+    state_next[13] = cases_inc_HCW * is_same_week + new_cases_HCW;
     state_next[11] = cases_inc_PBS * is_same_week + new_cases_PBS;
     state_next[12] = cases_inc_SW * is_same_week + new_cases_SW;
     real_type new_cases_15_plus = odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + new_cases_SW_15_17 + odin_sum2<real_type>(internal.n_SEa.data(), 17, 20, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
