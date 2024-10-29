@@ -2,10 +2,13 @@ test_that("run is equal to reference", {
   pars <- reference_pars_targeted_vax()
   nms <- reference_names()
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   expect_true(any(res["cases_inc", , ] > 0))
   expect_true(any(res["deaths_inc", , ] > 0))
@@ -20,10 +23,13 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars$beta_s <- 0
   pars$beta_z<- rep(0,pars$n_group)
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   expect_true(all(res["cases_inc", , ] == 0))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
@@ -33,10 +39,13 @@ test_that("when CFR = 0 nobody dies", {
   pars <- reference_pars_targeted_vax()
   pars$CFR[] <- 0
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   expect_true(any(res["cases_inc", , ] > 0))
   expect_true(all(res["deaths_inc", , ] == 0))
@@ -49,10 +58,13 @@ test_that("when CFR = 1 everybody dies", {
   pars <- reference_pars_targeted_vax()
   pars$CFR[] <- 1
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   expect_true(any(res["cases_inc", , ] > 0))
   expect_true(any(res["deaths_inc", , ] > 0))
@@ -70,13 +82,13 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   n_init <- sum(pars$Ea0)
   pars$Ea0[] <- 0
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  idx <- m$info()$index
-  rownames(res) <- names(unlist(idx))
-  y <- m$transform_variables(res)
-  names(y) <- names(idx)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
   
   # check only infections are in SW
   expect_equal(y$cases_cumulative_SW, y$cases_cumulative)
@@ -103,11 +115,13 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   pars$Ea0[idx_kp, idx_unvax] <- pars$Ea0[idx_kp, idx_unvax] + 10
   pars$S0[idx_kp, idx_unvax] <- pars$S0[idx_kp, idx_unvax] - pars$Ea0[idx_kp, idx_unvax]
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
-  t <- seq(1, 21) 
-  res <- m$simulate(t)
-  idx <- m$info()$index
-  rownames(res) <- names(unlist(idx))
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(1, 21)
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
 
   ## should have cases in CSW and PBS
@@ -135,18 +149,20 @@ test_that("when daily_doses==0, no vaccinations are given", {
   pars$daily_doses_adults[,] <- 0
   pars$daily_doses_children[,] <- 0
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  idx <- m$info()$index
-  rownames(res) <- names(unlist(idx))
-  y <- m$transform_variables(res)
-  names(y) <- names(idx)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
   idx_comp <- get_compartment_indices()
   idx_vax <- c(idx_comp$vax$one_dose, idx_comp$vax$two_dose)
   
   ## no one should be vaccinated at any time point
   expect_true(all(y$N[, idx_vax, , ] == 0))
+  
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   ## vaccines given should be 0
   expect_true(any(res[grep("vax_given",rownames(res)),,]==0))
@@ -166,13 +182,13 @@ test_that("when daily_doses>0, vaccinations are given", {
   expect_true(sum(pars$daily_doses_children)>0)
   expect_true(sum(pars$daily_doses_adults)>0)
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  idx <- m$info()$index
-  rownames(res) <- names(unlist(idx))
-  y <- m$transform_variables(res)
-  names(y) <- names(idx)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
   idx_comp <- get_compartment_indices()
   idx_vax <- c(idx_comp$vax$one_dose, idx_comp$vax$two_dose)
 
@@ -181,6 +197,8 @@ test_that("when daily_doses>0, vaccinations are given", {
   # at last time point we should have lots vaccinated
   expect_true(any(y$N[, idx_vax, , 21] > 0))
 
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+  
   ## vaccines given should be positive
   expect_true(any(res[grep("vax_given",rownames(res)),,]>0))
 
@@ -201,10 +219,13 @@ test_that("when daily_doses>0, vaccinations are given", {
 test_that("vaccines are only given in the prioritised groups", {
   pars <- reference_pars_targeted_vax()
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   ## identify which child groups aren't prioritised for vaccination in the first step 
   idx_novax_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_children[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
@@ -245,10 +266,13 @@ test_that("vaccines are only given in the prioritised groups", {
 test_that("no one moves in or out of j=1 (previous smallpox vaccine)", {
   pars <- reference_pars_targeted_vax()
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   # the total number of people in j=1 shouldn't change
   expect_true(all(res[paste0("N",seq(1:pars$n_group)),,]==pars$S0[,1]))
@@ -266,10 +290,13 @@ test_that("1st and 2nd doses are given", {
   expect_true(sum(pars$daily_doses_children)>0)
   expect_true(sum(pars$daily_doses_adults)>0)
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   # check outputs
   # 1st doses are given
@@ -282,10 +309,13 @@ test_that("1st and 2nd doses are given", {
 test_that("2nd doses are not given to children", {
   pars <- reference_pars_targeted_vax()
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   # 2nd doses are given
   expect_true(all(res["total_vax_2nddose",,max(t)]>0))
@@ -310,10 +340,13 @@ test_that("prioritisation steps can progress", {
   pars$daily_doses_children <- pars$daily_doses_children * 100
   pars$daily_doses_adults <- pars$daily_doses_adults * 10
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
-  t <- seq(1, pars$vaccination_campaign_length_adults)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(1, 21)
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]!=1))
   expect_true(any(res["prioritisation_step_1st_dose_adults",,max(t)]!=1))
@@ -334,10 +367,13 @@ test_that("1st/2nd dose and adult/child prioritisation steps can be different de
   pars$daily_doses_children <- pars$daily_doses_children*100
   pars$daily_doses_adults <- pars$daily_doses_adults*100
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   # 1st doses children vs adults
   expect_false(all(res["prioritisation_step_1st_dose_children",,]==res["prioritisation_step_1st_dose_adults",,]))
@@ -358,10 +394,13 @@ test_that("no 2nd doses are given if no 1st doses are given", {
   # no 1st doses allocated, but 2nd doses still positive
   pars$daily_doses_adults[,2] <- 0
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
   idx_adults <- ceiling(pars$adults_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
   idx_adults <- idx_adults[which(idx_adults!=0&idx_adults>2*pars$n_group)]
@@ -385,10 +424,13 @@ test_that("vaccination of children still occurs if adult vaccination is turned o
   # children still have doses
   expect_true(any(pars$daily_doses_children>0))
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   # expect 1st doses given
   expect_true(all(res["total_vax_1stdose",,max(t)]>0))
@@ -417,10 +459,13 @@ test_that("vaccination of adults still occurs if child vaccination is turned off
   # no children doses
   pars$daily_doses_children[,] <- 0
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   # expect 1st doses given
   expect_true(all(res["total_vax_1stdose",,max(t)]>0))
@@ -450,10 +495,13 @@ test_that("children vax targets are being reached as we expect before prioritisa
   # confirm 3 child prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_children)==3)
 
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   ## for the test to work we need to have moved to at least prioritisation step 3
   expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]==3))
@@ -506,10 +554,13 @@ test_that("adult vax 1st dose targets are being reached as we expect before prio
   # confirm 2 adult prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_adult)==2)
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   ## for the test to work we need to have moved to at least prioritisation step 2
   expect_true(any(res["prioritisation_step_1st_dose_adults",,max(t)]==2))
@@ -550,10 +601,13 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
   # confirm 2 adult prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_adult)==2)
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
   t <- seq(1, 21)
-  res <- m$simulate(t)
-  rownames(res) <- names(unlist(m$info()$index))
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   ## for the test to work we need to have moved to at least prioritisation step 2
   expect_true(any(res["prioritisation_step_2nd_dose_adults",,max(t)]==2))
@@ -584,10 +638,12 @@ test_that("Test compiled compare components", {
   pars$exp_noise <- Inf
   nms <- reference_names()
   
-  m <- model_targeted_vax$new(pars, 1, 3, seed = 1L)
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
   
   time <- 350
-  y <- m$run(time)
+  y <- dust2::dust_system_run_to_time(sys, time)
   
   d <- data.frame(time = 350,
                   cases = 150,
@@ -613,8 +669,7 @@ test_that("Test compiled compare components", {
   compare_part <- function(nms) {
     d_test <- d
     d_test[, setdiff(names(d), c(nms, "time"))] <- NA_real_
-    m$set_data(dust::dust_data(d_test, "time"))
-    m$compare_data()
+    dust2::dust_system_compare_data(sys, d_test)
   }
   
   ll_parts <- lapply(parts, compare_part)
