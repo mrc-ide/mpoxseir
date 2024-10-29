@@ -66,7 +66,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
-  pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. SW)
+  pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. HCW)
   n_init <- sum(pars$Ea0)
   pars$Ea0[] <- 0
 
@@ -79,7 +79,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   names(y) <- names(idx)
   
   # check only infections are in SW
-  expect_equal(y$cases_cumulative_SW, y$cases_cumulative)
+  expect_equal(y$cases_cumulative_HCW, y$cases_cumulative)
   expect_equal(sum(y$I[-pars$n_group, , , ]), 0)
   expect_equal(sum(y$N_tot + n_init - sum(pars$N0)), 0)
 })
@@ -205,39 +205,28 @@ test_that("vaccines are only given in the prioritised groups", {
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
-  
+
+  y <-  m$transform_variables(res)
+  idx <- get_compartment_indices()
+
+  pars$prioritisation_strategy_adults
   ## identify which child groups aren't prioritised for vaccination in the first step 
-  idx_novax_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_children[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
-  # only return the indices of interest, including only those related to 1st and 2nd doses 
-  idx_novax_children <- idx_novax_children[which(idx_novax_children!=0&idx_novax_children>=2*pars$n_group)]
+  idx_novax_children <- (pars$prioritisation_strategy_children[, 1] == 0) &
+    (pars$children_ind_raw > 0)
+  idx_vax <- c(idx$vax$one_dose, idx$vax$two_dose)
   
-  if(all(res["prioritisation_step_1st_dose_children",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_children),,]==0))
+  if(all(res["prioritisation_step_1st_dose_children", , ] == 1)){
+    expect_true(all(y$N[idx_novax_children, idx_vax, , ] == 0))
   }
   
+
   ## repeat above for adults, including first and second doses 
-  idx_novax_adults <- (rep(ceiling(pars$adults_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_adults[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
-  # only return the indices of interest, including only those related to 1st and 2nd doses 
-  idx_novax_adults_1st_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=2*pars$n_group)]
   
-  if(all(res["prioritisation_step_1st_dose_adults",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_adults_1st_dose),,]==0))
-  }
+  idx_novax_adults <- (pars$prioritisation_strategy_adults[, 1] == 0) &
+    (pars$adults_ind_raw > 0)
   
-  # only return the indices of interest (2nd doses) 
-  idx_novax_adults_2nd_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=3*pars$n_group)]
-  
-  if(all(res["prioritisation_step_2nd_dose_adults",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_adults_2nd_dose),,]==0))
+  if(all(res["prioritisation_step_1st_dose_adults",,] == 1)){
+    expect_true(all(y$N[idx_novax_adults, idx_vax, , ] == 0))
   }
 
 })
@@ -628,3 +617,4 @@ test_that("Test compiled compare components", {
   expect_true(all(sapply(ll_parts, function(x) any(x != 0))))
   
 })
+
