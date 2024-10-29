@@ -13,6 +13,58 @@ test_that("run is equal to reference", {
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 })
 
+test_that("check cases and deaths are counted correctly", {
+  pars <- reference_pars_targeted_vax()
+  nms <- reference_names()
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(7, 21, by = 7)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  y <- m$transform_variables(res)
+  
+  expect_equal(y$cases_inc,
+               y$cases_inc_00_04 + y$cases_inc_05_14 + y$cases_inc_15_plus)
+  expect_equal(y$deaths_inc,
+               y$deaths_inc_00_04 + y$deaths_inc_05_14 + y$deaths_inc_15_plus)
+  expect_equal(y$cases_cumulative,
+               y$cases_cumulative_00_04 + y$cases_cumulative_05_14 +
+                 y$cases_cumulative_15_plus)
+  expect_equal(y$deaths_cumulative,
+               y$deaths_cumulative_00_04 + y$deaths_cumulative_05_14 + 
+                 y$deaths_cumulative_15_plus)
+  expect_equal(apply(y$cases_inc, 2, sum),
+               y$cases_cumulative[, , length(t)])
+  expect_equal(apply(y$cases_inc_00_04, 2, sum),
+               y$cases_cumulative_00_04[, , length(t)])
+  expect_equal(apply(y$cases_inc_05_14, 2, sum),
+               y$cases_cumulative_05_14[, , length(t)])
+  expect_equal(apply(y$cases_inc_15_plus, 2, sum),
+               y$cases_cumulative_15_plus[, , length(t)])
+  expect_equal(apply(y$cases_inc_PBS, 2, sum),
+               y$cases_cumulative_PBS[, , length(t)])
+  expect_equal(apply(y$cases_inc_SW, 2, sum),
+               y$cases_cumulative_SW[, , length(t)])
+  expect_equal(apply(y$cases_inc_HCW, 2, sum),
+               y$cases_cumulative_HCW[, , length(t)])
+  
+  expect_equal(apply(y$deaths_inc, 2, sum),
+               y$deaths_cumulative[, , length(t)])
+  expect_equal(apply(y$deaths_inc_00_04, 2, sum),
+               y$deaths_cumulative_00_04[, , length(t)])
+  expect_equal(apply(y$deaths_inc_05_14, 2, sum),
+               y$deaths_cumulative_05_14[, , length(t)])
+  expect_equal(apply(y$deaths_inc_15_plus, 2, sum),
+               y$deaths_cumulative_15_plus[, , length(t)])
+  expect_equal(apply(y$deaths_inc_PBS, 2, sum),
+               y$deaths_cumulative_PBS[, , length(t)])
+  expect_equal(apply(y$deaths_inc_SW, 2, sum),
+               y$deaths_cumulative_SW[, , length(t)])
+  expect_equal(apply(y$deaths_inc_HCW, 2, sum),
+               y$deaths_cumulative_HCW[, , length(t)])
+
+})
+
 
 test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
