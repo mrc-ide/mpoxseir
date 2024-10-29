@@ -12,8 +12,10 @@ public:
     struct dim_type {
       dust2::array::dimensions<1> children_ind_raw;
       dust2::array::dimensions<1> adults_ind_raw;
-      dust2::array::dimensions<2> daily_doses_children;
-      dust2::array::dimensions<2> daily_doses_adults;
+      dust2::array::dimensions<2> daily_doses_children_value;
+      dust2::array::dimensions<1> daily_doses_children_time;
+      dust2::array::dimensions<2> daily_doses_adults_value;
+      dust2::array::dimensions<1> daily_doses_adults_time;
       dust2::array::dimensions<1> daily_doses_children_t;
       dust2::array::dimensions<1> daily_doses_adults_t;
       dust2::array::dimensions<2> prioritisation_strategy_children;
@@ -160,13 +162,15 @@ public:
     real_type gamma_Id;
     int n_vax;
     int n_group;
-    int vaccination_campaign_length_children;
-    int vaccination_campaign_length_adults;
     real_type exp_noise;
+    std::vector<real_type> daily_doses_children_value;
+    std::vector<real_type> daily_doses_children_time;
+    std::vector<real_type> daily_doses_adults_value;
+    std::vector<real_type> daily_doses_adults_time;
     std::vector<real_type> children_ind_raw;
     std::vector<real_type> adults_ind_raw;
-    std::vector<real_type> daily_doses_children;
-    std::vector<real_type> daily_doses_adults;
+    dust2::interpolate::InterpolateConstantArray<real_type, 1> interpolate_daily_doses_children_t;
+    dust2::interpolate::InterpolateConstantArray<real_type, 1> interpolate_daily_doses_adults_t;
     std::vector<real_type> prioritisation_strategy_children;
     std::vector<real_type> prioritisation_strategy_adults;
     std::vector<real_type> m_gen_pop;
@@ -186,8 +190,6 @@ public:
   struct internal_state {
     std::vector<real_type> n_IrR;
     std::vector<real_type> n_IdD;
-    std::vector<real_type> daily_doses_children_t;
-    std::vector<real_type> daily_doses_adults_t;
     std::vector<real_type> target_met_children_t;
     std::vector<real_type> target_met_adults_t;
     std::vector<real_type> coverage_achieved_1st_dose_children;
@@ -199,6 +201,8 @@ public:
     std::vector<real_type> I_infectious;
     std::vector<real_type> delta_R;
     std::vector<real_type> delta_D;
+    std::vector<real_type> daily_doses_children_t;
+    std::vector<real_type> daily_doses_adults_t;
     std::vector<real_type> n_vaccination_t_S_children;
     std::vector<real_type> n_vaccination_t_S_adults;
     std::vector<real_type> n_vaccination_t_Ea_children;
@@ -311,6 +315,10 @@ public:
     };
   }
   static shared_state build_shared(cpp11::list parameters) {
+    const auto dim_daily_doses_children_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_children_value");
+    const auto dim_daily_doses_children_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_children_time");
+    const auto dim_daily_doses_adults_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_adults_value");
+    const auto dim_daily_doses_adults_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_adults_time");
     const int N_prioritisation_steps_children = dust2::r::read_int(parameters, "N_prioritisation_steps_children");
     const int N_prioritisation_steps_adults = dust2::r::read_int(parameters, "N_prioritisation_steps_adults");
     const real_type beta_h = dust2::r::read_real(parameters, "beta_h");
@@ -320,13 +328,17 @@ public:
     const real_type gamma_Id = dust2::r::read_real(parameters, "gamma_Id");
     const int n_vax = dust2::r::read_int(parameters, "n_vax");
     const int n_group = dust2::r::read_int(parameters, "n_group");
-    const int vaccination_campaign_length_children = dust2::r::read_int(parameters, "vaccination_campaign_length_children");
-    const int vaccination_campaign_length_adults = dust2::r::read_int(parameters, "vaccination_campaign_length_adults");
     const real_type exp_noise = dust2::r::read_real(parameters, "exp_noise", 1e+06);
     const dust2::array::dimensions<1> dim_children_ind_raw{static_cast<size_t>(n_group)};
     const dust2::array::dimensions<1> dim_adults_ind_raw{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_daily_doses_children{static_cast<size_t>(vaccination_campaign_length_children), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_daily_doses_adults{static_cast<size_t>(vaccination_campaign_length_adults), static_cast<size_t>(n_vax)};
+    std::vector<real_type> daily_doses_children_value(dim_daily_doses_children_value.size);
+    dust2::r::read_real_array(parameters, dim_daily_doses_children_value, daily_doses_children_value.data(), "daily_doses_children_value", true);
+    std::vector<real_type> daily_doses_children_time(dim_daily_doses_children_time.size);
+    dust2::r::read_real_array(parameters, dim_daily_doses_children_time, daily_doses_children_time.data(), "daily_doses_children_time", true);
+    std::vector<real_type> daily_doses_adults_value(dim_daily_doses_adults_value.size);
+    dust2::r::read_real_array(parameters, dim_daily_doses_adults_value, daily_doses_adults_value.data(), "daily_doses_adults_value", true);
+    std::vector<real_type> daily_doses_adults_time(dim_daily_doses_adults_time.size);
+    dust2::r::read_real_array(parameters, dim_daily_doses_adults_time, daily_doses_adults_time.data(), "daily_doses_adults_time", true);
     const dust2::array::dimensions<1> dim_daily_doses_children_t{static_cast<size_t>(n_vax)};
     const dust2::array::dimensions<1> dim_daily_doses_adults_t{static_cast<size_t>(n_vax)};
     const dust2::array::dimensions<2> dim_prioritisation_strategy_children{static_cast<size_t>(n_group), static_cast<size_t>(N_prioritisation_steps_children)};
@@ -401,10 +413,8 @@ public:
     dust2::r::read_real_array(parameters, dim_children_ind_raw, children_ind_raw.data(), "children_ind_raw", true);
     std::vector<real_type> adults_ind_raw(dim_adults_ind_raw.size);
     dust2::r::read_real_array(parameters, dim_adults_ind_raw, adults_ind_raw.data(), "adults_ind_raw", true);
-    std::vector<real_type> daily_doses_children(dim_daily_doses_children.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_children, daily_doses_children.data(), "daily_doses_children", true);
-    std::vector<real_type> daily_doses_adults(dim_daily_doses_adults.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_adults, daily_doses_adults.data(), "daily_doses_adults", true);
+    const auto interpolate_daily_doses_children_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_children_time, daily_doses_children_value, dim_daily_doses_children_t, "daily_doses_children_time", "daily_doses_children_value");
+    const auto interpolate_daily_doses_adults_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_adults_time, daily_doses_adults_value, dim_daily_doses_adults_t, "daily_doses_adults_time", "daily_doses_adults_value");
     std::vector<real_type> prioritisation_strategy_children(dim_prioritisation_strategy_children.size);
     dust2::r::read_real_array(parameters, dim_prioritisation_strategy_children, prioritisation_strategy_children.data(), "prioritisation_strategy_children", true);
     std::vector<real_type> prioritisation_strategy_adults(dim_prioritisation_strategy_adults.size);
@@ -435,7 +445,7 @@ public:
     dust2::r::read_real_array(parameters, dim_ve_T, ve_T.data(), "ve_T", true);
     std::vector<real_type> ve_I(dim_ve_I.size);
     dust2::r::read_real_array(parameters, dim_ve_I, ve_I.data(), "ve_I", true);
-    const shared_state::dim_type dim{dim_children_ind_raw, dim_adults_ind_raw, dim_daily_doses_children, dim_daily_doses_adults, dim_daily_doses_children_t, dim_daily_doses_adults_t, dim_prioritisation_strategy_children, dim_prioritisation_strategy_adults, dim_target_met_children_t, dim_target_met_adults_t, dim_coverage_achieved_1st_dose_children, dim_coverage_achieved_1st_dose_adults, dim_coverage_achieved_2nd_dose_adults, dim_n_eligible_for_dose1_children, dim_n_eligible_for_dose1_adults, dim_n_eligible_for_dose2_adults, dim_N, dim_S, dim_S0, dim_p_SE, dim_n_SEa, dim_Ea, dim_Ea0, dim_Eb0, dim_delta_Ea, dim_n_EaEb, dim_Eb, dim_delta_Eb, dim_n_EbI, dim_n_EbId, dim_n_EbIr, dim_E, dim_Ir0, dim_Ir, dim_delta_Ir, dim_n_IrR, dim_Id0, dim_Id, dim_delta_Id, dim_n_IdD, dim_I, dim_R, dim_R0, dim_delta_R, dim_D, dim_D0, dim_delta_D, dim_lambda, dim_m_gen_pop, dim_m_sex, dim_I_infectious, dim_prop_infectious, dim_s_ij_gen_pop, dim_s_ij_sex, dim_beta_z, dim_CFR, dim_ve_T, dim_ve_I, dim_n_vaccination_t_S, dim_n_vaccination_t_Ea, dim_n_vaccination_t_Eb, dim_n_vaccination_t_R, dim_n_vaccination_t_S_children, dim_n_vaccination_t_Ea_children, dim_n_vaccination_t_Eb_children, dim_n_vaccination_t_R_children, dim_n_vaccination_t_S_adults, dim_n_vaccination_t_Ea_adults, dim_n_vaccination_t_Eb_adults, dim_n_vaccination_t_R_adults, dim_delta_S_n_vaccination, dim_delta_Ea_n_vaccination, dim_delta_Eb_n_vaccination, dim_delta_R_n_vaccination};
+    const shared_state::dim_type dim{dim_daily_doses_children_value, dim_daily_doses_children_time, dim_daily_doses_adults_value, dim_daily_doses_adults_time, dim_children_ind_raw, dim_adults_ind_raw, dim_daily_doses_children_t, dim_daily_doses_adults_t, dim_prioritisation_strategy_children, dim_prioritisation_strategy_adults, dim_target_met_children_t, dim_target_met_adults_t, dim_coverage_achieved_1st_dose_children, dim_coverage_achieved_1st_dose_adults, dim_coverage_achieved_2nd_dose_adults, dim_n_eligible_for_dose1_children, dim_n_eligible_for_dose1_adults, dim_n_eligible_for_dose2_adults, dim_N, dim_S, dim_S0, dim_p_SE, dim_n_SEa, dim_Ea, dim_Ea0, dim_Eb0, dim_delta_Ea, dim_n_EaEb, dim_Eb, dim_delta_Eb, dim_n_EbI, dim_n_EbId, dim_n_EbIr, dim_E, dim_Ir0, dim_Ir, dim_delta_Ir, dim_n_IrR, dim_Id0, dim_Id, dim_delta_Id, dim_n_IdD, dim_I, dim_R, dim_R0, dim_delta_R, dim_D, dim_D0, dim_delta_D, dim_lambda, dim_m_gen_pop, dim_m_sex, dim_I_infectious, dim_prop_infectious, dim_s_ij_gen_pop, dim_s_ij_sex, dim_beta_z, dim_CFR, dim_ve_T, dim_ve_I, dim_n_vaccination_t_S, dim_n_vaccination_t_Ea, dim_n_vaccination_t_Eb, dim_n_vaccination_t_R, dim_n_vaccination_t_S_children, dim_n_vaccination_t_Ea_children, dim_n_vaccination_t_Eb_children, dim_n_vaccination_t_R_children, dim_n_vaccination_t_S_adults, dim_n_vaccination_t_Ea_adults, dim_n_vaccination_t_Eb_adults, dim_n_vaccination_t_R_adults, dim_delta_S_n_vaccination, dim_delta_Ea_n_vaccination, dim_delta_Eb_n_vaccination, dim_delta_R_n_vaccination};
     shared_state::offset_type offset;
     offset.state.prioritisation_step_1st_dose_children = 0;
     offset.state.prioritisation_step_1st_dose_adults = 1;
@@ -499,13 +509,11 @@ public:
     offset.state.E = offset.state.D + dim_D.size;
     offset.state.I = offset.state.E + dim_E.size;
     offset.state.N = offset.state.I + dim_I.size;
-    return shared_state{dim, offset, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, vaccination_campaign_length_children, vaccination_campaign_length_adults, exp_noise, children_ind_raw, adults_ind_raw, daily_doses_children, daily_doses_adults, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I};
+    return shared_state{dim, offset, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, children_ind_raw, adults_ind_raw, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> n_IrR(shared.dim.n_IrR.size);
     std::vector<real_type> n_IdD(shared.dim.n_IdD.size);
-    std::vector<real_type> daily_doses_children_t(shared.dim.daily_doses_children_t.size);
-    std::vector<real_type> daily_doses_adults_t(shared.dim.daily_doses_adults_t.size);
     std::vector<real_type> target_met_children_t(shared.dim.target_met_children_t.size);
     std::vector<real_type> target_met_adults_t(shared.dim.target_met_adults_t.size);
     std::vector<real_type> coverage_achieved_1st_dose_children(shared.dim.coverage_achieved_1st_dose_children.size);
@@ -517,6 +525,8 @@ public:
     std::vector<real_type> I_infectious(shared.dim.I_infectious.size);
     std::vector<real_type> delta_R(shared.dim.delta_R.size);
     std::vector<real_type> delta_D(shared.dim.delta_D.size);
+    std::vector<real_type> daily_doses_children_t(shared.dim.daily_doses_children_t.size);
+    std::vector<real_type> daily_doses_adults_t(shared.dim.daily_doses_adults_t.size);
     std::vector<real_type> n_vaccination_t_S_children(shared.dim.n_vaccination_t_S_children.size);
     std::vector<real_type> n_vaccination_t_S_adults(shared.dim.n_vaccination_t_S_adults.size);
     std::vector<real_type> n_vaccination_t_Ea_children(shared.dim.n_vaccination_t_Ea_children.size);
@@ -547,7 +557,7 @@ public:
     std::vector<real_type> delta_Ea(shared.dim.delta_Ea.size);
     std::vector<real_type> delta_Id(shared.dim.delta_Id.size);
     std::vector<real_type> delta_Ir(shared.dim.delta_Ir.size);
-    return internal_state{n_IrR, n_IdD, daily_doses_children_t, daily_doses_adults_t, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, prop_infectious, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, lambda, p_SE, n_EaEb, n_EbI, n_SEa, n_EbId, delta_Eb, n_EbIr, delta_Ea, delta_Id, delta_Ir};
+    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, prop_infectious, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, lambda, p_SE, n_EaEb, n_EbI, n_SEa, n_EbId, delta_Eb, n_EbIr, delta_Ea, delta_Id, delta_Ir};
   }
   static data_type build_data(cpp11::list data, const shared_state& shared) {
     auto cases = dust2::r::read_real(data, "cases", NA_REAL);
@@ -567,10 +577,14 @@ public:
     shared.gamma_Ir = dust2::r::read_real(parameters, "gamma_Ir", shared.gamma_Ir);
     shared.gamma_Id = dust2::r::read_real(parameters, "gamma_Id", shared.gamma_Id);
     shared.exp_noise = dust2::r::read_real(parameters, "exp_noise", shared.exp_noise);
+    dust2::r::read_real_array(parameters, shared.dim.daily_doses_children_value, shared.daily_doses_children_value.data(), "daily_doses_children_value", false);
+    dust2::r::read_real_array(parameters, shared.dim.daily_doses_children_time, shared.daily_doses_children_time.data(), "daily_doses_children_time", false);
+    dust2::r::read_real_array(parameters, shared.dim.daily_doses_adults_value, shared.daily_doses_adults_value.data(), "daily_doses_adults_value", false);
+    dust2::r::read_real_array(parameters, shared.dim.daily_doses_adults_time, shared.daily_doses_adults_time.data(), "daily_doses_adults_time", false);
     dust2::r::read_real_array(parameters, shared.dim.children_ind_raw, shared.children_ind_raw.data(), "children_ind_raw", false);
     dust2::r::read_real_array(parameters, shared.dim.adults_ind_raw, shared.adults_ind_raw.data(), "adults_ind_raw", false);
-    dust2::r::read_real_array(parameters, shared.dim.daily_doses_children, shared.daily_doses_children.data(), "daily_doses_children", false);
-    dust2::r::read_real_array(parameters, shared.dim.daily_doses_adults, shared.daily_doses_adults.data(), "daily_doses_adults", false);
+    const auto interpolate_daily_doses_children_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(shared.daily_doses_children_time, shared.daily_doses_children_value, shared.dim.daily_doses_children_t, "daily_doses_children_time", "daily_doses_children_value");
+    const auto interpolate_daily_doses_adults_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(shared.daily_doses_adults_time, shared.daily_doses_adults_value, shared.dim.daily_doses_adults_t, "daily_doses_adults_time", "daily_doses_adults_value");
     dust2::r::read_real_array(parameters, shared.dim.prioritisation_strategy_children, shared.prioritisation_strategy_children.data(), "prioritisation_strategy_children", false);
     dust2::r::read_real_array(parameters, shared.dim.prioritisation_strategy_adults, shared.prioritisation_strategy_adults.data(), "prioritisation_strategy_adults", false);
     dust2::r::read_real_array(parameters, shared.dim.m_gen_pop, shared.m_gen_pop.data(), "m_gen_pop", false);
@@ -763,12 +777,6 @@ public:
         internal.n_IdD[i - 1 + (j - 1) * (shared.dim.n_IdD.mult[1])] = monty::random::binomial<real_type>(rng_state, Id[i - 1 + (j - 1) * (shared.dim.Id.mult[1])], p_IdD);
       }
     }
-    for (size_t i = 1; i <= shared.dim.daily_doses_children_t.size; ++i) {
-      internal.daily_doses_children_t[i - 1] = (static_cast<int>(time) >= (shared.vaccination_campaign_length_children) ? shared.daily_doses_children[shared.vaccination_campaign_length_children - 1 + (i - 1) * (shared.dim.daily_doses_children.mult[1])] : shared.daily_doses_children[time - 1 + (i - 1) * (shared.dim.daily_doses_children.mult[1])]);
-    }
-    for (size_t i = 1; i <= shared.dim.daily_doses_adults_t.size; ++i) {
-      internal.daily_doses_adults_t[i - 1] = (static_cast<int>(time) >= (shared.vaccination_campaign_length_adults) ? shared.daily_doses_adults[shared.vaccination_campaign_length_adults - 1 + (i - 1) * (shared.dim.daily_doses_adults.mult[1])] : shared.daily_doses_adults[time - 1 + (i - 1) * (shared.dim.daily_doses_adults.mult[1])]);
-    }
     for (size_t i = 1; i <= shared.dim.target_met_children_t.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.target_met_children_t.dim[1]; ++j) {
         internal.target_met_children_t[i - 1 + (j - 1) * (shared.dim.target_met_children_t.mult[1])] = 0;
@@ -826,6 +834,8 @@ public:
         internal.delta_D[i - 1 + (j - 1) * (shared.dim.delta_D.mult[1])] = internal.n_IdD[i - 1 + (j - 1) * (shared.dim.n_IdD.mult[1])];
       }
     }
+    shared.interpolate_daily_doses_children_t.eval(time, internal.daily_doses_children_t);
+    shared.interpolate_daily_doses_adults_t.eval(time, internal.daily_doses_adults_t);
     const real_type prioritisation_step_1st_dose_children_proposal = (dust2::array::sum<real_type>(internal.target_met_children_t.data(), shared.dim.target_met_children_t, {0, shared.dim.target_met_children_t.dim[0] - 1}, {2, 2}) == dust2::array::sum<real_type>(internal.coverage_achieved_1st_dose_children.data(), shared.dim.coverage_achieved_1st_dose_children) ? prioritisation_step_1st_dose_children + 1 : prioritisation_step_1st_dose_children);
     const real_type prioritisation_step_1st_dose_adults_proposal = (dust2::array::sum<real_type>(internal.target_met_adults_t.data(), shared.dim.target_met_adults_t, {0, shared.dim.target_met_adults_t.dim[0] - 1}, {2, 2}) == dust2::array::sum<real_type>(internal.coverage_achieved_1st_dose_adults.data(), shared.dim.coverage_achieved_1st_dose_adults) ? prioritisation_step_1st_dose_adults + 1 : prioritisation_step_1st_dose_adults);
     const real_type prioritisation_step_2nd_dose_adults_proposal = (dust2::array::sum<real_type>(internal.target_met_adults_t.data(), shared.dim.target_met_adults_t, {0, shared.dim.target_met_adults_t.dim[0] - 1}, {3, 3}) == dust2::array::sum<real_type>(internal.coverage_achieved_2nd_dose_adults.data(), shared.dim.coverage_achieved_2nd_dose_adults) ? prioritisation_step_2nd_dose_adults + 1 : prioritisation_step_2nd_dose_adults);

@@ -21,24 +21,24 @@ dim(adults_ind_raw) <- c(n_group)
 ## first and last columns must be 0; last row must be 0 (pre-processing job)
 ## column j corresponds to the people in j receiving a vaccine (so moving
 ## to j + 1)
-daily_doses_children <- parameter()
-dim(daily_doses_children) <- c(vaccination_campaign_length_children, n_vax)
+daily_doses_children_value <- parameter()
+dim(daily_doses_children_value) <- parameter(rank = 2)
+daily_doses_children_time <- parameter()
+dim(daily_doses_children_time) <- parameter(rank = 1)
 
-daily_doses_adults <- parameter()
-dim(daily_doses_adults) <- c(vaccination_campaign_length_adults, n_vax)
+daily_doses_adults_value <- parameter()
+dim(daily_doses_adults_value) <- parameter(rank = 2)
+daily_doses_adults_time <- parameter()
+dim(daily_doses_adults_time) <- parameter(rank = 1)
 
 ## with this we need to ensure daily_doses for children and adults final time
 ## step is all 0 - done outside of the model in pre-processing
-daily_doses_children_t[] <-
-  if (as.integer(time) >= (vaccination_campaign_length_children))
-    daily_doses_children[vaccination_campaign_length_children, i] else
-      daily_doses_children[time, i]
+daily_doses_children_t <- 
+  interpolate(daily_doses_children_time, daily_doses_children_value, "constant")
 dim(daily_doses_children_t) <- n_vax
 
-daily_doses_adults_t[] <-
-  if (as.integer(time) >= (vaccination_campaign_length_adults))
-    daily_doses_adults[vaccination_campaign_length_adults, i] else
-      daily_doses_adults[time, i]
+daily_doses_adults_t <- 
+  interpolate(daily_doses_adults_time, daily_doses_adults_value, "constant")
 dim(daily_doses_adults_t) <- n_vax
 
 ## allocate the daily doses according to prioritisation strategy
@@ -699,9 +699,6 @@ dim(CFR) <- c(n_group, n_vax)
 
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group, n_vax)
-
-vaccination_campaign_length_children <- parameter()
-vaccination_campaign_length_adults <- parameter()
 
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
