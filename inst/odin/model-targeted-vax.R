@@ -67,25 +67,25 @@ dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 
 ## has the target been met
 ## for cols 1 (smallpox vax) and 2 (unvaccinated) this doesn't matter for neither children or adults, for children col 4 (2nd dose) also doesn't matter
-target_met_children_t[,] <- 0
-dim(target_met_children_t) <- c(n_group, n_vax)
-
-target_met_adults_t[, ] <- 0
-dim(target_met_adults_t) <- c(n_group, n_vax)
-
 
 ## children
+dim(target_met_children_t) <- c(n_group, n_vax)
+
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target - this now isn't strictly relevant for children but leaving it in in case we do expand this to 2 doses in future
+target_met_children_t[,] <- 0
 target_met_children_t[, 3] <-
   ((sum(N[i, 3:4]) * children_ind_raw[i]) > prioritisation_strategy_children[i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
 
 ## adults 
+dim(target_met_adults_t) <- c(n_group, n_vax)
+
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target
+target_met_adults_t[, ] <- 0
 target_met_adults_t[, 3] <-
   ((sum(N[i, 3:4]) * adults_ind_raw[i]) >  prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] * sum(N[i, ]))
 
@@ -170,92 +170,30 @@ dim(n_eligible_for_dose2_adults) <- c(n_group)
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy
 ## and across S, E, R
 ## hacky fix for now
-n_vaccination_t_S[, ] <- 0
-n_vaccination_t_Ea[, ] <- 0
-n_vaccination_t_Eb[, ] <- 0
-n_vaccination_t_R[, ] <- 0
 
+### allocate to S
+
+## children 1st doses
 n_vaccination_t_S_children[] <- 0
-n_vaccination_t_Ea_children[] <- 0
-n_vaccination_t_Eb_children[ ] <- 0
-n_vaccination_t_R_children[ ] <- 0
-
-n_vaccination_t_S_adults[] <- 0
-n_vaccination_t_Ea_adults[ ] <- 0
-n_vaccination_t_Eb_adults[ ] <- 0
-n_vaccination_t_R_adults[ ] <- 0
-
-
-### children 1st doses 
-## allocate 1st doses
 n_vaccination_t_S_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
   min(floor((daily_doses_children_t[2] * S[i, 2] *
                prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
       S[i, 2])
 
+n_vaccination_t_S_adults[] <- 0
 
-n_vaccination_t_Ea_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
-  min(floor((daily_doses_children_t[2] * Ea[i, 2] *
-               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
-      Ea[i, 2])
-
-
-n_vaccination_t_Eb_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
-  min(floor((daily_doses_children_t[2] * Eb[i, 2] *
-               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
-      Eb[i, 2])
-
-
-n_vaccination_t_R_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
-  min(floor((daily_doses_children_t[2] * R[i, 2] *
-               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
-      R[i, 2])
-
-
-### adults
-
-## allocate 1st doses
+## adults 1st doses
 n_vaccination_t_S_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
   min(floor((daily_doses_adults_t[2] * S[i, 2] *
                prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]) / sum(n_eligible_for_dose1_adults[])),
       S[i, 2])
-  
 
-n_vaccination_t_Ea_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
-  min(floor((daily_doses_adults_t[2] * Ea[i, 2] *
-               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]) / sum(n_eligible_for_dose1_adults[])),
-      Ea[i, 2])
-  
-
-n_vaccination_t_Eb_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
-  min(floor((daily_doses_adults_t[2] * Eb[i, 2] *
-               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]) / sum(n_eligible_for_dose1_adults[])),
-      Eb[i, 2])
-  
-
-n_vaccination_t_R_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
-  min(floor((daily_doses_adults_t[2] * R[i, 2] *
-               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] ) / sum(n_eligible_for_dose1_adults[])),
-      R[i, 2] )
-
-
-### combine total first doses
-
+## combine total first doses
+n_vaccination_t_S[, ] <- 0
 n_vaccination_t_S[,2] <- n_vaccination_t_S_children[i] + n_vaccination_t_S_adults[i]
 
-n_vaccination_t_Ea[,2] <- n_vaccination_t_Ea_children[i] + n_vaccination_t_Ea_adults[i]
-
-n_vaccination_t_Eb[,2] <- n_vaccination_t_Eb_children[i] + n_vaccination_t_Eb_adults[i]
-
-n_vaccination_t_R[,2] <- n_vaccination_t_R_children[i] + n_vaccination_t_R_adults[i]
-
 ## for the boundary case do an extra check that we haven't gone over the number of people in each compartment 
-
 n_vaccination_t_S[4,2] <- min(n_vaccination_t_S[4, 2], S[4, 2])
-n_vaccination_t_Ea[4,2] <- min(n_vaccination_t_Ea[4, 2], Ea[4, 2])
-n_vaccination_t_Eb[4,2] <- min(n_vaccination_t_Eb[4, 2], Eb[4, 2])
-n_vaccination_t_R[4,2] <- min(n_vaccination_t_R[4, 2], R[4, 2])
-
 
 ## allocate 2nd doses (adults only for now)
 n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -264,18 +202,90 @@ n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
       S[i, 3])
 
 
+### allocate to Ea
+
+## children 1st doses
+n_vaccination_t_Ea_children[] <- 0
+n_vaccination_t_Ea_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[2] * Ea[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
+      Ea[i, 2])
+
+## adults 1st doses
+n_vaccination_t_Ea_adults[ ] <- 0
+n_vaccination_t_Ea_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[2] * Ea[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]) / sum(n_eligible_for_dose1_adults[])),
+      Ea[i, 2])
+
+## combine total first doses
+n_vaccination_t_Ea[, ] <- 0
+n_vaccination_t_Ea[,2] <- n_vaccination_t_Ea_children[i] + n_vaccination_t_Ea_adults[i]
+
+## for the boundary case do an extra check that we haven't gone over the number of people in each compartment 
+n_vaccination_t_Ea[4,2] <- min(n_vaccination_t_Ea[4, 2], Ea[4, 2])
+
+## adults 2nd doses
 n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
   min(floor((daily_doses_adults_t[3] * Ea[i, 3] *
                prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults]) / sum(n_eligible_for_dose2_adults[])),
       Ea[i, 3])
 
 
+### allocate to Eb
+
+## children 1st doses
+n_vaccination_t_Eb_children[ ] <- 0
+n_vaccination_t_Eb_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[2] * Eb[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
+      Eb[i, 2])
+
+## adults 1st doses
+n_vaccination_t_Eb_adults[ ] <- 0
+n_vaccination_t_Eb_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[2] * Eb[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults]) / sum(n_eligible_for_dose1_adults[])),
+      Eb[i, 2])
+
+## combine total first doses
+n_vaccination_t_Eb[, ] <- 0
+n_vaccination_t_Eb[,2] <- n_vaccination_t_Eb_children[i] + n_vaccination_t_Eb_adults[i]
+
+## for the boundary case do an extra check that we haven't gone over the number of people in each compartment 
+n_vaccination_t_Eb[4,2] <- min(n_vaccination_t_Eb[4, 2], Eb[4, 2])
+
+## adults 2nd doses
 n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
   min(floor((daily_doses_adults_t[3] * Eb[i, 3] *
                prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults]) / sum(n_eligible_for_dose2_adults[])),
       Eb[i, 3])
 
 
+### allocate to R
+
+## children 1st doses
+n_vaccination_t_R_children[ ] <- 0
+n_vaccination_t_R_children[] <- if (sum(n_eligible_for_dose1_children[]) == 0) 0 else
+  min(floor((daily_doses_children_t[2] * R[i, 2] *
+               prioritisation_strategy_children[i, prioritisation_step_1st_dose_children]) / sum(n_eligible_for_dose1_children[])),
+      R[i, 2])
+
+## adults 1st doses
+n_vaccination_t_R_adults[ ] <- 0
+n_vaccination_t_R_adults[] <- if (sum(n_eligible_for_dose1_adults[]) == 0) 0 else
+  min(floor((daily_doses_adults_t[2] * R[i, 2] *
+               prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] ) / sum(n_eligible_for_dose1_adults[])),
+      R[i, 2] )
+
+## combine total first doses
+n_vaccination_t_R[, ] <- 0
+n_vaccination_t_R[,2] <- n_vaccination_t_R_children[i] + n_vaccination_t_R_adults[i]
+
+## for the boundary case do an extra check that we haven't gone over the number of people in each compartment 
+n_vaccination_t_R[4,2] <- min(n_vaccination_t_R[4, 2], R[4, 2])
+
+## adults 2nd doses
 n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
   min(floor((daily_doses_adults_t[3] * R[i, 3] *
                prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults]) / sum(n_eligible_for_dose2_adults[])),
