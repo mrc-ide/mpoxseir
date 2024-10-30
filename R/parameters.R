@@ -442,6 +442,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
+    beta_hcw = 0.001, # Will be fitted
     RR_z = RR_z,
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."

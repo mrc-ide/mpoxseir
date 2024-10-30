@@ -783,10 +783,15 @@ compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
 # fitting is by age or in aggregate
 data_cases <- max(cases, cases_00_04 + cases_05_14 + cases_15_plus)
 
+
 cases_HCW <- data()
-model_prop_HCW <- cases_inc_HCW / cases_inc + rexp(exp_noise)
-compare(cases_HCW) ~ binomial(cases_HCW, data_cases, model_prop_HCW)
+model_cases_HCW <- cases_inc_HCW + rexp(exp_noise)
+model_cases_non_HCW <- cases_inc - cases_inc_HCW + rexp(exp_noise)
+model_prop_HCW <- model_cases_HCW / (model_cases_HCW + model_cases_non_HCW)
+compare(cases_HCW) ~ binomial(data_cases, model_prop_HCW)
 
 cases_SW <- data()
-model_prop_SW <- cases_inc_SW / cases_inc + rexp(exp_noise)
-compare(cases_SW) ~ binomial(cases_SW, data_cases, model_prop_SW)
+model_cases_SW <- cases_inc_SW + rexp(exp_noise)
+model_cases_non_SW <- cases_inc - cases_inc_SW + rexp(exp_noise)
+model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
+compare(cases_SW) ~ binomial(data_cases, model_prop_SW)

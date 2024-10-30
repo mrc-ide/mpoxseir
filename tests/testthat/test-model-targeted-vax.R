@@ -71,6 +71,7 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars$beta_h <- 0
   pars$beta_s <- 0
   pars$beta_z<- rep(0,pars$n_group)
+  pars$beta_hcw <- 0
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
@@ -78,6 +79,28 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   rownames(res) <- names(unlist(m$info()$index))
 
   expect_true(all(res["cases_inc", , ] == 0))
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
+})
+
+
+test_that("when beta_hcw is > 0 there are infections in HCW only", {
+  pars <- reference_pars_targeted_vax()
+  pars$beta_h <- 0
+  pars$beta_s <- 0
+  pars$beta_z <- rep(0, pars$n_group)
+  
+  idx <- get_compartment_indices()
+  n_init <- sum(pars$Ea0)
+  pars$Ea0[] <- 0
+  pars$Eb0[idx$group$HCW, 2] <- n_init
+  
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  expect_true(all(res["cases_inc", , ] == res["cases_inc_HCW", , ]))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 })
 
@@ -142,6 +165,7 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   pars$beta_h <- 0
   pars$beta_z[] <- 0
   pars$beta_s <- 0.2
+  pars$beta_hcw <- 0
   pars$Ea0[] <- 0
   pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <- 0.5
   pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- 0.5
@@ -629,12 +653,15 @@ test_that("Test compiled compare components", {
   
   time <- 350
   y <- m$run(time)
+  rownames(y) <- names(unlist(m$info()$index))
   
   d <- data.frame(time = 350,
                   cases = 150,
                   cases_00_04 = 30,
                   cases_05_14 = 40,
                   cases_15_plus = 80,
+                  cases_HCW = 5,
+                  cases_SW = 10,
                   deaths = 50,
                   deaths_00_04 = 10,
                   deaths_05_14 = 15,
@@ -645,6 +672,8 @@ test_that("Test compiled compare components", {
     c("cases_00_04"),
     c("cases_05_14"),
     c("cases_15_plus"),
+    c("cases_HCW"),
+    c("cases_SW"),
     c("deaths"),
     c("deaths_00_04"),
     c("deaths_05_14"),
@@ -664,6 +693,62 @@ test_that("Test compiled compare components", {
   
   ## check that using each datastream individually sums to using them all
   expect_equal(ll_all, rowSums(do.call(cbind, ll_parts)))
+  
+  ## check that all datastreams are supplying non-zero likelihood contributions
+  expect_true(all(sapply(ll_parts, function(x) any(x != 0))))
+  
+})
+
+
+test_that("Test binomial compare components", {
+  pars <- reference_pars_targeted_vax()
+  pars$beta_h <- pars$beta_hcw <- pars$beta_z[] <- 0
+  pars$Ea0[] <- pars$Eb0[] <- 0
+  idx <- get_compartment_indices()
+  pars$Eb0[idx$group$ASW, ] <- 10
+  
+  nms <- reference_names()
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1L)
+  
+  time <- 350
+  y <- m$run(time)
+  
+  d <- data.frame(time = 350,
+                  cases = 150,
+                  cases_00_04 = 30,
+                  cases_05_14 = 40,
+                  cases_15_plus = 80,
+                  cases_HCW = 5,
+                  cases_SW = 10,
+                  deaths = 50,
+                  deaths_00_04 = 10,
+                  deaths_05_14 = 15,
+                  deaths_15_plus = 25)
+  
+  parts <- list(
+    c("cases"),
+    c("cases_00_04"),
+    c("cases_05_14"),
+    c("cases_15_plus"),
+    c("cases_HCW"),
+    c("cases_SW"),
+    c("deaths"),
+    c("deaths_00_04"),
+    c("deaths_05_14"),
+    c("deaths_15_plus"))
+  
+  
+  compare_part <- function(nms) {
+    d_test <- d
+    d_test[, setdiff(names(d), c(nms, "time"))] <- NA_real_
+    m$set_data(dust::dust_data(d_test, "time"))
+    m$compare_data()
+  }
+  
+  ll_parts <- lapply(parts, compare_part)
+  
+  ll_all <- compare_part(do.call(cbind, parts))
   
   ## check that all datastreams are supplying non-zero likelihood contributions
   expect_true(all(sapply(ll_parts, function(x) any(x != 0))))

@@ -975,22 +975,26 @@ public:
     real_type model_cases_00_04 = cases_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_05_14 = cases_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_15_plus = cases_inc_15_plus + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_HCW = cases_inc_HCW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_SW = cases_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_non_HCW = cases_inc - cases_inc_HCW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_non_SW = cases_inc - cases_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths = deaths_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_00_04 = deaths_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_05_14 = deaths_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_15_plus = deaths_inc_15_plus + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
-    real_type model_prop_HCW = cases_inc_HCW / (real_type) cases_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
-    real_type model_prop_SW = cases_inc_SW / (real_type) cases_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     const auto compare_cases = (std::isnan(data.cases)) ? 0 : dust::density::poisson(data.cases, model_cases, true);
     const auto compare_cases_00_04 = (std::isnan(data.cases_00_04)) ? 0 : dust::density::poisson(data.cases_00_04, model_cases_00_04, true);
     const auto compare_cases_05_14 = (std::isnan(data.cases_05_14)) ? 0 : dust::density::poisson(data.cases_05_14, model_cases_05_14, true);
     const auto compare_cases_15_plus = (std::isnan(data.cases_15_plus)) ? 0 : dust::density::poisson(data.cases_15_plus, model_cases_15_plus, true);
-    const auto compare_cases_HCW = (std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data.cases_HCW, data_cases, model_prop_HCW, true);
-    const auto compare_cases_SW = (std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data.cases_SW, data_cases, model_prop_SW, true);
     const auto compare_deaths = (std::isnan(data.deaths)) ? 0 : dust::density::poisson(data.deaths, model_deaths, true);
     const auto compare_deaths_00_04 = (std::isnan(data.deaths_00_04)) ? 0 : dust::density::poisson(data.deaths_00_04, model_deaths_00_04, true);
     const auto compare_deaths_05_14 = (std::isnan(data.deaths_05_14)) ? 0 : dust::density::poisson(data.deaths_05_14, model_deaths_05_14, true);
     const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::poisson(data.deaths_15_plus, model_deaths_15_plus, true);
+    real_type model_prop_HCW = model_cases_HCW / (real_type) (model_cases_HCW + model_cases_non_HCW);
+    real_type model_prop_SW = model_cases_SW / (real_type) (model_cases_SW + model_cases_non_SW);
+    const auto compare_cases_HCW = (std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data_cases, model_prop_HCW, true);
+    const auto compare_cases_SW = (std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data_cases, model_prop_SW, true);
     return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_cases_HCW + compare_cases_SW + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
   }
 private:
