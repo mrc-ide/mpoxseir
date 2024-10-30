@@ -121,6 +121,7 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   
   t <- seq(1, 21)
   res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
 
@@ -133,7 +134,7 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   expect_true(all(res["cases_cumulative_00_04",,max(t)] == 0))
   expect_equal(res["cases_inc_05_14",,] + res["cases_inc_15_plus", , ],
                res["cases_inc_SW", , ] + res["cases_inc_PBS", , ])
-  y <- m$transform_variables(res)
+  
   n_age <- nrow(get_age_bins())
   expect_equal(sum(y$Ea[seq_len(n_age), , , ]), 0)
 
@@ -146,8 +147,8 @@ test_that("when daily_doses==0, no vaccinations are given", {
   pars <- reference_pars_targeted_vax()
   
   # inputs
-  pars$daily_doses_adults[,] <- 0
-  pars$daily_doses_children[,] <- 0
+  pars$daily_doses_adults_value[, ] <- 0
+  pars$daily_doses_children_value[, ] <- 0
 
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -179,8 +180,8 @@ test_that("when daily_doses>0, vaccinations are given", {
   
   # inputs
   # check inputs
-  expect_true(sum(pars$daily_doses_children)>0)
-  expect_true(sum(pars$daily_doses_adults)>0)
+  expect_true(sum(pars$daily_doses_children_value)>0)
+  expect_true(sum(pars$daily_doses_adults_value)>0)
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -205,12 +206,21 @@ test_that("when daily_doses>0, vaccinations are given", {
   ## population check
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
   
-  ## when time is after vaccination_campaign_length, no vaccines are given
-  expect_equal(sum(y$vax_given_S[, ,  t > pars$vaccination_campaign_length]), 0)
-  expect_true(all(y$vax_given_S[, ,  t == pars$vaccination_campaign_length] > 0))
+  ## when time is after final vaccine time, no vaccines are given
+  vaccine_end_time <- 
+    max(pars$daily_doses_adults_time, pars$daily_doses_children_time)
+  expect_equal(sum(y$vax_given_S[,  t > vaccine_end_time]), 0)
+  expect_true(all(y$vax_given_S[,  t == vaccine_end_time] > 0))
   
   ## the vaccines given do not exceed the total set out in the strategy
-  expect_true(max(res["total_vax", , ]) <= (sum(pars$daily_doses_children)+sum(pars$daily_doses_adults)))
+  daily_doses_children <- 
+    interpolate_daily_doses(pars$daily_doses_children_time,
+                            pars$daily_doses_children_value)
+  daily_doses_adults <- 
+    interpolate_daily_doses(pars$daily_doses_adults_time,
+                            pars$daily_doses_adults_value)
+  expect_true(max(res["total_vax", , ]) <= 
+                (sum(daily_doses_children) + sum(daily_doses_adults)))
 
 })
 
@@ -287,8 +297,8 @@ test_that("1st and 2nd doses are given", {
   pars <- reference_pars_targeted_vax()
   
   # check inputs
-  expect_true(sum(pars$daily_doses_children)>0)
-  expect_true(sum(pars$daily_doses_adults)>0)
+  expect_true(sum(pars$daily_doses_children_value)>0)
+  expect_true(sum(pars$daily_doses_adults_value)>0)
 
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -337,8 +347,8 @@ test_that("prioritisation steps can progress", {
   pars <- reference_pars_targeted_vax()
   
   # set up parameters to push things through quickly 
-  pars$daily_doses_children <- pars$daily_doses_children * 100
-  pars$daily_doses_adults <- pars$daily_doses_adults * 10
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -364,8 +374,8 @@ test_that("1st/2nd dose and adult/child prioritisation steps can be different de
   pars$prioritisation_strategy_adults[,1] <- pars$prioritisation_strategy_adults[,1]/4
   
   # give lots of vaccines to push through quickly 
-  pars$daily_doses_children <- pars$daily_doses_children*100
-  pars$daily_doses_adults <- pars$daily_doses_adults*100
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 100
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -382,8 +392,15 @@ test_that("1st/2nd dose and adult/child prioritisation steps can be different de
   # adults 2nd dose vs children 1st dose
   expect_false(all(res["prioritisation_step_1st_dose_children",,]==res["prioritisation_step_2nd_dose_adults",,]))
 
+  daily_doses_children <- 
+    interpolate_daily_doses(pars$daily_doses_children_time,
+                            pars$daily_doses_children_value)
+  daily_doses_adults <- 
+    interpolate_daily_doses(pars$daily_doses_adults_time,
+                            pars$daily_doses_adults_value)
+  
   # extra check here for good measure
-  expect_true(all(((sum(pars$daily_doses_children)+sum(pars$daily_doses_adults)) - res["total_vax",,max(t)])>=0))
+  expect_true(all(((sum(daily_doses_children)+sum(daily_doses_adults)) - res["total_vax",,max(t)])>=0))
 
 })
 
@@ -392,7 +409,7 @@ test_that("no 2nd doses are given if no 1st doses are given", {
 
   pars <- reference_pars_targeted_vax()
   # no 1st doses allocated, but 2nd doses still positive
-  pars$daily_doses_adults[,2] <- 0
+  pars$daily_doses_adults_value[2, ] <- 0
 
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -420,9 +437,9 @@ test_that("vaccination of children still occurs if adult vaccination is turned o
   
   pars <- reference_pars_targeted_vax()
   # no adult doses
-  pars$daily_doses_adults[,] <- 0
+  pars$daily_doses_adults_value[, ] <- 0
   # children still have doses
-  expect_true(any(pars$daily_doses_children>0))
+  expect_true(any(pars$daily_doses_children_value>0))
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -455,9 +472,9 @@ test_that("vaccination of adults still occurs if child vaccination is turned off
   
   pars <- reference_pars_targeted_vax()
   # adult doses
-  expect_true(any(pars$daily_doses_adults>0))
+  expect_true(any(pars$daily_doses_adults_value > 0))
   # no children doses
-  pars$daily_doses_children[,] <- 0
+  pars$daily_doses_children_value[, ] <- 0
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -490,7 +507,7 @@ test_that("children vax targets are being reached as we expect before prioritisa
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_children <- pars$daily_doses_children*100
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
   
   # confirm 3 child prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_children)==3)
@@ -548,7 +565,7 @@ test_that("adult vax 1st dose targets are being reached as we expect before prio
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_adults <- pars$daily_doses_adults *10
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10
   #pars$prioritisation_strategy_adults[20,] <- 0
 
   # confirm 2 adult prioritisation steps
@@ -593,7 +610,7 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_adults <- pars$daily_doses_adults *10
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10
   # and lower the target to make more achievable 
   #pars$prioritisation_strategy_adults <- pars$prioritisation_strategy_adults/2
   pars$prioritisation_strategy_adults[20,] <- 0
