@@ -47,6 +47,14 @@ __host__ __device__ T odin_sign(T x) {
 // [[dust::param(R0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(S0, has_default = FALSE, default_value = NULL, rank = 2, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(adults_ind_raw, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_cases, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_cases_00_04, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_cases_05_14, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_cases_15_plus, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_deaths, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_deaths_00_04, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_deaths_05_14, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(alpha_deaths_15_plus, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_h, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_s, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_z, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
@@ -77,10 +85,18 @@ public:
     real_type cases_00_04;
     real_type cases_05_14;
     real_type cases_15_plus;
+    real_type cases_negbin;
+    real_type cases_negbin_00_04;
+    real_type cases_negbin_05_14;
+    real_type cases_negbin_15_plus;
     real_type deaths;
     real_type deaths_00_04;
     real_type deaths_05_14;
     real_type deaths_15_plus;
+    real_type deaths_negbin;
+    real_type deaths_negbin_00_04;
+    real_type deaths_negbin_05_14;
+    real_type deaths_negbin_15_plus;
   };
   struct shared_type {
     std::vector<real_type> CFR;
@@ -94,6 +110,14 @@ public:
     std::vector<real_type> R0;
     std::vector<real_type> S0;
     std::vector<real_type> adults_ind_raw;
+    real_type alpha_cases;
+    real_type alpha_cases_00_04;
+    real_type alpha_cases_05_14;
+    real_type alpha_cases_15_plus;
+    real_type alpha_deaths;
+    real_type alpha_deaths_00_04;
+    real_type alpha_deaths_05_14;
+    real_type alpha_deaths_15_plus;
     real_type beta_h;
     real_type beta_s;
     std::vector<real_type> beta_z;
@@ -975,11 +999,19 @@ public:
     const auto compare_cases_00_04 = (std::isnan(data.cases_00_04)) ? 0 : dust::density::poisson(data.cases_00_04, model_cases_00_04, true);
     const auto compare_cases_05_14 = (std::isnan(data.cases_05_14)) ? 0 : dust::density::poisson(data.cases_05_14, model_cases_05_14, true);
     const auto compare_cases_15_plus = (std::isnan(data.cases_15_plus)) ? 0 : dust::density::poisson(data.cases_15_plus, model_cases_15_plus, true);
+    const auto compare_cases_negbin = (std::isnan(data.cases_negbin)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin, 1 / (real_type) shared->alpha_cases, model_cases, true);
+    const auto compare_cases_negbin_00_04 = (std::isnan(data.cases_negbin_00_04)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_00_04, 1 / (real_type) shared->alpha_cases_00_04, model_cases_00_04, true);
+    const auto compare_cases_negbin_05_14 = (std::isnan(data.cases_negbin_05_14)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_05_14, 1 / (real_type) shared->alpha_cases_05_14, model_cases_05_14, true);
+    const auto compare_cases_negbin_15_plus = (std::isnan(data.cases_negbin_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_15_plus, 1 / (real_type) shared->alpha_cases_15_plus, model_cases_15_plus, true);
     const auto compare_deaths = (std::isnan(data.deaths)) ? 0 : dust::density::poisson(data.deaths, model_deaths, true);
     const auto compare_deaths_00_04 = (std::isnan(data.deaths_00_04)) ? 0 : dust::density::poisson(data.deaths_00_04, model_deaths_00_04, true);
     const auto compare_deaths_05_14 = (std::isnan(data.deaths_05_14)) ? 0 : dust::density::poisson(data.deaths_05_14, model_deaths_05_14, true);
     const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::poisson(data.deaths_15_plus, model_deaths_15_plus, true);
-    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
+    const auto compare_deaths_negbin = (std::isnan(data.deaths_negbin)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin, 1 / (real_type) shared->alpha_deaths, model_deaths, true);
+    const auto compare_deaths_negbin_00_04 = (std::isnan(data.deaths_negbin_00_04)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_00_04, 1 / (real_type) shared->alpha_deaths_00_04, model_deaths_00_04, true);
+    const auto compare_deaths_negbin_05_14 = (std::isnan(data.deaths_negbin_05_14)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_05_14, 1 / (real_type) shared->alpha_deaths_05_14, model_deaths_05_14, true);
+    const auto compare_deaths_negbin_15_plus = (std::isnan(data.deaths_negbin_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_15_plus, 1 / (real_type) shared->alpha_deaths_15_plus, model_deaths_15_plus, true);
+    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_cases_negbin + compare_cases_negbin_00_04 + compare_cases_negbin_05_14 + compare_cases_negbin_15_plus + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus + compare_deaths_negbin + compare_deaths_negbin_00_04 + compare_deaths_negbin_05_14 + compare_deaths_negbin_15_plus;
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -1265,6 +1297,14 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->initial_vax_given_S = 0;
   shared->N_prioritisation_steps_adults = NA_INTEGER;
   shared->N_prioritisation_steps_children = NA_INTEGER;
+  shared->alpha_cases = NA_REAL;
+  shared->alpha_cases_00_04 = NA_REAL;
+  shared->alpha_cases_05_14 = NA_REAL;
+  shared->alpha_cases_15_plus = NA_REAL;
+  shared->alpha_deaths = NA_REAL;
+  shared->alpha_deaths_00_04 = NA_REAL;
+  shared->alpha_deaths_05_14 = NA_REAL;
+  shared->alpha_deaths_15_plus = NA_REAL;
   shared->beta_h = NA_REAL;
   shared->beta_s = NA_REAL;
   shared->gamma_E = NA_REAL;
@@ -1279,6 +1319,14 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   internal.initial_time = 0;
   shared->N_prioritisation_steps_adults = user_get_scalar<int>(user, "N_prioritisation_steps_adults", shared->N_prioritisation_steps_adults, NA_INTEGER, NA_INTEGER);
   shared->N_prioritisation_steps_children = user_get_scalar<int>(user, "N_prioritisation_steps_children", shared->N_prioritisation_steps_children, NA_INTEGER, NA_INTEGER);
+  shared->alpha_cases = user_get_scalar<real_type>(user, "alpha_cases", shared->alpha_cases, NA_REAL, NA_REAL);
+  shared->alpha_cases_00_04 = user_get_scalar<real_type>(user, "alpha_cases_00_04", shared->alpha_cases_00_04, NA_REAL, NA_REAL);
+  shared->alpha_cases_05_14 = user_get_scalar<real_type>(user, "alpha_cases_05_14", shared->alpha_cases_05_14, NA_REAL, NA_REAL);
+  shared->alpha_cases_15_plus = user_get_scalar<real_type>(user, "alpha_cases_15_plus", shared->alpha_cases_15_plus, NA_REAL, NA_REAL);
+  shared->alpha_deaths = user_get_scalar<real_type>(user, "alpha_deaths", shared->alpha_deaths, NA_REAL, NA_REAL);
+  shared->alpha_deaths_00_04 = user_get_scalar<real_type>(user, "alpha_deaths_00_04", shared->alpha_deaths_00_04, NA_REAL, NA_REAL);
+  shared->alpha_deaths_05_14 = user_get_scalar<real_type>(user, "alpha_deaths_05_14", shared->alpha_deaths_05_14, NA_REAL, NA_REAL);
+  shared->alpha_deaths_15_plus = user_get_scalar<real_type>(user, "alpha_deaths_15_plus", shared->alpha_deaths_15_plus, NA_REAL, NA_REAL);
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
   shared->beta_s = user_get_scalar<real_type>(user, "beta_s", shared->beta_s, NA_REAL, NA_REAL);
   shared->dt = user_get_scalar<real_type>(user, "dt", shared->dt, NA_REAL, NA_REAL);
@@ -1765,10 +1813,18 @@ model_targeted_vax::data_type dust_data<model_targeted_vax>(cpp11::list data) {
       cpp11::as_cpp<real_type>(data["cases_00_04"]),
       cpp11::as_cpp<real_type>(data["cases_05_14"]),
       cpp11::as_cpp<real_type>(data["cases_15_plus"]),
+      cpp11::as_cpp<real_type>(data["cases_negbin"]),
+      cpp11::as_cpp<real_type>(data["cases_negbin_00_04"]),
+      cpp11::as_cpp<real_type>(data["cases_negbin_05_14"]),
+      cpp11::as_cpp<real_type>(data["cases_negbin_15_plus"]),
       cpp11::as_cpp<real_type>(data["deaths"]),
       cpp11::as_cpp<real_type>(data["deaths_00_04"]),
       cpp11::as_cpp<real_type>(data["deaths_05_14"]),
-      cpp11::as_cpp<real_type>(data["deaths_15_plus"])
+      cpp11::as_cpp<real_type>(data["deaths_15_plus"]),
+      cpp11::as_cpp<real_type>(data["deaths_negbin"]),
+      cpp11::as_cpp<real_type>(data["deaths_negbin_00_04"]),
+      cpp11::as_cpp<real_type>(data["deaths_negbin_05_14"]),
+      cpp11::as_cpp<real_type>(data["deaths_negbin_15_plus"])
     };
 }
 }
