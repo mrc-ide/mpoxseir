@@ -154,6 +154,7 @@ public:
     real_type cases_15_plus;
     real_type cases_HCW;
     real_type cases_SW;
+    real_type cases_total;
     real_type deaths;
     real_type deaths_00_04;
     real_type deaths_05_14;
@@ -1044,7 +1045,6 @@ public:
     const real_type deaths_inc_00_04 = state[14];
     const real_type deaths_inc_05_14 = state[15];
     const real_type deaths_inc_15_plus = state[16];
-    real_type data_cases = dust::math::max(data.cases, data.cases_00_04 + data.cases_05_14 + data.cases_15_plus);
     real_type model_cases = cases_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_00_04 = cases_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_05_14 = cases_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
@@ -1067,8 +1067,8 @@ public:
     const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::poisson(data.deaths_15_plus, model_deaths_15_plus, true);
     real_type model_prop_HCW = model_cases_HCW / (real_type) (model_cases_HCW + model_cases_non_HCW);
     real_type model_prop_SW = model_cases_SW / (real_type) (model_cases_SW + model_cases_non_SW);
-    const auto compare_cases_HCW = (std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data_cases, model_prop_HCW, true);
-    const auto compare_cases_SW = (std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data_cases, model_prop_SW, true);
+    const auto compare_cases_HCW = (std::isnan(data.cases_total) || std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data.cases_total, model_prop_HCW, true);
+    const auto compare_cases_SW = (std::isnan(data.cases_total) || std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data.cases_total, model_prop_SW, true);
     return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_cases_HCW + compare_cases_SW + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
   }
 private:
@@ -1859,6 +1859,7 @@ model_targeted_vax::data_type dust_data<model_targeted_vax>(cpp11::list data) {
       cpp11::as_cpp<real_type>(data["cases_15_plus"]),
       cpp11::as_cpp<real_type>(data["cases_HCW"]),
       cpp11::as_cpp<real_type>(data["cases_SW"]),
+      cpp11::as_cpp<real_type>(data["cases_total"]),
       cpp11::as_cpp<real_type>(data["deaths"]),
       cpp11::as_cpp<real_type>(data["deaths_00_04"]),
       cpp11::as_cpp<real_type>(data["deaths_05_14"]),
