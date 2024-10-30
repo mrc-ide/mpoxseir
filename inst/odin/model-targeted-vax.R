@@ -533,8 +533,13 @@ prop_infectious[] <-
 s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
-lambda[, ] <- ((beta_h * sum(s_ij_gen_pop[i, ])) +
-                 (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1 - ve_I[i, j])
+
+lambda[, ] <- (beta_h * sum(s_ij_gen_pop[i, ]) +
+                 beta_s * sum(s_ij_sex[i, ]) +
+# additional foi in HCW only (i = 20) homogenous from infected as assumed equally
+# likely to attend hospital
+                 (i == 20) * beta_hcw * sum(I_infectious[, ]) +
+                 beta_z[i]) * (1 - ve_I[i, j])
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
@@ -641,6 +646,7 @@ D0[, ] <- user()
 beta_h <- user()
 beta_s <- user()
 beta_z[] <- user()
+beta_hcw <- user()
 gamma_E <- user()
 gamma_Ir <- user()
 gamma_Id <- user()
@@ -771,3 +777,16 @@ compare(deaths_05_14) ~ poisson(model_deaths_05_14)
 deaths_15_plus <- data()
 model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
 compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
+
+# proportion of cases in key pops
+# create a data stream of aggregated cases that will work regardless of whether
+# fitting is by age or in aggregate
+data_cases <- max(cases, cases_00_04 + cases_05_14 + cases_15_plus)
+
+cases_HCW <- data()
+model_prop_HCW <- cases_inc_HCW / cases_inc + rexp(exp_noise)
+compare(cases_HCW) ~ binomial(cases_HCW, data_cases, model_prop_HCW)
+
+cases_SW <- data()
+model_prop_SW <- cases_inc_SW / cases_inc + rexp(exp_noise)
+compare(cases_SW) ~ binomial(cases_SW, data_cases, model_prop_SW)
