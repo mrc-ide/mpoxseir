@@ -3,6 +3,37 @@
 // [[dust2::class(model_targeted_vax)]]
 // [[dust2::time_type(discrete)]]
 // [[dust2::has_compare()]]
+// [[dust2::parameter(children_ind_raw, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(adults_ind_raw, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(daily_doses_children_value, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(daily_doses_children_time, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(daily_doses_adults_value, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(daily_doses_adults_time, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(N_prioritisation_steps_children, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
+// [[dust2::parameter(N_prioritisation_steps_adults, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
+// [[dust2::parameter(prioritisation_strategy_children, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(prioritisation_strategy_adults, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(m_gen_pop, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(m_sex, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(S0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(Ea0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(Eb0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(Ir0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(Id0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(R0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(D0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(beta_h, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(beta_s, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(beta_z, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(gamma_E, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(gamma_Ir, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(gamma_Id, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(CFR, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(ve_T, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(ve_I, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(n_vax, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
+// [[dust2::parameter(n_group, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
+// [[dust2::parameter(exp_noise, type = "real_type", rank = 0, required = FALSE, constant = FALSE)]]
 class model_targeted_vax {
 public:
   model_targeted_vax() = delete;
@@ -315,10 +346,11 @@ public:
     };
   }
   static shared_state build_shared(cpp11::list parameters) {
-    const auto dim_daily_doses_children_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_children_value");
-    const auto dim_daily_doses_children_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_children_time");
-    const auto dim_daily_doses_adults_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_adults_value");
-    const auto dim_daily_doses_adults_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_adults_time");
+    shared_state::dim_type dim;
+    dim.daily_doses_children_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_children_value");
+    dim.daily_doses_children_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_children_time");
+    dim.daily_doses_adults_value = dust2::r::read_dimensions<2>(parameters, "daily_doses_adults_value");
+    dim.daily_doses_adults_time = dust2::r::read_dimensions<1>(parameters, "daily_doses_adults_time");
     const int N_prioritisation_steps_children = dust2::r::read_int(parameters, "N_prioritisation_steps_children");
     const int N_prioritisation_steps_adults = dust2::r::read_int(parameters, "N_prioritisation_steps_adults");
     const real_type beta_h = dust2::r::read_real(parameters, "beta_h");
@@ -329,123 +361,122 @@ public:
     const int n_vax = dust2::r::read_int(parameters, "n_vax");
     const int n_group = dust2::r::read_int(parameters, "n_group");
     const real_type exp_noise = dust2::r::read_real(parameters, "exp_noise", 1e+06);
-    const dust2::array::dimensions<1> dim_children_ind_raw{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_adults_ind_raw{static_cast<size_t>(n_group)};
-    std::vector<real_type> daily_doses_children_value(dim_daily_doses_children_value.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_children_value, daily_doses_children_value.data(), "daily_doses_children_value", true);
-    std::vector<real_type> daily_doses_children_time(dim_daily_doses_children_time.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_children_time, daily_doses_children_time.data(), "daily_doses_children_time", true);
-    std::vector<real_type> daily_doses_adults_value(dim_daily_doses_adults_value.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_adults_value, daily_doses_adults_value.data(), "daily_doses_adults_value", true);
-    std::vector<real_type> daily_doses_adults_time(dim_daily_doses_adults_time.size);
-    dust2::r::read_real_array(parameters, dim_daily_doses_adults_time, daily_doses_adults_time.data(), "daily_doses_adults_time", true);
-    const dust2::array::dimensions<1> dim_daily_doses_children_t{static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<1> dim_daily_doses_adults_t{static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_prioritisation_strategy_children{static_cast<size_t>(n_group), static_cast<size_t>(N_prioritisation_steps_children)};
-    const dust2::array::dimensions<2> dim_prioritisation_strategy_adults{static_cast<size_t>(n_group), static_cast<size_t>(N_prioritisation_steps_adults)};
-    const dust2::array::dimensions<2> dim_target_met_children_t{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_target_met_adults_t{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<1> dim_coverage_achieved_1st_dose_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_coverage_achieved_1st_dose_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_coverage_achieved_2nd_dose_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_eligible_for_dose1_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_eligible_for_dose1_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_eligible_for_dose2_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_N{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_S{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_S0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_p_SE{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_SEa{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Ea{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Ea0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Eb0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Ea{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_EaEb{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Eb{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Eb{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_EbI{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_EbId{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_EbIr{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_E{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Ir0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Ir{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Ir{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_IrR{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Id0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_Id{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Id{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_IdD{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_I{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_R{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_R0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_R{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_D{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_D0{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_D{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_lambda{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_m_gen_pop{static_cast<size_t>(n_group), static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_m_sex{static_cast<size_t>(n_group), static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_I_infectious{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<1> dim_prop_infectious{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_s_ij_gen_pop{static_cast<size_t>(n_group), static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_s_ij_sex{static_cast<size_t>(n_group), static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_beta_z{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_CFR{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<1> dim_ve_T{static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_ve_I{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_vaccination_t_S{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_vaccination_t_Ea{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_vaccination_t_Eb{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_n_vaccination_t_R{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_S_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_Ea_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_Eb_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_R_children{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_S_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_Ea_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_Eb_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<1> dim_n_vaccination_t_R_adults{static_cast<size_t>(n_group)};
-    const dust2::array::dimensions<2> dim_delta_S_n_vaccination{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Ea_n_vaccination{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_Eb_n_vaccination{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    const dust2::array::dimensions<2> dim_delta_R_n_vaccination{static_cast<size_t>(n_group), static_cast<size_t>(n_vax)};
-    std::vector<real_type> children_ind_raw(dim_children_ind_raw.size);
-    dust2::r::read_real_array(parameters, dim_children_ind_raw, children_ind_raw.data(), "children_ind_raw", true);
-    std::vector<real_type> adults_ind_raw(dim_adults_ind_raw.size);
-    dust2::r::read_real_array(parameters, dim_adults_ind_raw, adults_ind_raw.data(), "adults_ind_raw", true);
-    const auto interpolate_daily_doses_children_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_children_time, daily_doses_children_value, dim_daily_doses_children_t, "daily_doses_children_time", "daily_doses_children_value");
-    const auto interpolate_daily_doses_adults_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_adults_time, daily_doses_adults_value, dim_daily_doses_adults_t, "daily_doses_adults_time", "daily_doses_adults_value");
-    std::vector<real_type> prioritisation_strategy_children(dim_prioritisation_strategy_children.size);
-    dust2::r::read_real_array(parameters, dim_prioritisation_strategy_children, prioritisation_strategy_children.data(), "prioritisation_strategy_children", true);
-    std::vector<real_type> prioritisation_strategy_adults(dim_prioritisation_strategy_adults.size);
-    dust2::r::read_real_array(parameters, dim_prioritisation_strategy_adults, prioritisation_strategy_adults.data(), "prioritisation_strategy_adults", true);
-    std::vector<real_type> m_gen_pop(dim_m_gen_pop.size);
-    dust2::r::read_real_array(parameters, dim_m_gen_pop, m_gen_pop.data(), "m_gen_pop", true);
-    std::vector<real_type> m_sex(dim_m_sex.size);
-    dust2::r::read_real_array(parameters, dim_m_sex, m_sex.data(), "m_sex", true);
-    std::vector<real_type> S0(dim_S0.size);
-    dust2::r::read_real_array(parameters, dim_S0, S0.data(), "S0", true);
-    std::vector<real_type> Ea0(dim_Ea0.size);
-    dust2::r::read_real_array(parameters, dim_Ea0, Ea0.data(), "Ea0", true);
-    std::vector<real_type> Eb0(dim_Eb0.size);
-    dust2::r::read_real_array(parameters, dim_Eb0, Eb0.data(), "Eb0", true);
-    std::vector<real_type> Ir0(dim_Ir0.size);
-    dust2::r::read_real_array(parameters, dim_Ir0, Ir0.data(), "Ir0", true);
-    std::vector<real_type> Id0(dim_Id0.size);
-    dust2::r::read_real_array(parameters, dim_Id0, Id0.data(), "Id0", true);
-    std::vector<real_type> R0(dim_R0.size);
-    dust2::r::read_real_array(parameters, dim_R0, R0.data(), "R0", true);
-    std::vector<real_type> D0(dim_D0.size);
-    dust2::r::read_real_array(parameters, dim_D0, D0.data(), "D0", true);
-    std::vector<real_type> beta_z(dim_beta_z.size);
-    dust2::r::read_real_array(parameters, dim_beta_z, beta_z.data(), "beta_z", true);
-    std::vector<real_type> CFR(dim_CFR.size);
-    dust2::r::read_real_array(parameters, dim_CFR, CFR.data(), "CFR", true);
-    std::vector<real_type> ve_T(dim_ve_T.size);
-    dust2::r::read_real_array(parameters, dim_ve_T, ve_T.data(), "ve_T", true);
-    std::vector<real_type> ve_I(dim_ve_I.size);
-    dust2::r::read_real_array(parameters, dim_ve_I, ve_I.data(), "ve_I", true);
-    const shared_state::dim_type dim{dim_daily_doses_children_value, dim_daily_doses_children_time, dim_daily_doses_adults_value, dim_daily_doses_adults_time, dim_children_ind_raw, dim_adults_ind_raw, dim_daily_doses_children_t, dim_daily_doses_adults_t, dim_prioritisation_strategy_children, dim_prioritisation_strategy_adults, dim_target_met_children_t, dim_target_met_adults_t, dim_coverage_achieved_1st_dose_children, dim_coverage_achieved_1st_dose_adults, dim_coverage_achieved_2nd_dose_adults, dim_n_eligible_for_dose1_children, dim_n_eligible_for_dose1_adults, dim_n_eligible_for_dose2_adults, dim_N, dim_S, dim_S0, dim_p_SE, dim_n_SEa, dim_Ea, dim_Ea0, dim_Eb0, dim_delta_Ea, dim_n_EaEb, dim_Eb, dim_delta_Eb, dim_n_EbI, dim_n_EbId, dim_n_EbIr, dim_E, dim_Ir0, dim_Ir, dim_delta_Ir, dim_n_IrR, dim_Id0, dim_Id, dim_delta_Id, dim_n_IdD, dim_I, dim_R, dim_R0, dim_delta_R, dim_D, dim_D0, dim_delta_D, dim_lambda, dim_m_gen_pop, dim_m_sex, dim_I_infectious, dim_prop_infectious, dim_s_ij_gen_pop, dim_s_ij_sex, dim_beta_z, dim_CFR, dim_ve_T, dim_ve_I, dim_n_vaccination_t_S, dim_n_vaccination_t_Ea, dim_n_vaccination_t_Eb, dim_n_vaccination_t_R, dim_n_vaccination_t_S_children, dim_n_vaccination_t_Ea_children, dim_n_vaccination_t_Eb_children, dim_n_vaccination_t_R_children, dim_n_vaccination_t_S_adults, dim_n_vaccination_t_Ea_adults, dim_n_vaccination_t_Eb_adults, dim_n_vaccination_t_R_adults, dim_delta_S_n_vaccination, dim_delta_Ea_n_vaccination, dim_delta_Eb_n_vaccination, dim_delta_R_n_vaccination};
+    dim.children_ind_raw.set({static_cast<size_t>(n_group)});
+    dim.adults_ind_raw.set({static_cast<size_t>(n_group)});
+    std::vector<real_type> daily_doses_children_value(dim.daily_doses_children_value.size);
+    dust2::r::read_real_array(parameters, dim.daily_doses_children_value, daily_doses_children_value.data(), "daily_doses_children_value", true);
+    std::vector<real_type> daily_doses_children_time(dim.daily_doses_children_time.size);
+    dust2::r::read_real_array(parameters, dim.daily_doses_children_time, daily_doses_children_time.data(), "daily_doses_children_time", true);
+    std::vector<real_type> daily_doses_adults_value(dim.daily_doses_adults_value.size);
+    dust2::r::read_real_array(parameters, dim.daily_doses_adults_value, daily_doses_adults_value.data(), "daily_doses_adults_value", true);
+    std::vector<real_type> daily_doses_adults_time(dim.daily_doses_adults_time.size);
+    dust2::r::read_real_array(parameters, dim.daily_doses_adults_time, daily_doses_adults_time.data(), "daily_doses_adults_time", true);
+    dim.daily_doses_children_t.set({static_cast<size_t>(n_vax)});
+    dim.daily_doses_adults_t.set({static_cast<size_t>(n_vax)});
+    dim.prioritisation_strategy_children.set({static_cast<size_t>(n_group), static_cast<size_t>(N_prioritisation_steps_children)});
+    dim.prioritisation_strategy_adults.set({static_cast<size_t>(n_group), static_cast<size_t>(N_prioritisation_steps_adults)});
+    dim.target_met_children_t.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.target_met_adults_t.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.coverage_achieved_1st_dose_children.set({static_cast<size_t>(n_group)});
+    dim.coverage_achieved_1st_dose_adults.set({static_cast<size_t>(n_group)});
+    dim.coverage_achieved_2nd_dose_adults.set({static_cast<size_t>(n_group)});
+    dim.n_eligible_for_dose1_children.set({static_cast<size_t>(n_group)});
+    dim.n_eligible_for_dose1_adults.set({static_cast<size_t>(n_group)});
+    dim.n_eligible_for_dose2_adults.set({static_cast<size_t>(n_group)});
+    dim.N.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.S.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.S0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.p_SE.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_SEa.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Ea.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Ea0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Eb0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Ea.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_EaEb.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Eb.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Eb.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_EbI.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_EbId.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_EbIr.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.E.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Ir0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Ir.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Ir.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_IrR.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Id0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.Id.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Id.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_IdD.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.I.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.R.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.R0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_R.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.D.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.D0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_D.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.lambda.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.m_gen_pop.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
+    dim.m_sex.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
+    dim.I_infectious.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.prop_infectious.set({static_cast<size_t>(n_group)});
+    dim.s_ij_gen_pop.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
+    dim.s_ij_sex.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
+    dim.beta_z.set({static_cast<size_t>(n_group)});
+    dim.CFR.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.ve_T.set({static_cast<size_t>(n_vax)});
+    dim.ve_I.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_vaccination_t_S.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_vaccination_t_Ea.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_vaccination_t_Eb.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_vaccination_t_R.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_vaccination_t_S_children.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_Ea_children.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_Eb_children.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_R_children.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_S_adults.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_Ea_adults.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_Eb_adults.set({static_cast<size_t>(n_group)});
+    dim.n_vaccination_t_R_adults.set({static_cast<size_t>(n_group)});
+    dim.delta_S_n_vaccination.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Ea_n_vaccination.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_Eb_n_vaccination.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.delta_R_n_vaccination.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    std::vector<real_type> children_ind_raw(dim.children_ind_raw.size);
+    dust2::r::read_real_array(parameters, dim.children_ind_raw, children_ind_raw.data(), "children_ind_raw", true);
+    std::vector<real_type> adults_ind_raw(dim.adults_ind_raw.size);
+    dust2::r::read_real_array(parameters, dim.adults_ind_raw, adults_ind_raw.data(), "adults_ind_raw", true);
+    const auto interpolate_daily_doses_children_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_children_time, daily_doses_children_value, dim.daily_doses_children_t, "daily_doses_children_time", "daily_doses_children_value");
+    const auto interpolate_daily_doses_adults_t = dust2::interpolate::InterpolateConstantArray<real_type, 1>(daily_doses_adults_time, daily_doses_adults_value, dim.daily_doses_adults_t, "daily_doses_adults_time", "daily_doses_adults_value");
+    std::vector<real_type> prioritisation_strategy_children(dim.prioritisation_strategy_children.size);
+    dust2::r::read_real_array(parameters, dim.prioritisation_strategy_children, prioritisation_strategy_children.data(), "prioritisation_strategy_children", true);
+    std::vector<real_type> prioritisation_strategy_adults(dim.prioritisation_strategy_adults.size);
+    dust2::r::read_real_array(parameters, dim.prioritisation_strategy_adults, prioritisation_strategy_adults.data(), "prioritisation_strategy_adults", true);
+    std::vector<real_type> m_gen_pop(dim.m_gen_pop.size);
+    dust2::r::read_real_array(parameters, dim.m_gen_pop, m_gen_pop.data(), "m_gen_pop", true);
+    std::vector<real_type> m_sex(dim.m_sex.size);
+    dust2::r::read_real_array(parameters, dim.m_sex, m_sex.data(), "m_sex", true);
+    std::vector<real_type> S0(dim.S0.size);
+    dust2::r::read_real_array(parameters, dim.S0, S0.data(), "S0", true);
+    std::vector<real_type> Ea0(dim.Ea0.size);
+    dust2::r::read_real_array(parameters, dim.Ea0, Ea0.data(), "Ea0", true);
+    std::vector<real_type> Eb0(dim.Eb0.size);
+    dust2::r::read_real_array(parameters, dim.Eb0, Eb0.data(), "Eb0", true);
+    std::vector<real_type> Ir0(dim.Ir0.size);
+    dust2::r::read_real_array(parameters, dim.Ir0, Ir0.data(), "Ir0", true);
+    std::vector<real_type> Id0(dim.Id0.size);
+    dust2::r::read_real_array(parameters, dim.Id0, Id0.data(), "Id0", true);
+    std::vector<real_type> R0(dim.R0.size);
+    dust2::r::read_real_array(parameters, dim.R0, R0.data(), "R0", true);
+    std::vector<real_type> D0(dim.D0.size);
+    dust2::r::read_real_array(parameters, dim.D0, D0.data(), "D0", true);
+    std::vector<real_type> beta_z(dim.beta_z.size);
+    dust2::r::read_real_array(parameters, dim.beta_z, beta_z.data(), "beta_z", true);
+    std::vector<real_type> CFR(dim.CFR.size);
+    dust2::r::read_real_array(parameters, dim.CFR, CFR.data(), "CFR", true);
+    std::vector<real_type> ve_T(dim.ve_T.size);
+    dust2::r::read_real_array(parameters, dim.ve_T, ve_T.data(), "ve_T", true);
+    std::vector<real_type> ve_I(dim.ve_I.size);
+    dust2::r::read_real_array(parameters, dim.ve_I, ve_I.data(), "ve_I", true);
     shared_state::offset_type offset;
     offset.state.prioritisation_step_1st_dose_children = 0;
     offset.state.prioritisation_step_1st_dose_adults = 1;
@@ -500,15 +531,15 @@ public:
     offset.state.total_vax_1stdose = 50;
     offset.state.total_vax_2nddose = 51;
     offset.state.S = 52;
-    offset.state.Ea = 52 + dim_S.size;
-    offset.state.Eb = offset.state.Ea + dim_Ea.size;
-    offset.state.Ir = offset.state.Eb + dim_Eb.size;
-    offset.state.Id = offset.state.Ir + dim_Ir.size;
-    offset.state.R = offset.state.Id + dim_Id.size;
-    offset.state.D = offset.state.R + dim_R.size;
-    offset.state.E = offset.state.D + dim_D.size;
-    offset.state.I = offset.state.E + dim_E.size;
-    offset.state.N = offset.state.I + dim_I.size;
+    offset.state.Ea = 52 + dim.S.size;
+    offset.state.Eb = offset.state.Ea + dim.Ea.size;
+    offset.state.Ir = offset.state.Eb + dim.Eb.size;
+    offset.state.Id = offset.state.Ir + dim.Ir.size;
+    offset.state.R = offset.state.Id + dim.Id.size;
+    offset.state.D = offset.state.R + dim.R.size;
+    offset.state.E = offset.state.D + dim.D.size;
+    offset.state.I = offset.state.E + dim.E.size;
+    offset.state.N = offset.state.I + dim.I.size;
     return shared_state{dim, offset, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, children_ind_raw, adults_ind_raw, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I};
   }
   static internal_state build_internal(const shared_state& shared) {
