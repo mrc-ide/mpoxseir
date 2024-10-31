@@ -740,45 +740,94 @@ dim(delta_Eb_n_vaccination) <- c(n_group, n_vax)
 dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 
-#### compare
+#### Compare functions
+# Options are [Poisson | NegBin] x [Aggregate | By-age] for cases + deaths
+# Plus optional Binomial on % cases in HCW and/or SW
 
 exp_noise <- user(1e6)
 
-# cases
-cases <- data()
+## Poisson compare
+# Poisson + Aggregate 
+
+cases_pois <- data()
 model_cases <- cases_inc + rexp(exp_noise)
-compare(cases) ~ poisson(model_cases)
+compare(cases_pois) ~ poisson(model_cases)
 
-cases_00_04 <- data()
-model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
-compare(cases_00_04) ~ poisson(model_cases_00_04)
-
-cases_05_14 <- data()
-model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
-compare(cases_05_14) ~ poisson(model_cases_05_14)
-
-cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
-compare(cases_15_plus) ~ poisson(model_cases_15_plus)
-
-# deaths
-deaths <- data()
+deaths_pois <- data()
 model_deaths <- deaths_inc + rexp(exp_noise)
-compare(deaths) ~ poisson(model_deaths)
+compare(deaths_pois) ~ poisson(model_deaths)
 
-deaths_00_04 <- data()
+# Poisson + By-age
+
+cases_pois_00_04 <- data()
+model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
+compare(cases_pois_00_04) ~ poisson(model_cases_00_04)
+
+cases_pois_05_14 <- data()
+model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
+compare(cases_pois_05_14) ~ poisson(model_cases_05_14)
+
+cases_pois_15_plus <- data()
+model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
+compare(cases_pois_15_plus) ~ poisson(model_cases_15_plus)
+
+deaths_pois_00_04 <- data()
 model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
-compare(deaths_00_04) ~ poisson(model_deaths_00_04)
+compare(deaths_pois_00_04) ~ poisson(model_deaths_00_04)
 
-deaths_05_14 <- data()
+deaths_pois_05_14 <- data()
 model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
-compare(deaths_05_14) ~ poisson(model_deaths_05_14)
+compare(deaths_pois_05_14) ~ poisson(model_deaths_05_14)
 
-deaths_15_plus <- data()
+deaths_pois_15_plus <- data()
 model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
-compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
+compare(deaths_pois_15_plus) ~ poisson(model_deaths_15_plus)
 
-# proportion of cases in key pops
+## NegBinom compare
+# NegBin + Aggregate 
+
+alpha_cases <- user()
+cases_negbin <- data()
+compare(cases_negbin) ~ negative_binomial_mu(1 / alpha_cases, model_cases)
+
+alpha_deaths <- user()
+deaths_negbin <- data()
+compare(deaths_negbin) ~ negative_binomial_mu(1 / alpha_deaths, model_deaths)
+
+# NegBin + By-age
+
+alpha_cases_00_04 <- user()
+cases_negbin_00_04 <- data()
+compare(cases_negbin_00_04) ~ 
+  negative_binomial_mu(1 / alpha_cases_00_04, model_cases_00_04)
+
+alpha_cases_05_14 <- user()
+cases_negbin_05_14 <- data()
+compare(cases_negbin_05_14) ~ 
+  negative_binomial_mu(1 / alpha_cases_05_14, model_cases_05_14)
+
+alpha_cases_15_plus <- user()
+cases_negbin_15_plus <- data()
+compare(cases_negbin_15_plus) ~ 
+  negative_binomial_mu(1 / alpha_cases_15_plus, model_cases_15_plus)
+
+alpha_deaths_00_04 <- user()
+deaths_negbin_00_04 <- data()
+compare(deaths_negbin_00_04) ~ 
+  negative_binomial_mu(1 / alpha_deaths_00_04, model_deaths_00_04)
+
+alpha_deaths_05_14 <- user()
+deaths_negbin_05_14 <- data()
+compare(deaths_negbin_05_14) ~ 
+  negative_binomial_mu(1 / alpha_deaths_05_14, model_deaths_05_14)
+
+alpha_deaths_15_plus <- user()
+deaths_negbin_15_plus <- data()
+compare(deaths_negbin_15_plus) ~ 
+  negative_binomial_mu(1 / alpha_deaths_15_plus, model_deaths_15_plus)
+
+
+# Proportion of cases in key pops
 # create a data stream of aggregated cases that will work regardless of whether
 # fitting is by age or in aggregate
 cases_total <- data()

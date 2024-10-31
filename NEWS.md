@@ -1,6 +1,12 @@
+# mpoxseir 0.1.11
+
+* Parametrised HCWs
+* Added fitting to % cases in HCW / SW
+* Fixed output bug in cases among SW
+
 # mpoxseir 0.1.10
 
-* Parametrised HCWs and fixed output bug
+* Added Negative-Binomial likelihood option
 
 # mpoxseir 0.1.7
 
