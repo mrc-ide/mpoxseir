@@ -130,6 +130,7 @@ __host__ __device__ T odin_sign(T x) {
 // [[dust::param(alpha_deaths_05_14, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(alpha_deaths_15_plus, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_h, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
+// [[dust::param(beta_hcw, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_s, has_default = FALSE, default_value = NULL, rank = 0, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(beta_z, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
 // [[dust::param(children_ind_raw, has_default = FALSE, default_value = NULL, rank = 1, min = -Inf, max = Inf, integer = FALSE)]]
@@ -159,6 +160,9 @@ public:
     real_type cases_00_04;
     real_type cases_05_14;
     real_type cases_15_plus;
+    real_type cases_HCW;
+    real_type cases_SW;
+    real_type cases_total;
     real_type deaths;
     real_type deaths_00_04;
     real_type deaths_05_14;
@@ -185,6 +189,7 @@ public:
     real_type alpha_deaths_05_14;
     real_type alpha_deaths_15_plus;
     real_type beta_h;
+    real_type beta_hcw;
     real_type beta_s;
     std::vector<real_type> beta_z;
     std::vector<real_type> children_ind_raw;
@@ -617,6 +622,7 @@ public:
     const real_type cases_inc_15_plus = state[10];
     const real_type cases_inc_SW = state[12];
     const real_type cases_inc_PBS = state[11];
+    const real_type cases_inc_HCW = state[13];
     const real_type cases_cumulative = state[6];
     const real_type cases_cumulative_00_04 = state[20];
     const real_type cases_cumulative_05_14 = state[21];
@@ -921,7 +927,7 @@ public:
     }
     for (int i = 1; i <= shared->dim_lambda_1; ++i) {
       for (int j = 1; j <= shared->dim_lambda_2; ++j) {
-        internal.lambda[i - 1 + shared->dim_lambda_1 * (j - 1)] = ((shared->beta_h * odin_sum2<real_type>(internal.s_ij_gen_pop.data(), i - 1, i, 0, shared->dim_s_ij_gen_pop_2, shared->dim_s_ij_gen_pop_1)) + (shared->beta_s * odin_sum2<real_type>(internal.s_ij_sex.data(), i - 1, i, 0, shared->dim_s_ij_sex_2, shared->dim_s_ij_sex_1)) + shared->beta_z[i - 1]) * (1 - shared->ve_I[shared->dim_ve_I_1 * (j - 1) + i - 1]);
+        internal.lambda[i - 1 + shared->dim_lambda_1 * (j - 1)] = (shared->beta_h * odin_sum2<real_type>(internal.s_ij_gen_pop.data(), i - 1, i, 0, shared->dim_s_ij_gen_pop_2, shared->dim_s_ij_gen_pop_1) + shared->beta_s * odin_sum2<real_type>(internal.s_ij_sex.data(), i - 1, i, 0, shared->dim_s_ij_sex_2, shared->dim_s_ij_sex_1) + (i == 20) * shared->beta_hcw * odin_sum2<real_type>(internal.I_infectious.data(), 0, shared->dim_I_infectious_1, 0, shared->dim_I_infectious_2, shared->dim_I_infectious_1) + shared->beta_z[i - 1]) * (1 - shared->ve_I[shared->dim_ve_I_1 * (j - 1) + i - 1]);
       }
     }
     real_type new_deaths_15_plus = odin_sum2<real_type>(internal.n_IdD.data(), 3, 16, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1) + new_deaths_SW_15_17 + odin_sum2<real_type>(internal.n_IdD.data(), 17, 20, 0, shared->dim_n_IdD_2, shared->dim_n_IdD_1);
@@ -1030,7 +1036,7 @@ public:
     state_next[23] = cases_cumulative_PBS + new_cases_PBS;
     state_next[24] = cases_cumulative_SW + new_cases_SW;
     state_next[8] = cases_inc_00_04 * is_same_week + new_cases_00_04;
-    state_next[13] = cases_inc_SW * is_same_week + new_cases_HCW;
+    state_next[13] = cases_inc_HCW * is_same_week + new_cases_HCW;
     state_next[11] = cases_inc_PBS * is_same_week + new_cases_PBS;
     state_next[12] = cases_inc_SW * is_same_week + new_cases_SW;
     real_type new_cases_15_plus = odin_sum2<real_type>(internal.n_SEa.data(), 3, 16, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1) + new_cases_SW_15_17 + odin_sum2<real_type>(internal.n_SEa.data(), 17, 20, 0, shared->dim_n_SEa_2, shared->dim_n_SEa_1);
@@ -1049,6 +1055,8 @@ public:
     const real_type cases_inc_00_04 = state[8];
     const real_type cases_inc_05_14 = state[9];
     const real_type cases_inc_15_plus = state[10];
+    const real_type cases_inc_SW = state[12];
+    const real_type cases_inc_HCW = state[13];
     const real_type deaths_inc = state[5];
     const real_type deaths_inc_00_04 = state[14];
     const real_type deaths_inc_05_14 = state[15];
@@ -1057,6 +1065,10 @@ public:
     real_type model_cases_00_04 = cases_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_05_14 = cases_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_cases_15_plus = cases_inc_15_plus + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_HCW = cases_inc_HCW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_SW = cases_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_non_HCW = cases_inc - cases_inc_HCW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
+    real_type model_cases_non_SW = cases_inc - cases_inc_SW + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths = deaths_inc + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_00_04 = deaths_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_05_14 = deaths_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
@@ -1069,7 +1081,11 @@ public:
     const auto compare_deaths_00_04 = (std::isnan(data.deaths_00_04)) ? 0 : dust::density::negative_binomial_mu(data.deaths_00_04, 1 / (real_type) shared->alpha_deaths_00_04, model_deaths_00_04, true);
     const auto compare_deaths_05_14 = (std::isnan(data.deaths_05_14)) ? 0 : dust::density::negative_binomial_mu(data.deaths_05_14, 1 / (real_type) shared->alpha_deaths_05_14, model_deaths_05_14, true);
     const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.deaths_15_plus, 1 / (real_type) shared->alpha_deaths_15_plus, model_deaths_15_plus, true);
-    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
+    real_type model_prop_HCW = model_cases_HCW / (real_type) (model_cases_HCW + model_cases_non_HCW);
+    real_type model_prop_SW = model_cases_SW / (real_type) (model_cases_SW + model_cases_non_SW);
+    const auto compare_cases_HCW = (std::isnan(data.cases_total) || std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data.cases_total, model_prop_HCW, true);
+    const auto compare_cases_SW = (std::isnan(data.cases_total) || std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data.cases_total, model_prop_SW, true);
+    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_cases_HCW + compare_cases_SW + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -1364,6 +1380,7 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->alpha_deaths_05_14 = NA_REAL;
   shared->alpha_deaths_15_plus = NA_REAL;
   shared->beta_h = NA_REAL;
+  shared->beta_hcw = NA_REAL;
   shared->beta_s = NA_REAL;
   shared->gamma_E = NA_REAL;
   shared->gamma_Id = NA_REAL;
@@ -1386,6 +1403,7 @@ dust::pars_type<model_targeted_vax> dust_pars<model_targeted_vax>(cpp11::list us
   shared->alpha_deaths_05_14 = user_get_scalar<real_type>(user, "alpha_deaths_05_14", shared->alpha_deaths_05_14, NA_REAL, NA_REAL);
   shared->alpha_deaths_15_plus = user_get_scalar<real_type>(user, "alpha_deaths_15_plus", shared->alpha_deaths_15_plus, NA_REAL, NA_REAL);
   shared->beta_h = user_get_scalar<real_type>(user, "beta_h", shared->beta_h, NA_REAL, NA_REAL);
+  shared->beta_hcw = user_get_scalar<real_type>(user, "beta_hcw", shared->beta_hcw, NA_REAL, NA_REAL);
   shared->beta_s = user_get_scalar<real_type>(user, "beta_s", shared->beta_s, NA_REAL, NA_REAL);
   shared->dt = user_get_scalar<real_type>(user, "dt", shared->dt, NA_REAL, NA_REAL);
   shared->exp_noise = user_get_scalar<real_type>(user, "exp_noise", shared->exp_noise, NA_REAL, NA_REAL);
@@ -1871,6 +1889,9 @@ model_targeted_vax::data_type dust_data<model_targeted_vax>(cpp11::list data) {
       cpp11::as_cpp<real_type>(data["cases_00_04"]),
       cpp11::as_cpp<real_type>(data["cases_05_14"]),
       cpp11::as_cpp<real_type>(data["cases_15_plus"]),
+      cpp11::as_cpp<real_type>(data["cases_HCW"]),
+      cpp11::as_cpp<real_type>(data["cases_SW"]),
+      cpp11::as_cpp<real_type>(data["cases_total"]),
       cpp11::as_cpp<real_type>(data["deaths"]),
       cpp11::as_cpp<real_type>(data["deaths_00_04"]),
       cpp11::as_cpp<real_type>(data["deaths_05_14"]),

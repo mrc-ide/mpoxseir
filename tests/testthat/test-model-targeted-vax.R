@@ -13,12 +13,65 @@ test_that("run is equal to reference", {
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 })
 
+test_that("check cases and deaths are counted correctly", {
+  pars <- reference_pars_targeted_vax()
+  nms <- reference_names()
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(7, 21, by = 7)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  y <- m$transform_variables(res)
+  
+  expect_equal(y$cases_inc,
+               y$cases_inc_00_04 + y$cases_inc_05_14 + y$cases_inc_15_plus)
+  expect_equal(y$deaths_inc,
+               y$deaths_inc_00_04 + y$deaths_inc_05_14 + y$deaths_inc_15_plus)
+  expect_equal(y$cases_cumulative,
+               y$cases_cumulative_00_04 + y$cases_cumulative_05_14 +
+                 y$cases_cumulative_15_plus)
+  expect_equal(y$deaths_cumulative,
+               y$deaths_cumulative_00_04 + y$deaths_cumulative_05_14 + 
+                 y$deaths_cumulative_15_plus)
+  expect_equal(apply(y$cases_inc, 2, sum),
+               y$cases_cumulative[, , length(t)])
+  expect_equal(apply(y$cases_inc_00_04, 2, sum),
+               y$cases_cumulative_00_04[, , length(t)])
+  expect_equal(apply(y$cases_inc_05_14, 2, sum),
+               y$cases_cumulative_05_14[, , length(t)])
+  expect_equal(apply(y$cases_inc_15_plus, 2, sum),
+               y$cases_cumulative_15_plus[, , length(t)])
+  expect_equal(apply(y$cases_inc_PBS, 2, sum),
+               y$cases_cumulative_PBS[, , length(t)])
+  expect_equal(apply(y$cases_inc_SW, 2, sum),
+               y$cases_cumulative_SW[, , length(t)])
+  expect_equal(apply(y$cases_inc_HCW, 2, sum),
+               y$cases_cumulative_HCW[, , length(t)])
+  
+  expect_equal(apply(y$deaths_inc, 2, sum),
+               y$deaths_cumulative[, , length(t)])
+  expect_equal(apply(y$deaths_inc_00_04, 2, sum),
+               y$deaths_cumulative_00_04[, , length(t)])
+  expect_equal(apply(y$deaths_inc_05_14, 2, sum),
+               y$deaths_cumulative_05_14[, , length(t)])
+  expect_equal(apply(y$deaths_inc_15_plus, 2, sum),
+               y$deaths_cumulative_15_plus[, , length(t)])
+  expect_equal(apply(y$deaths_inc_PBS, 2, sum),
+               y$deaths_cumulative_PBS[, , length(t)])
+  expect_equal(apply(y$deaths_inc_SW, 2, sum),
+               y$deaths_cumulative_SW[, , length(t)])
+  expect_equal(apply(y$deaths_inc_HCW, 2, sum),
+               y$deaths_cumulative_HCW[, , length(t)])
+
+})
+
 
 test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
   pars$beta_z<- rep(0,pars$n_group)
+  pars$beta_hcw <- 0
 
   m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
   t <- seq(1, 21)
@@ -26,6 +79,28 @@ test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   rownames(res) <- names(unlist(m$info()$index))
 
   expect_true(all(res["cases_inc", , ] == 0))
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
+})
+
+
+test_that("when beta_hcw is > 0 there are infections in HCW only", {
+  pars <- reference_pars_targeted_vax()
+  pars$beta_h <- 0
+  pars$beta_s <- 0
+  pars$beta_z <- rep(0, pars$n_group)
+  
+  idx <- get_compartment_indices()
+  n_init <- sum(pars$Ea0)
+  pars$Ea0[] <- 0
+  pars$Eb0[idx$group$HCW, 2] <- n_init
+  
+  
+  m <- model_targeted_vax$new(pars, 1, 3, seed = 1)
+  t <- seq(1, 21)
+  res <- m$simulate(t)
+  rownames(res) <- names(unlist(m$info()$index))
+  
+  expect_true(all(res["cases_inc", , ] == res["cases_inc_HCW", , ]))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 })
 
@@ -66,7 +141,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
-  pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. SW)
+  pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. HCW)
   n_init <- sum(pars$Ea0)
   pars$Ea0[] <- 0
 
@@ -79,7 +154,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   names(y) <- names(idx)
   
   # check only infections are in SW
-  expect_equal(y$cases_cumulative_SW, y$cases_cumulative)
+  expect_equal(y$cases_cumulative_HCW, y$cases_cumulative)
   expect_equal(sum(y$I[-pars$n_group, , , ]), 0)
   expect_equal(sum(y$N_tot + n_init - sum(pars$N0)), 0)
 })
@@ -90,6 +165,7 @@ test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", 
   pars$beta_h <- 0
   pars$beta_z[] <- 0
   pars$beta_s <- 0.2
+  pars$beta_hcw <- 0
   pars$Ea0[] <- 0
   pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <- 0.5
   pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- 0.5
@@ -205,39 +281,28 @@ test_that("vaccines are only given in the prioritised groups", {
   t <- seq(1, 21)
   res <- m$simulate(t)
   rownames(res) <- names(unlist(m$info()$index))
-  
+
+  y <-  m$transform_variables(res)
+  idx <- get_compartment_indices()
+
+  pars$prioritisation_strategy_adults
   ## identify which child groups aren't prioritised for vaccination in the first step 
-  idx_novax_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_children[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
-  # only return the indices of interest, including only those related to 1st and 2nd doses 
-  idx_novax_children <- idx_novax_children[which(idx_novax_children!=0&idx_novax_children>=2*pars$n_group)]
+  idx_novax_children <- (pars$prioritisation_strategy_children[, 1] == 0) &
+    (pars$children_ind_raw > 0)
+  idx_vax <- c(idx$vax$one_dose, idx$vax$two_dose)
   
-  if(all(res["prioritisation_step_1st_dose_children",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_children),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_children),,]==0))
+  if(all(res["prioritisation_step_1st_dose_children", , ] == 1)){
+    expect_true(all(y$N[idx_novax_children, idx_vax, , ] == 0))
   }
   
+
   ## repeat above for adults, including first and second doses 
-  idx_novax_adults <- (rep(ceiling(pars$adults_ind_raw),pars$n_vax) - rep(ceiling(pars$prioritisation_strategy_adults[,1]),pars$n_vax))*seq(1:(pars$n_group*pars$n_vax))
-  # only return the indices of interest, including only those related to 1st and 2nd doses 
-  idx_novax_adults_1st_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=2*pars$n_group)]
   
-  if(all(res["prioritisation_step_1st_dose_adults",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_adults_1st_dose),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_adults_1st_dose),,]==0))
-  }
+  idx_novax_adults <- (pars$prioritisation_strategy_adults[, 1] == 0) &
+    (pars$adults_ind_raw > 0)
   
-  # only return the indices of interest (2nd doses) 
-  idx_novax_adults_2nd_dose <- idx_novax_adults[which(idx_novax_adults!=0&idx_novax_adults>=3*pars$n_group)]
-  
-  if(all(res["prioritisation_step_2nd_dose_adults",,]==1)){
-    expect_true(all(res[paste0("S",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("Ea",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("Eb",idx_novax_adults_2nd_dose),,]==0))
-    expect_true(all(res[paste0("R",idx_novax_adults_2nd_dose),,]==0))
+  if(all(res["prioritisation_step_1st_dose_adults",,] == 1)){
+    expect_true(all(y$N[idx_novax_adults, idx_vax, , ] == 0))
   }
 
 })
@@ -588,6 +653,7 @@ test_that("Test compiled compare components", {
   
   time <- 350
   y <- m$run(time)
+  rownames(y) <- names(unlist(m$info()$index))
   
   d <- data.frame(time = 350,
                   cases = 150,
@@ -597,7 +663,10 @@ test_that("Test compiled compare components", {
                   deaths = 50,
                   deaths_00_04 = 10,
                   deaths_05_14 = 15,
-                  deaths_15_plus = 25)
+                  deaths_15_plus = 25,
+                  cases_total = 150,
+                  cases_HCW = 5,
+                  cases_SW = 10)
   
   parts <- list(
     c("cases"),
@@ -607,8 +676,10 @@ test_that("Test compiled compare components", {
     c("deaths"),
     c("deaths_00_04"),
     c("deaths_05_14"),
-    c("deaths_15_plus"))
-  
+    c("deaths_15_plus"),
+    c("cases_HCW", "cases_total"),
+    c("cases_SW", "cases_total"))
+
   
   compare_part <- function(nms) {
     d_test <- d

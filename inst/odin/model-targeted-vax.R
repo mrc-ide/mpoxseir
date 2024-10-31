@@ -450,7 +450,7 @@ update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week +
 
 update(cases_inc_SW) <- cases_inc_SW * is_same_week + new_cases_SW
 update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + new_cases_PBS
-update(cases_inc_HCW) <- cases_inc_SW * is_same_week + new_cases_HCW
+update(cases_inc_HCW) <- cases_inc_HCW * is_same_week + new_cases_HCW
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
@@ -533,8 +533,13 @@ prop_infectious[] <-
 s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
-lambda[, ] <- ((beta_h * sum(s_ij_gen_pop[i, ])) +
-                 (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1 - ve_I[i, j])
+
+lambda[, ] <- (beta_h * sum(s_ij_gen_pop[i, ]) +
+                 beta_s * sum(s_ij_sex[i, ]) +
+# additional foi in HCW only (i = 20) homogenous from infected as assumed equally
+# likely to attend hospital
+                 (i == 20) * beta_hcw * sum(I_infectious[, ]) +
+                 beta_z[i]) * (1 - ve_I[i, j])
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
@@ -641,6 +646,7 @@ D0[, ] <- user()
 beta_h <- user()
 beta_s <- user()
 beta_z[] <- user()
+beta_hcw <- user()
 gamma_E <- user()
 gamma_Ir <- user()
 gamma_Id <- user()
@@ -734,16 +740,20 @@ dim(delta_Eb_n_vaccination) <- c(n_group, n_vax)
 dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 
-#### compare
+#### Compare functions
+# Options are Negative Binomial [Aggregate | By-age] for cases + deaths
+# Plus optional Binomial on % cases in HCW and/or SW
 
 exp_noise <- user(1e6)
 
-# cases
+## cases
+# Aggregate
 alpha_cases <- user()
 cases <- data()
 model_cases <- cases_inc + rexp(exp_noise)
 compare(cases) ~ negative_binomial_mu(1 / alpha_cases, model_cases)
 
+# By-age
 alpha_cases_00_04 <- user()
 cases_00_04 <- data()
 model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
@@ -762,12 +772,14 @@ model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
 compare(cases_15_plus) ~ 
   negative_binomial_mu(1 / alpha_cases_15_plus, model_cases_15_plus)
 
-# deaths
+## deaths
+# Aggregate
 alpha_deaths <- user()
 deaths <- data()
 model_deaths <- deaths_inc + rexp(exp_noise)
 compare(deaths) ~ negative_binomial_mu(1 / alpha_deaths, model_deaths)
 
+# By-age
 alpha_deaths_00_04 <- user()
 deaths_00_04 <- data()
 model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
@@ -785,3 +797,21 @@ deaths_15_plus <- data()
 model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
 compare(deaths_15_plus) ~ 
   negative_binomial_mu(1 / alpha_deaths_15_plus, model_deaths_15_plus)
+
+
+# Proportion of cases in key pops
+# create a data stream of aggregated cases that will work regardless of whether
+# fitting is by age or in aggregate
+cases_total <- data()
+
+cases_HCW <- data()
+model_cases_HCW <- cases_inc_HCW + rexp(exp_noise)
+model_cases_non_HCW <- cases_inc - cases_inc_HCW + rexp(exp_noise)
+model_prop_HCW <- model_cases_HCW / (model_cases_HCW + model_cases_non_HCW)
+compare(cases_HCW) ~ binomial(cases_total, model_prop_HCW)
+
+cases_SW <- data()
+model_cases_SW <- cases_inc_SW + rexp(exp_noise)
+model_cases_non_SW <- cases_inc - cases_inc_SW + rexp(exp_noise)
+model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
+compare(cases_SW) ~ binomial(cases_total, model_prop_SW)
