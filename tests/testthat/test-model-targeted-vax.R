@@ -590,40 +590,24 @@ test_that("Test compiled compare components", {
   y <- m$run(time)
   
   d <- data.frame(time = 350,
-                  cases_pois = 150,
-                  cases_pois_00_04 = 30,
-                  cases_pois_05_14 = 40,
-                  cases_pois_15_plus = 80,
-                  cases_negbin = 155,
-                  cases_negbin_00_04 = 32,
-                  cases_negbin_05_14 = 42,
-                  cases_negbin_15_plus = 81,
-                  deaths_pois = 50,
-                  deaths_pois_00_04 = 10,
-                  deaths_pois_05_14 = 15,
-                  deaths_pois_15_plus = 25,
-                  deaths_negbin = 55,
-                  deaths_negbin_00_04 = 12,
-                  deaths_negbin_05_14 = 17,
-                  deaths_negbin_15_plus = 26)
+                  cases = 150,
+                  cases_00_04 = 30,
+                  cases_05_14 = 40,
+                  cases_15_plus = 80,
+                  deaths = 50,
+                  deaths_00_04 = 10,
+                  deaths_05_14 = 15,
+                  deaths_15_plus = 25)
   
   parts <- list(
-    c("cases_pois"),
-    c("cases_pois_00_04"),
-    c("cases_pois_05_14"),
-    c("cases_pois_15_plus"),
-    c("cases_negbin"),
-    c("cases_negbin_00_04"),
-    c("cases_negbin_05_14"),
-    c("cases_negbin_15_plus"),
-    c("deaths_pois"),
-    c("deaths_pois_00_04"),
-    c("deaths_pois_05_14"),
-    c("deaths_pois_15_plus"),
-    c("deaths_negbin"),
-    c("deaths_negbin_00_04"),
-    c("deaths_negbin_05_14"),
-    c("deaths_negbin_15_plus"))
+    c("cases"),
+    c("cases_00_04"),
+    c("cases_05_14"),
+    c("cases_15_plus"),
+    c("deaths"),
+    c("deaths_00_04"),
+    c("deaths_05_14"),
+    c("deaths_15_plus"))
   
   
   compare_part <- function(nms) {
