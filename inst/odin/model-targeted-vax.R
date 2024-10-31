@@ -739,35 +739,49 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 exp_noise <- user(1e6)
 
 # cases
+alpha_cases <- user()
 cases <- data()
 model_cases <- cases_inc + rexp(exp_noise)
-compare(cases) ~ poisson(model_cases)
+compare(cases) ~ negative_binomial_mu(1 / alpha_cases, model_cases)
 
+alpha_cases_00_04 <- user()
 cases_00_04 <- data()
 model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
-compare(cases_00_04) ~ poisson(model_cases_00_04)
+compare(cases_00_04) ~
+  negative_binomial_mu(1 / alpha_cases_00_04, model_cases_00_04)
 
+alpha_cases_05_14 <- user()
 cases_05_14 <- data()
 model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
-compare(cases_05_14) ~ poisson(model_cases_05_14)
+compare(cases_05_14) ~ 
+  negative_binomial_mu(1 / alpha_cases_05_14, model_cases_05_14)
 
+alpha_cases_15_plus <- user()
 cases_15_plus <- data()
 model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
-compare(cases_15_plus) ~ poisson(model_cases_15_plus)
+compare(cases_15_plus) ~ 
+  negative_binomial_mu(1 / alpha_cases_15_plus, model_cases_15_plus)
 
 # deaths
+alpha_deaths <- user()
 deaths <- data()
 model_deaths <- deaths_inc + rexp(exp_noise)
-compare(deaths) ~ poisson(model_deaths)
+compare(deaths) ~ negative_binomial_mu(1 / alpha_deaths, model_deaths)
 
+alpha_deaths_00_04 <- user()
 deaths_00_04 <- data()
 model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
-compare(deaths_00_04) ~ poisson(model_deaths_00_04)
+compare(deaths_00_04) ~ 
+  negative_binomial_mu(1 / alpha_deaths_00_04, model_deaths_00_04)
 
+alpha_deaths_05_14 <- user()
 deaths_05_14 <- data()
 model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
-compare(deaths_05_14) ~ poisson(model_deaths_05_14)
+compare(deaths_05_14) ~ 
+  negative_binomial_mu(1 / alpha_deaths_05_14, model_deaths_05_14)
 
+alpha_deaths_15_plus <- user()
 deaths_15_plus <- data()
 model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
-compare(deaths_15_plus) ~ poisson(model_deaths_15_plus)
+compare(deaths_15_plus) ~ 
+  negative_binomial_mu(1 / alpha_deaths_15_plus, model_deaths_15_plus)
