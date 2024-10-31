@@ -156,25 +156,17 @@ public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
   struct __align__(16) data_type {
+    real_type cases;
+    real_type cases_00_04;
+    real_type cases_05_14;
+    real_type cases_15_plus;
     real_type cases_HCW;
     real_type cases_SW;
-    real_type cases_negbin;
-    real_type cases_negbin_00_04;
-    real_type cases_negbin_05_14;
-    real_type cases_negbin_15_plus;
-    real_type cases_pois;
-    real_type cases_pois_00_04;
-    real_type cases_pois_05_14;
-    real_type cases_pois_15_plus;
     real_type cases_total;
-    real_type deaths_negbin;
-    real_type deaths_negbin_00_04;
-    real_type deaths_negbin_05_14;
-    real_type deaths_negbin_15_plus;
-    real_type deaths_pois;
-    real_type deaths_pois_00_04;
-    real_type deaths_pois_05_14;
-    real_type deaths_pois_15_plus;
+    real_type deaths;
+    real_type deaths_00_04;
+    real_type deaths_05_14;
+    real_type deaths_15_plus;
   };
   struct shared_type {
     std::vector<real_type> CFR;
@@ -1081,27 +1073,19 @@ public:
     real_type model_deaths_00_04 = deaths_inc_00_04 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_05_14 = deaths_inc_05_14 + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
     real_type model_deaths_15_plus = deaths_inc_15_plus + dust::random::exponential<real_type>(rng_state, shared->exp_noise);
-    const auto compare_cases_negbin = (std::isnan(data.cases_negbin)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin, 1 / (real_type) shared->alpha_cases, model_cases, true);
-    const auto compare_cases_negbin_00_04 = (std::isnan(data.cases_negbin_00_04)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_00_04, 1 / (real_type) shared->alpha_cases_00_04, model_cases_00_04, true);
-    const auto compare_cases_negbin_05_14 = (std::isnan(data.cases_negbin_05_14)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_05_14, 1 / (real_type) shared->alpha_cases_05_14, model_cases_05_14, true);
-    const auto compare_cases_negbin_15_plus = (std::isnan(data.cases_negbin_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.cases_negbin_15_plus, 1 / (real_type) shared->alpha_cases_15_plus, model_cases_15_plus, true);
-    const auto compare_cases_pois = (std::isnan(data.cases_pois)) ? 0 : dust::density::poisson(data.cases_pois, model_cases, true);
-    const auto compare_cases_pois_00_04 = (std::isnan(data.cases_pois_00_04)) ? 0 : dust::density::poisson(data.cases_pois_00_04, model_cases_00_04, true);
-    const auto compare_cases_pois_05_14 = (std::isnan(data.cases_pois_05_14)) ? 0 : dust::density::poisson(data.cases_pois_05_14, model_cases_05_14, true);
-    const auto compare_cases_pois_15_plus = (std::isnan(data.cases_pois_15_plus)) ? 0 : dust::density::poisson(data.cases_pois_15_plus, model_cases_15_plus, true);
-    const auto compare_deaths_negbin = (std::isnan(data.deaths_negbin)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin, 1 / (real_type) shared->alpha_deaths, model_deaths, true);
-    const auto compare_deaths_negbin_00_04 = (std::isnan(data.deaths_negbin_00_04)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_00_04, 1 / (real_type) shared->alpha_deaths_00_04, model_deaths_00_04, true);
-    const auto compare_deaths_negbin_05_14 = (std::isnan(data.deaths_negbin_05_14)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_05_14, 1 / (real_type) shared->alpha_deaths_05_14, model_deaths_05_14, true);
-    const auto compare_deaths_negbin_15_plus = (std::isnan(data.deaths_negbin_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.deaths_negbin_15_plus, 1 / (real_type) shared->alpha_deaths_15_plus, model_deaths_15_plus, true);
-    const auto compare_deaths_pois = (std::isnan(data.deaths_pois)) ? 0 : dust::density::poisson(data.deaths_pois, model_deaths, true);
-    const auto compare_deaths_pois_00_04 = (std::isnan(data.deaths_pois_00_04)) ? 0 : dust::density::poisson(data.deaths_pois_00_04, model_deaths_00_04, true);
-    const auto compare_deaths_pois_05_14 = (std::isnan(data.deaths_pois_05_14)) ? 0 : dust::density::poisson(data.deaths_pois_05_14, model_deaths_05_14, true);
-    const auto compare_deaths_pois_15_plus = (std::isnan(data.deaths_pois_15_plus)) ? 0 : dust::density::poisson(data.deaths_pois_15_plus, model_deaths_15_plus, true);
+    const auto compare_cases = (std::isnan(data.cases)) ? 0 : dust::density::negative_binomial_mu(data.cases, 1 / (real_type) shared->alpha_cases, model_cases, true);
+    const auto compare_cases_00_04 = (std::isnan(data.cases_00_04)) ? 0 : dust::density::negative_binomial_mu(data.cases_00_04, 1 / (real_type) shared->alpha_cases_00_04, model_cases_00_04, true);
+    const auto compare_cases_05_14 = (std::isnan(data.cases_05_14)) ? 0 : dust::density::negative_binomial_mu(data.cases_05_14, 1 / (real_type) shared->alpha_cases_05_14, model_cases_05_14, true);
+    const auto compare_cases_15_plus = (std::isnan(data.cases_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.cases_15_plus, 1 / (real_type) shared->alpha_cases_15_plus, model_cases_15_plus, true);
+    const auto compare_deaths = (std::isnan(data.deaths)) ? 0 : dust::density::negative_binomial_mu(data.deaths, 1 / (real_type) shared->alpha_deaths, model_deaths, true);
+    const auto compare_deaths_00_04 = (std::isnan(data.deaths_00_04)) ? 0 : dust::density::negative_binomial_mu(data.deaths_00_04, 1 / (real_type) shared->alpha_deaths_00_04, model_deaths_00_04, true);
+    const auto compare_deaths_05_14 = (std::isnan(data.deaths_05_14)) ? 0 : dust::density::negative_binomial_mu(data.deaths_05_14, 1 / (real_type) shared->alpha_deaths_05_14, model_deaths_05_14, true);
+    const auto compare_deaths_15_plus = (std::isnan(data.deaths_15_plus)) ? 0 : dust::density::negative_binomial_mu(data.deaths_15_plus, 1 / (real_type) shared->alpha_deaths_15_plus, model_deaths_15_plus, true);
     real_type model_prop_HCW = model_cases_HCW / (real_type) (model_cases_HCW + model_cases_non_HCW);
     real_type model_prop_SW = model_cases_SW / (real_type) (model_cases_SW + model_cases_non_SW);
     const auto compare_cases_HCW = (std::isnan(data.cases_total) || std::isnan(data.cases_HCW)) ? 0 : dust::density::binomial(data.cases_HCW, data.cases_total, model_prop_HCW, true);
     const auto compare_cases_SW = (std::isnan(data.cases_total) || std::isnan(data.cases_SW)) ? 0 : dust::density::binomial(data.cases_SW, data.cases_total, model_prop_SW, true);
-    return compare_cases_HCW + compare_cases_SW + compare_cases_negbin + compare_cases_negbin_00_04 + compare_cases_negbin_05_14 + compare_cases_negbin_15_plus + compare_cases_pois + compare_cases_pois_00_04 + compare_cases_pois_05_14 + compare_cases_pois_15_plus + compare_deaths_negbin + compare_deaths_negbin_00_04 + compare_deaths_negbin_05_14 + compare_deaths_negbin_15_plus + compare_deaths_pois + compare_deaths_pois_00_04 + compare_deaths_pois_05_14 + compare_deaths_pois_15_plus;
+    return compare_cases + compare_cases_00_04 + compare_cases_05_14 + compare_cases_15_plus + compare_cases_HCW + compare_cases_SW + compare_deaths + compare_deaths_00_04 + compare_deaths_05_14 + compare_deaths_15_plus;
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -1901,25 +1885,17 @@ template <>
 model_targeted_vax::data_type dust_data<model_targeted_vax>(cpp11::list data) {
   using real_type = model_targeted_vax::real_type;
   return model_targeted_vax::data_type{
+      cpp11::as_cpp<real_type>(data["cases"]),
+      cpp11::as_cpp<real_type>(data["cases_00_04"]),
+      cpp11::as_cpp<real_type>(data["cases_05_14"]),
+      cpp11::as_cpp<real_type>(data["cases_15_plus"]),
       cpp11::as_cpp<real_type>(data["cases_HCW"]),
       cpp11::as_cpp<real_type>(data["cases_SW"]),
-      cpp11::as_cpp<real_type>(data["cases_negbin"]),
-      cpp11::as_cpp<real_type>(data["cases_negbin_00_04"]),
-      cpp11::as_cpp<real_type>(data["cases_negbin_05_14"]),
-      cpp11::as_cpp<real_type>(data["cases_negbin_15_plus"]),
-      cpp11::as_cpp<real_type>(data["cases_pois"]),
-      cpp11::as_cpp<real_type>(data["cases_pois_00_04"]),
-      cpp11::as_cpp<real_type>(data["cases_pois_05_14"]),
-      cpp11::as_cpp<real_type>(data["cases_pois_15_plus"]),
       cpp11::as_cpp<real_type>(data["cases_total"]),
-      cpp11::as_cpp<real_type>(data["deaths_negbin"]),
-      cpp11::as_cpp<real_type>(data["deaths_negbin_00_04"]),
-      cpp11::as_cpp<real_type>(data["deaths_negbin_05_14"]),
-      cpp11::as_cpp<real_type>(data["deaths_negbin_15_plus"]),
-      cpp11::as_cpp<real_type>(data["deaths_pois"]),
-      cpp11::as_cpp<real_type>(data["deaths_pois_00_04"]),
-      cpp11::as_cpp<real_type>(data["deaths_pois_05_14"]),
-      cpp11::as_cpp<real_type>(data["deaths_pois_15_plus"])
+      cpp11::as_cpp<real_type>(data["deaths"]),
+      cpp11::as_cpp<real_type>(data["deaths_00_04"]),
+      cpp11::as_cpp<real_type>(data["deaths_05_14"]),
+      cpp11::as_cpp<real_type>(data["deaths_15_plus"])
     };
 }
 }
