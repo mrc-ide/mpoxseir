@@ -1,3 +1,13 @@
+# mpoxseir 0.1.11
+
+* Parametrised HCWs
+* Added fitting to % cases in HCW / SW
+* Fixed output bug in cases among SW
+
+# mpoxseir 0.1.10
+
+* Added Negative-Binomial likelihood option
+
 # mpoxseir 0.1.7
 
 * Redefined mpoxseir date so that "2023-01-01" corresponds to mpoxseir date 0

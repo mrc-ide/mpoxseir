@@ -26,6 +26,16 @@ create_transform_params <- function(region, initial_infections,
     pars$beta_z_max <- transformed_pars["beta_z_max"]
     pars$R0_hh <- transformed_pars["R0_hh"]
     pars$R0_sw_st <- transformed_pars["R0_sw_st"]
+    
+    pars$alpha_cases <- transformed_pars["alpha_cases"]
+    pars$alpha_cases_00_04 <- pars$alpha_cases
+    pars$alpha_cases_05_14 <- pars$alpha_cases
+    pars$alpha_cases_15_plus <- pars$alpha_cases
+    
+    pars$alpha_deaths <- transformed_pars["alpha_deaths"]
+    pars$alpha_deaths_00_04 <- pars$alpha_deaths
+    pars$alpha_deaths_05_14 <- pars$alpha_deaths
+    pars$alpha_deaths_15_plus <- pars$alpha_deaths
 
     # Converting R0_hh to the beta_hh parameter given mixing matrix (excluding SW & PBS)
 

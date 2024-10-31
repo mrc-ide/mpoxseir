@@ -29,35 +29,40 @@ parameters_demographic <- function() {
   
   ## CSW: age 12-17
   
-  w_12_17 <- proportion_in_age_bins(group_bins["CSW", "start"],
+  w_CSW <- proportion_in_age_bins(group_bins["CSW", "start"],
                                     group_bins["CSW", "end"])
   # 60% 10-14 + 60% 15-19
-  N_12_17 <- N_age * w_12_17
+  N_CSW <- N_age * w_CSW
   
   ## ASW: age 18-49
-  w_18_49  <- proportion_in_age_bins(group_bins["ASW", "start"],
+  w_ASW  <- proportion_in_age_bins(group_bins["ASW", "start"],
                                      group_bins["ASW", "end"])
-  N_18_49 <- N_age * w_18_49
+  N_ASW <- N_age * w_ASW
 
   p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
-  N_CSW <- round(p_SW * N_12_17)
-  N_ASW <- round(p_SW * N_18_49)
+  N_CSW <- round(p_SW * N_CSW)
+  N_ASW <- round(p_SW * N_ASW)
   
   ## HCW / PBS: age 20-49
-  w_20_49 <- proportion_in_age_bins(group_bins["PBS", "start"],
+  w_PBS <- proportion_in_age_bins(group_bins["PBS", "start"],
                                     group_bins["PBS", "end"])
-  N_20_49 <- N_age * w_20_49
+  N_PBS <- N_age * w_PBS
   
   ## PBS
   # not changing this based on age as we only heard about young SWs not young PBS
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
   # we assume all greater than 20 to avoid vaccine issues
-  N_PBS <- round(p_PBS * N_20_49)
+  N_PBS <- round(p_PBS * N_PBS)
+  
+  ## HCWs: age 20-69 (from https://apps.who.int/nhwaportal/)
+  w_HCW <- proportion_in_age_bins(group_bins["HCW", "start"],
+                                    group_bins["HCW", "end"])
+  N_HCW <- N_age * w_HCW
   
   
   ## HCW
-  p_HCW <- 0 # for now
-  N_HCW <- round(p_HCW, N_20_49)
+  p_HCW <- 133809 / sum(N_age) # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
+  N_HCW <- round(p_HCW * N_HCW)
 
   N <- c(N_age - N_ASW - N_PBS - N_CSW - N_HCW,
          CSW = sum(N_CSW),
@@ -83,10 +88,10 @@ parameters_demographic <- function() {
   # assume homogenous mixing in day-to-day contacts (will add sex in fitting)
   # create a matrix with the probability of being in each key pop by age
   
-  p_kp <- cbind(CSW = p_SW * w_12_17,
-                ASW = p_SW * w_18_49,
-                PBS = p_PBS * w_20_49,
-                HCW = p_HCW * w_20_49)
+  p_kp <- cbind(CSW = p_SW * w_CSW,
+                ASW = p_SW * w_ASW,
+                PBS = p_PBS * w_PBS,
+                HCW = p_HCW * w_HCW)
   nms_kp <- colnames(p_kp)
   p_kp <- cbind(gen = 1 - rowSums(p_kp), p_kp)
 
@@ -254,7 +259,7 @@ get_group_bins <- function() {
   
   groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
                        start = c(12, 18, 20, 20),
-                       end = c(17, 49, 49, 49),
+                       end = c(17, 49, 49, 69),
                        children = c(1, 0, 0, 0))
   ret <- rbind(age_bins, groups)
   ret$adults <- 1 - ret$children
@@ -437,6 +442,15 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
+    beta_hcw = 0.001, # Will be fitted
+    alpha_cases = 0.5,
+    alpha_cases_00_04 = 0.5,
+    alpha_cases_05_14 = 0.5,
+    alpha_cases_15_plus = 0.5,
+    alpha_deaths = 0.5,
+    alpha_deaths_00_04 = 0.5,
+    alpha_deaths_05_14 = 0.5,
+    alpha_deaths_15_plus = 0.5,
     RR_z = RR_z,
     gamma_E = 1 / 7,  #  1/7 based on Besombes et al. on 29 clade I patients
     gamma_Ir = 1 / 18, # Jezek 1988 "clinical features of 282.."

@@ -161,7 +161,7 @@ update(prioritisation_step_2nd_dose_adults) <-
       prioritisation_step_2nd_dose_adults_proposal
 
 
-#prioritisation_step <- user()
+#prioritisation_step <- parameter()
 #initial(prioritisation_step) <- 1
 initial(prioritisation_step_1st_dose_children) <- 1
 initial(prioritisation_step_1st_dose_adults) <- 1
@@ -441,7 +441,7 @@ update(cases_inc_15_plus) <- cases_inc_15_plus + new_cases_15_plus
 
 update(cases_inc_SW) <- cases_inc_SW + new_cases_SW
 update(cases_inc_PBS) <- cases_inc_PBS + new_cases_PBS
-update(cases_inc_HCW) <- cases_inc_SW + new_cases_HCW
+update(cases_inc_HCW) <- cases_inc_HCW + new_cases_HCW
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
@@ -523,8 +523,13 @@ prop_infectious[] <-
 s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
-lambda[, ] <- ((beta_h * sum(s_ij_gen_pop[i, ])) +
-                 (beta_s * sum(s_ij_sex[i, ])) + beta_z[i]) * (1 - ve_I[i, j])
+
+lambda[, ] <- (beta_h * sum(s_ij_gen_pop[i, ]) +
+                 beta_s * sum(s_ij_sex[i, ]) +
+# additional foi in HCW only (i = 20) homogenous from infected as assumed equally
+# likely to attend hospital
+                 (i == 20) * beta_hcw * sum(I_infectious[, ]) +
+                 beta_z[i]) * (1 - ve_I[i, j])
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
@@ -631,6 +636,7 @@ D0 <- parameter()
 beta_h <- parameter()
 beta_s <- parameter()
 beta_z <- parameter()
+beta_hcw <- parameter()
 gamma_E <- parameter()
 gamma_Ir <- parameter()
 gamma_Id <- parameter()
@@ -639,7 +645,7 @@ CFR <- parameter()
 #vaccine efficacy parameters
 ve_T <- parameter()
 ve_I <- parameter()
-#ve_D[,] <- user() # this is included within the CFR
+#ve_D[,] <- parameter() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
 n_vax <- parameter()
@@ -721,40 +727,78 @@ dim(delta_Eb_n_vaccination) <- c(n_group, n_vax)
 dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 
-#### compare
+#### Compare functions
+# Options are Negative Binomial [Aggregate | By-age] for cases + deaths
+# Plus optional Binomial on % cases in HCW and/or SW
 
 exp_noise <- parameter(1e+06)
 
-# cases
+## cases
+# Aggregate
+alpha_cases <- parameter()
 cases <- data()
 model_cases <- cases_inc + Exponential(exp_noise)
-cases ~ Poisson(model_cases)
+cases ~ NegativeBinomial(size = 1 / alpha_cases, mu = model_cases)
 
+# By-age
+alpha_cases_00_04 <- parameter()
 cases_00_04 <- data()
 model_cases_00_04 <- cases_inc_00_04 + Exponential(exp_noise)
-cases_00_04 ~ Poisson(model_cases_00_04)
+cases_00_04 ~
+  NegativeBinomial(size = 1 / alpha_cases_00_04, mu = model_cases_00_04)
 
+alpha_cases_05_14 <- parameter()
 cases_05_14 <- data()
 model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
-cases_05_14 ~ Poisson(model_cases_05_14)
+cases_05_14 ~ 
+  NegativeBinomial(size = 1 / alpha_cases_05_14, mu = model_cases_05_14)
 
+alpha_cases_15_plus <- parameter()
 cases_15_plus <- data()
 model_cases_15_plus <- cases_inc_15_plus + Exponential(exp_noise)
-cases_15_plus ~ Poisson(model_cases_15_plus)
+cases_15_plus ~ 
+  NegativeBinomial(size = 1 / alpha_cases_15_plus, mu = model_cases_15_plus)
 
-# deaths
+## deaths
+# Aggregate
+alpha_deaths <- parameter()
 deaths <- data()
 model_deaths <- deaths_inc + Exponential(exp_noise)
-deaths ~ Poisson(model_deaths)
+deaths ~ NegativeBinomial(size = 1 / alpha_deaths, mu = model_deaths)
 
+# By-age
+alpha_deaths_00_04 <- parameter()
 deaths_00_04 <- data()
 model_deaths_00_04 <- deaths_inc_00_04 + Exponential(exp_noise)
-deaths_00_04 ~ Poisson(model_deaths_00_04)
+deaths_00_04 ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_00_04, mu = model_deaths_00_04)
 
+alpha_deaths_05_14 <- parameter()
 deaths_05_14 <- data()
 model_deaths_05_14 <- deaths_inc_05_14 + Exponential(exp_noise)
-deaths_05_14 ~ Poisson(model_deaths_05_14)
+deaths_05_14 ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_05_14, mu = model_deaths_05_14)
 
+alpha_deaths_15_plus <- parameter()
 deaths_15_plus <- data()
 model_deaths_15_plus <- deaths_inc_15_plus + Exponential(exp_noise)
-deaths_15_plus ~ Poisson(model_deaths_15_plus)
+deaths_15_plus ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_15_plus, mu = model_deaths_15_plus)
+
+
+# Proportion of cases in key pops
+# create a data stream of aggregated cases that will work regardless of whether
+# fitting is by age or in aggregate
+cases_total <- data()
+
+cases_HCW <- data()
+model_cases_HCW <- cases_inc_HCW +  Exponential(exp_noise)
+model_cases_non_HCW <- cases_inc - cases_inc_HCW +  Exponential(exp_noise)
+model_prop_HCW <- model_cases_HCW / (model_cases_HCW + model_cases_non_HCW)
+cases_HCW ~ Binomial(cases_total, model_prop_HCW)
+
+cases_SW <- data()
+model_cases_SW <- cases_inc_SW +  Exponential(exp_noise)
+model_cases_non_SW <- cases_inc - cases_inc_SW +  Exponential(exp_noise)
+model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
+cases_SW ~ Binomial(cases_total, model_prop_SW)
