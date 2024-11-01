@@ -413,9 +413,6 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   ## This may cause issues in future if vaccines that can be given to adults / 
   ## children have different efficacies.
   
-  vaccination_campaign_length_children <- 1
-  vaccination_campaign_length_adults <- 1
-
   N_prioritisation_steps_children <- 1
   N_prioritisation_steps_adults <- 1
   
@@ -464,12 +461,10 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     prioritisation_strategy_adults = prioritisation_strategy_adults,
     ve_I = ve_I,
     ve_T = ve_T,
-    vaccination_campaign_length_children = vaccination_campaign_length_children,
-    vaccination_campaign_length_adults = vaccination_campaign_length_adults,
-    daily_doses_children = matrix(0, nrow = vaccination_campaign_length_children,
-                                  ncol = n_vax),
-    daily_doses_adults = matrix(0, nrow = vaccination_campaign_length_adults,
-                                ncol = n_vax),
+    daily_doses_children_value = matrix(0, nrow = nvax, ncol = 1),
+    daily_doses_children_time = 1,
+    daily_doses_adults_value = matrix(0, nrow = nvax, ncol = 1),
+    daily_doses_adults_time = 1,
     children_ind_raw = group_bins$children,
     adults_ind_raw = group_bins$adults)
 
