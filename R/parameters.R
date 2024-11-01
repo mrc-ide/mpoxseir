@@ -461,9 +461,9 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
     prioritisation_strategy_adults = prioritisation_strategy_adults,
     ve_I = ve_I,
     ve_T = ve_T,
-    daily_doses_children_value = matrix(0, nrow = nvax, ncol = 1),
+    daily_doses_children_value = matrix(0, nrow = n_vax, ncol = 1),
     daily_doses_children_time = 1,
-    daily_doses_adults_value = matrix(0, nrow = nvax, ncol = 1),
+    daily_doses_adults_value = matrix(0, nrow = n_vax, ncol = 1),
     daily_doses_adults_time = 1,
     children_ind_raw = group_bins$children,
     adults_ind_raw = group_bins$adults)
