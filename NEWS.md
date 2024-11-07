@@ -1,3 +1,7 @@
+# mpoxseir 0.2.0
+
+* Package ported from odin-dust-mcstate to odin2-dust2-monty
+
 # mpoxseir 0.1.11
 
 * Parametrised HCWs
