@@ -17,10 +17,13 @@ dim(children_ind_raw) <- c(n_group)
 adults_ind_raw <- parameter()
 dim(adults_ind_raw) <- c(n_group)
 
-## specify the daily number of vaccinations that can happen at each time point
-## first and last columns must be 0; last row must be 0 (pre-processing job)
-## column j corresponds to the people in j receiving a vaccine (so moving
-## to j + 1)
+### setup the number of daily doses
+##    daily_doses_value has dimensions n_vax x n_time
+##    daily_doses_time has dimensions n_time
+##    daily_doses_t then has dimensions n_vax
+## we use interpolate such that 
+##    daily_doses_t[i] = daily_doses_value[i, j] when 
+##      daily_doses_time[i] <= time + dt < daily_doses_time[i + 1]
 daily_doses_children_value <- parameter()
 dim(daily_doses_children_value) <- parameter(rank = 2)
 daily_doses_children_time <- parameter()
@@ -31,8 +34,6 @@ dim(daily_doses_adults_value) <- parameter(rank = 2)
 daily_doses_adults_time <- parameter()
 dim(daily_doses_adults_time) <- parameter(rank = 1)
 
-## with this we need to ensure daily_doses for children and adults final time
-## step is all 0 - done outside of the model in pre-processing
 daily_doses_children_t <- 
   interpolate(daily_doses_children_time, daily_doses_children_value, "constant")
 dim(daily_doses_children_t) <- n_vax
