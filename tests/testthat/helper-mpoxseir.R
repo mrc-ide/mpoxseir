@@ -18,18 +18,15 @@ reference_pars_targeted_vax <- function(region = "equateur") {
   # some basic parameters so vaccination runs for all tests but then can develop further for vax specific ones in the tests themselves
   
   # daily doses
-  pars$vaccination_campaign_length_children <- 10
-  pars$daily_doses_children <- matrix(0,ncol=n_vax,
-                                 nrow=pars$vaccination_campaign_length_children)
-  pars$daily_doses_children[1:(pars$vaccination_campaign_length_children-1),
-                       2] <- 1000
+  pars$daily_doses_children_time <- c(1, 10)
+  pars$daily_doses_children_value <- matrix(0, nrow = n_vax, ncol = 2)
+  pars$daily_doses_children_value[idx$vax$unvaccinated, 1] <- 1000
   
-  pars$vaccination_campaign_length_adults <- 15
-  pars$daily_doses_adults <- matrix(0,ncol=n_vax,
-                               nrow=pars$vaccination_campaign_length_adults)
-  pars$daily_doses_adults[1:(pars$vaccination_campaign_length_adults-5),2] <- 1000
-  pars$daily_doses_adults[5:(pars$vaccination_campaign_length_adults-1),3] <- 1000
-
+  pars$daily_doses_adults_time <- c(1, 11, 15)
+  pars$daily_doses_adults_value <- matrix(0, nrow = n_vax, ncol = 3)
+  pars$daily_doses_adults_value[idx$vax$unvaccinated, 1] <- 1000
+  pars$daily_doses_adults_value[idx$vax$one_dose, 2] <- 1000
+  
   pars$N_prioritisation_steps_children <- 3
   pars$N_prioritisation_steps_adults <- 2
   
@@ -63,4 +60,16 @@ reference_names <- function() {
   list(
     states = paste0(rep(states, each = n_group*n_vax), seq_len(n_group*n_vax))
   )
+}
+
+
+interpolate_daily_doses <- function(daily_doses_time, daily_doses_value) {
+  t(vapply(seq_len(nrow(daily_doses_value)),
+           function (i) {
+             approx(daily_doses_time, 
+                    daily_doses_value[i, ],
+                    xout = seq(daily_doses_time[1],
+                               daily_doses_time[length(daily_doses_time)]), 
+                    method = "constant")$y},
+           numeric(max(daily_doses_time))))
 }

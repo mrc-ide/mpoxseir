@@ -1,12 +1,5 @@
 # State indices: [i: age; j: vaccination]
 
-# Time Steps
-dt <- user(1)
-steps_per_week <- 7 / dt
-initial(time) <- step
-update(time) <- (step + 1) * dt
-#output(time) <- TRUE
-
 #### Vaccination
 
 ## j = 1: previous smallpox vaccine (efficacy roughly at one dose)
@@ -19,47 +12,48 @@ update(time) <- (step + 1) * dt
 ## below are indicators for children vs adult groups
 ## use of _raw indicates that we are in prop form for the boundary category
 ## of 15 - 19
-children_ind_raw[] <- user()
+children_ind_raw <- parameter()
 dim(children_ind_raw) <- c(n_group)
-adults_ind_raw[] <- user()
+adults_ind_raw <- parameter()
 dim(adults_ind_raw) <- c(n_group)
 
-## specify the daily number of vaccinations that can happen at each time point
-## first and last columns must be 0; last row must be 0 (pre-processing job)
-## column j corresponds to the people in j receiving a vaccine (so moving
-## to j + 1)
-daily_doses_children[, ] <- user()
-dim(daily_doses_children) <- c(vaccination_campaign_length_children, n_vax)
+### setup the number of daily doses
+##    daily_doses_value has dimensions n_vax x n_time
+##    daily_doses_time has dimensions n_time
+##    daily_doses_t then has dimensions n_vax
+## we use interpolate such that 
+##    daily_doses_t[i] = daily_doses_value[i, j] when 
+##      daily_doses_time[i] <= time + dt < daily_doses_time[i + 1]
+daily_doses_children_value <- parameter()
+dim(daily_doses_children_value) <- parameter(rank = 2)
+daily_doses_children_time <- parameter()
+dim(daily_doses_children_time) <- parameter(rank = 1)
 
-daily_doses_adults[, ] <- user()
-dim(daily_doses_adults) <- c(vaccination_campaign_length_adults, n_vax)
+daily_doses_adults_value <- parameter()
+dim(daily_doses_adults_value) <- parameter(rank = 2)
+daily_doses_adults_time <- parameter()
+dim(daily_doses_adults_time) <- parameter(rank = 1)
 
-## with this we need to ensure daily_doses for children and adults final time
-## step is all 0 - done outside of the model in pre-processing
-daily_doses_children_t[] <-
-  if (as.integer(time) >= (vaccination_campaign_length_children))
-    daily_doses_children[vaccination_campaign_length_children, i] else
-      daily_doses_children[time, i]
+daily_doses_children_t <- 
+  interpolate(daily_doses_children_time, daily_doses_children_value, "constant")
 dim(daily_doses_children_t) <- n_vax
 
-daily_doses_adults_t[] <-
-  if (as.integer(time) >= (vaccination_campaign_length_adults))
-    daily_doses_adults[vaccination_campaign_length_adults, i] else
-      daily_doses_adults[time, i]
+daily_doses_adults_t <- 
+  interpolate(daily_doses_adults_time, daily_doses_adults_value, "constant")
 dim(daily_doses_adults_t) <- n_vax
 
 ## allocate the daily doses according to prioritisation strategy
 
 ## the number of different prioritisation strategies that we are considering
-N_prioritisation_steps_children <- user()
-N_prioritisation_steps_adults <- user()
+N_prioritisation_steps_children <- parameter()
+N_prioritisation_steps_adults <- parameter()
 ## what this corresponds to in terms of groups is encoded here
 ## this is independent of dose / applies to both doses
-prioritisation_strategy_children[, ] <- user()
+prioritisation_strategy_children <- parameter()
 dim(prioritisation_strategy_children) <-
   c(n_group, N_prioritisation_steps_children)
 
-prioritisation_strategy_adults[, ] <- user()
+prioritisation_strategy_adults <- parameter()
 dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 
 ## vaccination targets: for each group, what is the level of coverage we want to
@@ -168,7 +162,7 @@ update(prioritisation_step_2nd_dose_adults) <-
       prioritisation_step_2nd_dose_adults_proposal
 
 
-#prioritisation_step <- user()
+#prioritisation_step <- parameter()
 #initial(prioritisation_step) <- 1
 initial(prioritisation_step_1st_dose_children) <- 1
 initial(prioritisation_step_1st_dose_adults) <- 1
@@ -432,7 +426,7 @@ update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] +
 # X_15_plus includes all 50% CSW (ages 15-17), and all ASW, PBS, HCW
 
 new_cases_00_04 <- sum(n_SEa[1, ])
-new_cases_SW_12_14 <- rbinom(sum(n_SEa[17, ]), 0.5)
+new_cases_SW_12_14 <- Binomial(sum(n_SEa[17, ]), 0.5)
 new_cases_SW_15_17 <- sum(n_SEa[17, ]) - new_cases_SW_12_14
 new_cases_05_14 <- sum(n_SEa[2:3, ]) + new_cases_SW_12_14
 new_cases_15_plus <-
@@ -441,16 +435,14 @@ new_cases_SW <- sum(n_SEa[17:18, ])
 new_cases_PBS <- sum(n_SEa[19, ])
 new_cases_HCW <- sum(n_SEa[20, ])
 
-is_same_week <- step %% steps_per_week > 0
-update(cases_inc) <- cases_inc * is_same_week + sum(n_SEa[, ])
-update(cases_inc_00_04) <- cases_inc_00_04 * is_same_week + new_cases_00_04
-update(cases_inc_05_14) <- cases_inc_05_14 * is_same_week + new_cases_05_14
-update(cases_inc_15_plus) <- cases_inc_15_plus * is_same_week +
-  new_cases_15_plus
+update(cases_inc) <- cases_inc + sum(n_SEa[, ])
+update(cases_inc_00_04) <- cases_inc_00_04 + new_cases_00_04
+update(cases_inc_05_14) <- cases_inc_05_14 + new_cases_05_14
+update(cases_inc_15_plus) <- cases_inc_15_plus + new_cases_15_plus
 
-update(cases_inc_SW) <- cases_inc_SW * is_same_week + new_cases_SW
-update(cases_inc_PBS) <- cases_inc_PBS * is_same_week + new_cases_PBS
-update(cases_inc_HCW) <- cases_inc_HCW * is_same_week + new_cases_HCW
+update(cases_inc_SW) <- cases_inc_SW + new_cases_SW
+update(cases_inc_PBS) <- cases_inc_PBS + new_cases_PBS
+update(cases_inc_HCW) <- cases_inc_HCW + new_cases_HCW
 
 # cumulative cases
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
@@ -463,7 +455,7 @@ update(cases_cumulative_HCW) <- cases_cumulative_HCW + new_cases_HCW
 
 
 new_deaths_00_04 <- sum(n_IdD[1, ])
-new_deaths_SW_12_14 <- rbinom(sum(n_IdD[17, ]), 0.5)
+new_deaths_SW_12_14 <- Binomial(sum(n_IdD[17, ]), 0.5)
 new_deaths_SW_15_17 <- sum(n_IdD[17, ]) - new_deaths_SW_12_14
 new_deaths_05_14 <- sum(n_IdD[2:3, ]) + new_deaths_SW_12_14
 new_deaths_15_plus <-
@@ -472,15 +464,14 @@ new_deaths_SW <- sum(n_IdD[17:18, ])
 new_deaths_PBS <- sum(n_IdD[19, ])
 new_deaths_HCW <- sum(n_IdD[20, ])
 # weekly deaths
-update(deaths_inc) <- deaths_inc * is_same_week + sum(n_IdD[, ])
-update(deaths_inc_00_04) <- deaths_inc_00_04 * is_same_week + new_deaths_00_04
-update(deaths_inc_05_14) <- deaths_inc_05_14 * is_same_week + new_deaths_05_14
-update(deaths_inc_15_plus) <-
-  deaths_inc_15_plus * is_same_week + new_deaths_15_plus
+update(deaths_inc) <- deaths_inc + sum(n_IdD[, ])
+update(deaths_inc_00_04) <- deaths_inc_00_04 + new_deaths_00_04
+update(deaths_inc_05_14) <- deaths_inc_05_14 + new_deaths_05_14
+update(deaths_inc_15_plus) <- deaths_inc_15_plus + new_deaths_15_plus
 
-update(deaths_inc_SW) <- deaths_inc_SW * is_same_week + new_deaths_SW
-update(deaths_inc_PBS) <- deaths_inc_PBS * is_same_week + new_deaths_PBS
-update(deaths_inc_HCW) <- deaths_inc_HCW * is_same_week + new_deaths_HCW
+update(deaths_inc_SW) <- deaths_inc_SW + new_deaths_SW
+update(deaths_inc_PBS) <- deaths_inc_PBS + new_deaths_PBS
+update(deaths_inc_HCW) <- deaths_inc_HCW + new_deaths_HCW
 
 # cumulative deaths
 update(deaths_cumulative) <- deaths_cumulative + sum(n_IdD[, ])
@@ -521,8 +512,8 @@ p_IdD <- 1 - exp(-gamma_Id * dt)
 # Compute the force of infection
 
 #  Mixing Matrix
-m_gen_pop[, ] <- user()
-m_sex[, ] <- user()
+m_gen_pop <- parameter()
+m_sex <- parameter()
 # I adjusted for reduced transmissibility
 I_infectious[, ] <- I[i, j] * (1 - ve_T[j])
 
@@ -543,17 +534,17 @@ lambda[, ] <- (beta_h * sum(s_ij_gen_pop[i, ]) +
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
-n_SEa[, ] <- rbinom(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
-n_EaEb[, ] <- rbinom(Ea[i, j] + delta_Ea_n_vaccination[i, j], p_EE)
-n_EbI[, ] <- rbinom(Eb[i, j] + delta_Eb_n_vaccination[i, j], p_EI)
+n_SEa[, ] <- Binomial(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
+n_EaEb[, ] <- Binomial(Ea[i, j] + delta_Ea_n_vaccination[i, j], p_EE)
+n_EbI[, ] <- Binomial(Eb[i, j] + delta_Eb_n_vaccination[i, j], p_EI)
 # Proportion of the infections that will die, impact of vaccination included
 # already as part of inputs
-n_EbId[, ] <- rbinom(n_EbI[i, j], CFR[i, j])
+n_EbId[, ] <- Binomial(n_EbI[i, j], CFR[i, j])
 # whatever infections don't die go to R
 n_EbIr[, ] <- n_EbI[i, j] - n_EbId[i, j]
 
-n_IrR[, ] <- rbinom(Ir[i, j], p_IrR)
-n_IdD[, ] <- rbinom(Id[i, j], p_IdD)
+n_IrR[, ] <- Binomial(Ir[i, j], p_IrR)
+n_IdD[, ] <- Binomial(Id[i, j], p_IdD)
 
 ## Calculate net change in each model state
 delta_Ea[, ] <- n_SEa[i, j] - n_EaEb[i, j]
@@ -576,23 +567,23 @@ initial(E[, ]) <- Ea0[i, j] + Eb0[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
-initial(cases_inc) <- 0
-initial(deaths_inc) <- 0
+initial(cases_inc, zero_every = 7) <- 0
+initial(deaths_inc, zero_every = 7) <- 0
 initial(cases_cumulative) <- 0
 initial(deaths_cumulative) <- 0
 
-initial(cases_inc_00_04) <- 0
-initial(cases_inc_05_14) <- 0
-initial(cases_inc_15_plus) <- 0
-initial(cases_inc_PBS) <- 0
-initial(cases_inc_SW) <- 0
-initial(cases_inc_HCW) <- 0
-initial(deaths_inc_00_04) <- 0
-initial(deaths_inc_05_14) <- 0
-initial(deaths_inc_15_plus) <- 0
-initial(deaths_inc_PBS) <- 0
-initial(deaths_inc_SW) <- 0
-initial(deaths_inc_HCW) <- 0
+initial(cases_inc_00_04, zero_every = 7) <- 0
+initial(cases_inc_05_14, zero_every = 7) <- 0
+initial(cases_inc_15_plus, zero_every = 7) <- 0
+initial(cases_inc_PBS, zero_every = 7) <- 0
+initial(cases_inc_SW, zero_every = 7) <- 0
+initial(cases_inc_HCW, zero_every = 7) <- 0
+initial(deaths_inc_00_04, zero_every = 7) <- 0
+initial(deaths_inc_05_14, zero_every = 7) <- 0
+initial(deaths_inc_15_plus, zero_every = 7) <- 0
+initial(deaths_inc_PBS, zero_every = 7) <- 0
+initial(deaths_inc_SW, zero_every = 7) <- 0
+initial(deaths_inc_HCW, zero_every = 7) <- 0
 
 initial(cases_cumulative_00_04) <- 0
 initial(cases_cumulative_05_14) <- 0
@@ -634,32 +625,32 @@ initial(total_vax_1stdose) <- 0
 initial(total_vax_2nddose) <- 0
 
 ##Initial vectors
-S0[, ] <- user()
-Ea0[, ] <- user()
-Eb0[, ] <- user()
-Ir0[, ] <- user()
-Id0[, ] <- user()
-R0[, ] <- user()
-D0[, ] <- user()
+S0 <- parameter()
+Ea0 <- parameter()
+Eb0 <- parameter()
+Ir0 <- parameter()
+Id0 <- parameter()
+R0 <- parameter()
+D0 <- parameter()
 
 ##Parameters
-beta_h <- user()
-beta_s <- user()
-beta_z[] <- user()
-beta_hcw <- user()
-gamma_E <- user()
-gamma_Ir <- user()
-gamma_Id <- user()
-CFR[, ] <- user()
+beta_h <- parameter()
+beta_s <- parameter()
+beta_z <- parameter()
+beta_hcw <- parameter()
+gamma_E <- parameter()
+gamma_Ir <- parameter()
+gamma_Id <- parameter()
+CFR <- parameter()
 
 #vaccine efficacy parameters
-ve_T[] <- user()
-ve_I[, ] <- user()
-#ve_D[,] <- user() # this is included within the CFR
+ve_T <- parameter()
+ve_I <- parameter()
+#ve_D[,] <- parameter() # this is included within the CFR
 
 #Number of age classes & number of transmissibility classes
-n_vax <- user()
-n_group <- user()
+n_vax <- parameter()
+n_group <- parameter()
 
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
@@ -716,9 +707,6 @@ dim(CFR) <- c(n_group, n_vax)
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group, n_vax)
 
-vaccination_campaign_length_children <- user()
-vaccination_campaign_length_adults <- user()
-
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
 dim(n_vaccination_t_Eb) <- c(n_group, n_vax)
@@ -744,59 +732,59 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 # Options are Negative Binomial [Aggregate | By-age] for cases + deaths
 # Plus optional Binomial on % cases in HCW and/or SW
 
-exp_noise <- user(1e6)
+exp_noise <- parameter(1e+06)
 
 ## cases
 # Aggregate
-alpha_cases <- user()
+alpha_cases <- parameter()
 cases <- data()
-model_cases <- cases_inc + rexp(exp_noise)
-compare(cases) ~ negative_binomial_mu(1 / alpha_cases, model_cases)
+model_cases <- cases_inc + Exponential(exp_noise)
+cases ~ NegativeBinomial(size = 1 / alpha_cases, mu = model_cases)
 
 # By-age
-alpha_cases_00_04 <- user()
+alpha_cases_00_04 <- parameter()
 cases_00_04 <- data()
-model_cases_00_04 <- cases_inc_00_04 + rexp(exp_noise)
-compare(cases_00_04) ~
-  negative_binomial_mu(1 / alpha_cases_00_04, model_cases_00_04)
+model_cases_00_04 <- cases_inc_00_04 + Exponential(exp_noise)
+cases_00_04 ~
+  NegativeBinomial(size = 1 / alpha_cases_00_04, mu = model_cases_00_04)
 
-alpha_cases_05_14 <- user()
+alpha_cases_05_14 <- parameter()
 cases_05_14 <- data()
-model_cases_05_14 <- cases_inc_05_14 + rexp(exp_noise)
-compare(cases_05_14) ~ 
-  negative_binomial_mu(1 / alpha_cases_05_14, model_cases_05_14)
+model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
+cases_05_14 ~ 
+  NegativeBinomial(size = 1 / alpha_cases_05_14, mu = model_cases_05_14)
 
-alpha_cases_15_plus <- user()
+alpha_cases_15_plus <- parameter()
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + rexp(exp_noise)
-compare(cases_15_plus) ~ 
-  negative_binomial_mu(1 / alpha_cases_15_plus, model_cases_15_plus)
+model_cases_15_plus <- cases_inc_15_plus + Exponential(exp_noise)
+cases_15_plus ~ 
+  NegativeBinomial(size = 1 / alpha_cases_15_plus, mu = model_cases_15_plus)
 
 ## deaths
 # Aggregate
-alpha_deaths <- user()
+alpha_deaths <- parameter()
 deaths <- data()
-model_deaths <- deaths_inc + rexp(exp_noise)
-compare(deaths) ~ negative_binomial_mu(1 / alpha_deaths, model_deaths)
+model_deaths <- deaths_inc + Exponential(exp_noise)
+deaths ~ NegativeBinomial(size = 1 / alpha_deaths, mu = model_deaths)
 
 # By-age
-alpha_deaths_00_04 <- user()
+alpha_deaths_00_04 <- parameter()
 deaths_00_04 <- data()
-model_deaths_00_04 <- deaths_inc_00_04 + rexp(exp_noise)
-compare(deaths_00_04) ~ 
-  negative_binomial_mu(1 / alpha_deaths_00_04, model_deaths_00_04)
+model_deaths_00_04 <- deaths_inc_00_04 + Exponential(exp_noise)
+deaths_00_04 ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_00_04, mu = model_deaths_00_04)
 
-alpha_deaths_05_14 <- user()
+alpha_deaths_05_14 <- parameter()
 deaths_05_14 <- data()
-model_deaths_05_14 <- deaths_inc_05_14 + rexp(exp_noise)
-compare(deaths_05_14) ~ 
-  negative_binomial_mu(1 / alpha_deaths_05_14, model_deaths_05_14)
+model_deaths_05_14 <- deaths_inc_05_14 + Exponential(exp_noise)
+deaths_05_14 ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_05_14, mu = model_deaths_05_14)
 
-alpha_deaths_15_plus <- user()
+alpha_deaths_15_plus <- parameter()
 deaths_15_plus <- data()
-model_deaths_15_plus <- deaths_inc_15_plus + rexp(exp_noise)
-compare(deaths_15_plus) ~ 
-  negative_binomial_mu(1 / alpha_deaths_15_plus, model_deaths_15_plus)
+model_deaths_15_plus <- deaths_inc_15_plus + Exponential(exp_noise)
+deaths_15_plus ~ 
+  NegativeBinomial(size = 1 / alpha_deaths_15_plus, mu = model_deaths_15_plus)
 
 
 # Proportion of cases in key pops
@@ -805,13 +793,13 @@ compare(deaths_15_plus) ~
 cases_total <- data()
 
 cases_HCW <- data()
-model_cases_HCW <- cases_inc_HCW + rexp(exp_noise)
-model_cases_non_HCW <- cases_inc - cases_inc_HCW + rexp(exp_noise)
+model_cases_HCW <- cases_inc_HCW +  Exponential(exp_noise)
+model_cases_non_HCW <- cases_inc - cases_inc_HCW +  Exponential(exp_noise)
 model_prop_HCW <- model_cases_HCW / (model_cases_HCW + model_cases_non_HCW)
-compare(cases_HCW) ~ binomial(cases_total, model_prop_HCW)
+cases_HCW ~ Binomial(cases_total, model_prop_HCW)
 
 cases_SW <- data()
-model_cases_SW <- cases_inc_SW + rexp(exp_noise)
-model_cases_non_SW <- cases_inc - cases_inc_SW + rexp(exp_noise)
+model_cases_SW <- cases_inc_SW +  Exponential(exp_noise)
+model_cases_non_SW <- cases_inc - cases_inc_SW +  Exponential(exp_noise)
 model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
-compare(cases_SW) ~ binomial(cases_total, model_prop_SW)
+cases_SW ~ Binomial(cases_total, model_prop_SW)

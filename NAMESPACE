@@ -2,7 +2,6 @@
 
 export(as_date)
 export(as_mpoxseir_date)
-export(create_transform_params)
 export(get_age_bins)
 export(get_compartment_indices)
 export(model_index)
