@@ -23,7 +23,7 @@ dim(adults_ind_raw) <- c(n_group)
 ##    daily_doses_t then has dimensions n_vax
 ## we use interpolate such that 
 ##    daily_doses_t[i] = daily_doses_value[i, j] when 
-##      daily_doses_time[i] <= time + dt < daily_doses_time[i + 1]
+##      daily_doses_time[j] <= time < daily_doses_time[j + 1]
 daily_doses_children_value <- parameter()
 dim(daily_doses_children_value) <- parameter(rank = 2)
 daily_doses_children_time <- parameter()
