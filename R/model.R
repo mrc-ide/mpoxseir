@@ -18,9 +18,11 @@ model_index <- function(info) {
   run <- c(
     "cases_inc", "deaths_inc",
     "cases_inc_00_04", "cases_inc_05_14", "cases_inc_15_plus", 
-    "cases_inc_PBS", "cases_inc_SW",
+    "cases_inc_PBS", "cases_inc_SW", "cases_inc_ASW", "cases_inc_CSW",
+    "cases_inc_HCW",
     "deaths_inc_00_04", "deaths_inc_05_14", "deaths_inc_15_plus", 
-    "deaths_inc_PBS", "deaths_inc_SW")
+    "deaths_inc_PBS", "deaths_inc_SW", "deaths_inc_ASW", "deaths_inc_CSW",
+    "deaths_inc_HCW")
   save <- c(run, "S_tot", "E_tot", "I_tot", "R_tot", "D_tot", "N_tot")
   index <- unlist(info$index)
   list(run = index[run], state = index[save])
