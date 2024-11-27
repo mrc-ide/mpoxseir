@@ -431,7 +431,9 @@ new_cases_SW_15_17 <- sum(n_SEa[17, ]) - new_cases_SW_12_14
 new_cases_05_14 <- sum(n_SEa[2:3, ]) + new_cases_SW_12_14
 new_cases_15_plus <-
   sum(n_SEa[4:16, ]) + new_cases_SW_15_17 + sum(n_SEa[18:20, ])
-new_cases_SW <- sum(n_SEa[17:18, ])
+new_cases_CSW <- sum(n_SEa[17, ])
+new_cases_ASW <- sum(n_SEa[18, ])
+new_cases_SW <- new_cases_CSW + new_cases_ASW
 new_cases_PBS <- sum(n_SEa[19, ])
 new_cases_HCW <- sum(n_SEa[20, ])
 
@@ -440,6 +442,8 @@ update(cases_inc_00_04) <- cases_inc_00_04 + new_cases_00_04
 update(cases_inc_05_14) <- cases_inc_05_14 + new_cases_05_14
 update(cases_inc_15_plus) <- cases_inc_15_plus + new_cases_15_plus
 
+update(cases_inc_CSW) <- cases_inc_CSW + new_cases_CSW
+update(cases_inc_ASW) <- cases_inc_ASW + new_cases_ASW
 update(cases_inc_SW) <- cases_inc_SW + new_cases_SW
 update(cases_inc_PBS) <- cases_inc_PBS + new_cases_PBS
 update(cases_inc_HCW) <- cases_inc_HCW + new_cases_HCW
@@ -460,7 +464,10 @@ new_deaths_SW_15_17 <- sum(n_IdD[17, ]) - new_deaths_SW_12_14
 new_deaths_05_14 <- sum(n_IdD[2:3, ]) + new_deaths_SW_12_14
 new_deaths_15_plus <-
   sum(n_IdD[4:16, ]) + new_deaths_SW_15_17 + sum(n_IdD[18:20, ])
-new_deaths_SW <- sum(n_IdD[17:18, ])
+
+new_deaths_CSW <- sum(n_IdD[17, ])
+new_deaths_ASW <- sum(n_IdD[18, ])
+new_deaths_SW <- new_deaths_CSW + new_deaths_ASW
 new_deaths_PBS <- sum(n_IdD[19, ])
 new_deaths_HCW <- sum(n_IdD[20, ])
 # weekly deaths
@@ -469,6 +476,8 @@ update(deaths_inc_00_04) <- deaths_inc_00_04 + new_deaths_00_04
 update(deaths_inc_05_14) <- deaths_inc_05_14 + new_deaths_05_14
 update(deaths_inc_15_plus) <- deaths_inc_15_plus + new_deaths_15_plus
 
+update(deaths_inc_CSW) <- deaths_inc_CSW + new_deaths_CSW
+update(deaths_inc_ASW) <- deaths_inc_ASW + new_deaths_ASW
 update(deaths_inc_SW) <- deaths_inc_SW + new_deaths_SW
 update(deaths_inc_PBS) <- deaths_inc_PBS + new_deaths_PBS
 update(deaths_inc_HCW) <- deaths_inc_HCW + new_deaths_HCW
@@ -576,12 +585,16 @@ initial(cases_inc_00_04, zero_every = 7) <- 0
 initial(cases_inc_05_14, zero_every = 7) <- 0
 initial(cases_inc_15_plus, zero_every = 7) <- 0
 initial(cases_inc_PBS, zero_every = 7) <- 0
+initial(cases_inc_CSW, zero_every = 7) <- 0
+initial(cases_inc_ASW, zero_every = 7) <- 0
 initial(cases_inc_SW, zero_every = 7) <- 0
 initial(cases_inc_HCW, zero_every = 7) <- 0
 initial(deaths_inc_00_04, zero_every = 7) <- 0
 initial(deaths_inc_05_14, zero_every = 7) <- 0
 initial(deaths_inc_15_plus, zero_every = 7) <- 0
 initial(deaths_inc_PBS, zero_every = 7) <- 0
+initial(deaths_inc_CSW, zero_every = 7) <- 0
+initial(deaths_inc_ASW, zero_every = 7) <- 0
 initial(deaths_inc_SW, zero_every = 7) <- 0
 initial(deaths_inc_HCW, zero_every = 7) <- 0
 
