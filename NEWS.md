@@ -1,6 +1,6 @@
 # mpoxseir 0.2.1
 
-* Export incident cases and deaths in key populations
+* Export cases and deaths in key populations and vaccine doses by age group / key pop
 
 # mpoxseir 0.2.0
 
