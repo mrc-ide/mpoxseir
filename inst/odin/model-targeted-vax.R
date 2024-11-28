@@ -525,6 +525,7 @@ update(total_vax_2nddose) <- total_vax_2nddose + vax_2nddose_given_S +
 n_vaccination_t[, ] <- n_vaccination_t_S[i, j] + n_vaccination_t_Ea[i, j] +
   n_vaccination_t_Eb[i, j] + n_vaccination_t_R[i, j]
 
+new_dose1 <- sum(n_vaccination_t[, 2])
 new_dose1_00_04 <- n_vaccination_t[1, 2]
 new_dose1_SW_12_14 <- Binomial(n_vaccination_t[17, 2], 0.5)
 new_dose1_SW_15_17 <- n_vaccination_t[17, 2] - new_dose1_SW_12_14
@@ -537,6 +538,7 @@ new_dose1_SW <- new_dose1_CSW + new_dose1_ASW
 new_dose1_PBS <- n_vaccination_t[19, 2]
 new_dose1_HCW <- n_vaccination_t[20, 2]
 
+update(dose1_inc) <- dose1_inc + new_dose1
 update(dose1_inc_00_04) <- dose1_inc_00_04 + new_dose1_00_04
 update(dose1_inc_05_14) <- dose1_inc_05_14 + new_dose1_05_14
 update(dose1_inc_15_plus) <- dose1_inc_15_plus + new_dose1_15_plus
@@ -546,6 +548,7 @@ update(dose1_inc_ASW) <- dose1_inc_ASW + new_dose1_ASW
 update(dose1_inc_PBS) <- dose1_inc_PBS + new_dose1_PBS
 update(dose1_inc_HCW) <- dose1_inc_HCW + new_dose1_HCW
 
+new_dose2 <- sum(n_vaccination_t[, 3])
 new_dose2_00_04 <- n_vaccination_t[1, 3]
 new_dose2_SW_12_14 <- Binomial(n_vaccination_t[17, 3], 0.5)
 new_dose2_SW_15_17 <- n_vaccination_t[17, 3] - new_dose2_SW_12_14
@@ -558,6 +561,7 @@ new_dose2_SW <- new_dose2_CSW + new_dose2_ASW
 new_dose2_PBS <- n_vaccination_t[19, 3]
 new_dose2_HCW <- n_vaccination_t[20, 3]
 
+update(dose2_inc) <- dose2_inc + new_dose2
 update(dose2_inc_00_04) <- dose2_inc_00_04 + new_dose2_00_04
 update(dose2_inc_05_14) <- dose2_inc_05_14 + new_dose2_05_14
 update(dose2_inc_15_plus) <- dose2_inc_15_plus + new_dose2_15_plus
@@ -567,6 +571,7 @@ update(dose2_inc_ASW) <- dose2_inc_ASW + new_dose2_ASW
 update(dose2_inc_PBS) <- dose2_inc_PBS + new_dose2_PBS
 update(dose2_inc_HCW) <- dose2_inc_HCW + new_dose2_HCW
 
+update(dose1_cumulative) <- dose1_cumulative + new_dose1
 update(dose1_cumulative_00_04) <- dose1_cumulative_00_04 + new_dose1_00_04
 update(dose1_cumulative_05_14) <- dose1_cumulative_05_14 + new_dose1_05_14
 update(dose1_cumulative_15_plus) <- dose1_cumulative_15_plus + new_dose1_15_plus
@@ -576,6 +581,7 @@ update(dose1_cumulative_SW) <- dose1_cumulative_SW + new_dose1_SW
 update(dose1_cumulative_PBS) <- dose1_cumulative_PBS + new_dose1_PBS
 update(dose1_cumulative_HCW) <- dose1_cumulative_HCW + new_dose1_HCW
 
+update(dose2_cumulative) <- dose2_cumulative + new_dose2
 update(dose2_cumulative_00_04) <- dose2_cumulative_00_04 + new_dose2_00_04
 update(dose2_cumulative_05_14) <- dose2_cumulative_05_14 + new_dose2_05_14
 update(dose2_cumulative_15_plus) <- dose2_cumulative_15_plus + new_dose2_15_plus
@@ -678,6 +684,7 @@ initial(deaths_inc_ASW, zero_every = 7) <- 0
 initial(deaths_inc_SW, zero_every = 7) <- 0
 initial(deaths_inc_HCW, zero_every = 7) <- 0
 
+initial(dose1_inc, zero_every = 7) <- 0
 initial(dose1_inc_00_04, zero_every = 7) <- 0
 initial(dose1_inc_05_14, zero_every = 7) <- 0
 initial(dose1_inc_15_plus, zero_every = 7) <- 0
@@ -686,6 +693,8 @@ initial(dose1_inc_CSW, zero_every = 7) <- 0
 initial(dose1_inc_ASW, zero_every = 7) <- 0
 initial(dose1_inc_SW, zero_every = 7) <- 0
 initial(dose1_inc_HCW, zero_every = 7) <- 0
+
+initial(dose2_inc, zero_every = 7) <- 0
 initial(dose2_inc_00_04, zero_every = 7) <- 0
 initial(dose2_inc_05_14, zero_every = 7) <- 0
 initial(dose2_inc_15_plus, zero_every = 7) <- 0
@@ -712,6 +721,7 @@ initial(deaths_cumulative_ASW) <- 0
 initial(deaths_cumulative_SW) <- 0
 initial(deaths_cumulative_HCW) <- 0
 
+initial(dose1_cumulative) <- 0
 initial(dose1_cumulative_00_04) <- 0
 initial(dose1_cumulative_05_14) <- 0
 initial(dose1_cumulative_15_plus) <- 0
@@ -721,6 +731,7 @@ initial(dose1_cumulative_ASW) <- 0
 initial(dose1_cumulative_SW) <- 0
 initial(dose1_cumulative_HCW) <- 0
 
+initial(dose2_cumulative) <- 0
 initial(dose2_cumulative_00_04) <- 0
 initial(dose2_cumulative_05_14) <- 0
 initial(dose2_cumulative_15_plus) <- 0
