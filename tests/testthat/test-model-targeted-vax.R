@@ -27,6 +27,7 @@ test_that("check cases and deaths are counted correctly", {
   t <- seq(7, 21, by = 7)
   res <- dust2::dust_system_simulate(sys, t)
   y <- dust2::dust_unpack_state(sys, res)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
   expect_equal(y$cases_inc,
                y$cases_inc_00_04 + y$cases_inc_05_14 + y$cases_inc_15_plus)
@@ -38,36 +39,16 @@ test_that("check cases and deaths are counted correctly", {
   expect_equal(y$deaths_cumulative,
                y$deaths_cumulative_00_04 + y$deaths_cumulative_05_14 + 
                  y$deaths_cumulative_15_plus)
-  expect_equal(apply(y$cases_inc, 1, sum),
-               y$cases_cumulative[, length(t)])
-  expect_equal(apply(y$cases_inc_00_04, 1, sum),
-               y$cases_cumulative_00_04[, length(t)])
-  expect_equal(apply(y$cases_inc_05_14, 1, sum),
-               y$cases_cumulative_05_14[, length(t)])
-  expect_equal(apply(y$cases_inc_15_plus, 1, sum),
-               y$cases_cumulative_15_plus[, length(t)])
-  expect_equal(apply(y$cases_inc_PBS, 1, sum),
-               y$cases_cumulative_PBS[, length(t)])
-  expect_equal(apply(y$cases_inc_SW, 1, sum),
-               y$cases_cumulative_SW[, length(t)])
-  expect_equal(apply(y$cases_inc_HCW, 1, sum),
-               y$cases_cumulative_HCW[, length(t)])
   
-  expect_equal(apply(y$deaths_inc, 1, sum),
-               y$deaths_cumulative[, length(t)])
-  expect_equal(apply(y$deaths_inc_00_04, 1, sum),
-               y$deaths_cumulative_00_04[, length(t)])
-  expect_equal(apply(y$deaths_inc_05_14, 1, sum),
-               y$deaths_cumulative_05_14[, length(t)])
-  expect_equal(apply(y$deaths_inc_15_plus, 1, sum),
-               y$deaths_cumulative_15_plus[, length(t)])
-  expect_equal(apply(y$deaths_inc_PBS, 1, sum),
-               y$deaths_cumulative_PBS[, length(t)])
-  expect_equal(apply(y$deaths_inc_SW, 1, sum),
-               y$deaths_cumulative_SW[, length(t)])
-  expect_equal(apply(y$deaths_inc_HCW, 1, sum),
-               y$deaths_cumulative_HCW[, length(t)])
+  for (nm in grep("cases_inc", rownames(res), value = TRUE)) {
+    expect_equal(t(apply(res[nm, , ], 1, cumsum)),
+                 res[gsub("inc", "cumulative", nm), , ])
+  }
 
+  for (nm in grep("deaths_inc", rownames(res), value = TRUE)) {
+    expect_equal(t(apply(res[nm, , ], 1, cumsum)),
+                 res[gsub("inc", "cumulative", nm), , ])
+  }
 })
 
 
@@ -718,6 +699,72 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
   
 })
 
+test_that("Test vaccine outputs sum correctly", {
+  pars <- reference_pars_targeted_vax()
+  
+  # set up parameters to push things through quickly 
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10
+  
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(1, 21)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <-   dust2::dust_unpack_state(sys, res)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+
+  idx <- get_compartment_indices()
+  idx_age <- seq_len(nrow(get_age_bins()))
+  group_bins <- get_group_bins()
+  idx_15_plus <- which(group_bins$start >= 15)
+  
+  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , -1], c(2, 3), sum),
+               res["dose2_cumulative_15_plus", , -max(t)])
+  expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , -1],
+               res["dose1_cumulative_00_04", , -max(t)])
+  
+  # check age outputs sum to total doses given
+  expect_equal(res["total_vax_1stdose", , -1],
+               res["dose1_cumulative_00_04", , -max(t)] +
+                 res["dose1_cumulative_05_14", , -max(t)] +
+                 res["dose1_cumulative_15_plus", , -max(t)])
+  
+  expect_equal(res["total_vax_2nddose", , -1],
+               res["dose2_cumulative_00_04", , -max(t)] +
+                 res["dose2_cumulative_05_14", , -max(t)] +
+                 res["dose2_cumulative_15_plus", , -max(t)])
+  
+  # check key pop outputs sum to total doses given
+  expect_equal(res["dose1_cumulative_SW", , ],
+               res["dose1_cumulative_CSW", , ] +
+                 res["dose1_cumulative_ASW", , ])
+  expect_equal(res["dose2_cumulative_SW", , ],
+               res["dose2_cumulative_CSW", , ] +
+                 res["dose2_cumulative_ASW", , ])
+  
+  expect_equal(res["total_vax_1stdose", , -1],
+               res["dose1_cumulative_SW", , -max(t)] +
+                 res["dose1_cumulative_PBS", , -max(t)] +
+                 res["dose1_cumulative_HCW", , -max(t)] +
+                 apply(y$N[idx_age, idx$vax$one_dose, , -1], c(2, 3), sum))
+  expect_equal(res["total_vax_2nddose", , -1],
+               res["dose2_cumulative_SW", , -max(t)] +
+                 res["dose2_cumulative_PBS", , -max(t)] +
+                 res["dose2_cumulative_HCW", , -max(t)] +
+                 apply(y$N[idx_age, idx$vax$two_dose, , -1], c(2, 3), sum))
+  
+  # check all incident and cumulative dose outputs match
+  t_eow <- seq(7, max(t), 7)
+  nms <- grep("dose[0-9]_inc", rownames(res), value = TRUE)
+  
+  for (nm in nms) {
+    expect_equal(t(apply(res[nm, , t_eow], 1, cumsum)),
+                 res[gsub("inc", "cumulative", nm), , t_eow])
+  }
+
+})
 
 test_that("Test compiled compare components", {
   pars <- reference_pars_targeted_vax()

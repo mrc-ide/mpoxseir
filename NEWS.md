@@ -1,3 +1,7 @@
+# mpoxseir 0.2.1
+
+* Export cases and deaths in key populations and vaccine doses by age group / key pop
+
 # mpoxseir 0.2.0
 
 * Package ported from odin-dust-mcstate to odin2-dust2-monty
