@@ -448,6 +448,7 @@ update(cases_inc_PBS) <- cases_inc_PBS + new_cases_PBS
 update(cases_inc_HCW) <- cases_inc_HCW + new_cases_HCW
 
 # cumulative cases
+update(cases_cumulative_by_age[]) <- cases_cumulative_by_age[i] + sum(n_SEa[i, ])
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
 update(cases_cumulative_00_04) <- cases_cumulative_00_04 + new_cases_00_04
 update(cases_cumulative_05_14) <- cases_cumulative_05_14 + new_cases_05_14
@@ -704,6 +705,7 @@ initial(dose2_inc_ASW, zero_every = 7) <- 0
 initial(dose2_inc_SW, zero_every = 7) <- 0
 initial(dose2_inc_HCW, zero_every = 7) <- 0
 
+initial(cases_cumulative_by_age[]) <- 0
 initial(cases_cumulative_00_04) <- 0
 initial(cases_cumulative_05_14) <- 0
 initial(cases_cumulative_15_plus) <- 0
@@ -849,6 +851,8 @@ dim(CFR) <- c(n_group, n_vax)
 
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group, n_vax)
+
+dim(cases_cumulative_by_age) <- n_group
 
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
