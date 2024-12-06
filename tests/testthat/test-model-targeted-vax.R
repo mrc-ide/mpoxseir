@@ -49,6 +49,9 @@ test_that("check cases and deaths are counted correctly", {
     expect_equal(t(apply(res[nm, , ], 1, cumsum)),
                  res[gsub("inc", "cumulative", nm), , ])
   }
+
+  expect_equal(apply(y$cases_cumulative_by_age, c(2, 3), sum),
+               res["cases_cumulative", , ])
 })
 
 
