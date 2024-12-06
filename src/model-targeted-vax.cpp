@@ -342,6 +342,9 @@ public:
     real_type deaths_00_04;
     real_type deaths_05_14;
     real_type deaths_15_plus;
+    real_type cfr_00_04;
+    real_type cfr_05_14;
+    real_type cfr_15_plus;
     real_type cases_total;
     real_type cases_HCW;
     real_type cases_SW;
@@ -772,10 +775,13 @@ public:
     auto deaths_00_04 = dust2::r::read_real(data, "deaths_00_04", NA_REAL);
     auto deaths_05_14 = dust2::r::read_real(data, "deaths_05_14", NA_REAL);
     auto deaths_15_plus = dust2::r::read_real(data, "deaths_15_plus", NA_REAL);
+    auto cfr_00_04 = dust2::r::read_real(data, "cfr_00_04", NA_REAL);
+    auto cfr_05_14 = dust2::r::read_real(data, "cfr_05_14", NA_REAL);
+    auto cfr_15_plus = dust2::r::read_real(data, "cfr_15_plus", NA_REAL);
     auto cases_total = dust2::r::read_real(data, "cases_total", NA_REAL);
     auto cases_HCW = dust2::r::read_real(data, "cases_HCW", NA_REAL);
     auto cases_SW = dust2::r::read_real(data, "cases_SW", NA_REAL);
-    return data_type{cases, cases_00_04, cases_05_14, cases_15_plus, deaths, deaths_00_04, deaths_05_14, deaths_15_plus, cases_total, cases_HCW, cases_SW};
+    return data_type{cases, cases_00_04, cases_05_14, cases_15_plus, deaths, deaths_00_04, deaths_05_14, deaths_15_plus, cfr_00_04, cfr_05_14, cfr_15_plus, cases_total, cases_HCW, cases_SW};
   }
   static void update_shared(cpp11::list parameters, shared_state& shared) {
     shared.beta_h = dust2::r::read_real(parameters, "beta_h", shared.beta_h);
@@ -1538,6 +1544,12 @@ public:
     const auto deaths_inc_00_04 = state[15];
     const auto deaths_inc_05_14 = state[16];
     const auto deaths_inc_15_plus = state[17];
+    const auto cases_cumulative_00_04 = state[41];
+    const auto cases_cumulative_05_14 = state[42];
+    const auto cases_cumulative_15_plus = state[43];
+    const auto deaths_cumulative_00_04 = state[49];
+    const auto deaths_cumulative_05_14 = state[50];
+    const auto deaths_cumulative_15_plus = state[51];
     real_type odin_ll = 0;
     const real_type model_cases = cases_inc + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_00_04 = cases_inc_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
@@ -1576,6 +1588,15 @@ public:
     }
     if (!std::isnan(data.deaths_15_plus)) {
       odin_ll += monty::density::negative_binomial_mu(data.deaths_15_plus, 1 / shared.alpha_deaths_15_plus, model_deaths_15_plus, true);
+    }
+    if (!std::isnan(data.cfr_00_04)) {
+      odin_ll += monty::density::beta(data.cfr_00_04, deaths_cumulative_00_04, cases_cumulative_00_04 - deaths_cumulative_00_04, true);
+    }
+    if (!std::isnan(data.cfr_05_14)) {
+      odin_ll += monty::density::beta(data.cfr_05_14, deaths_cumulative_05_14, cases_cumulative_05_14 - deaths_cumulative_05_14, true);
+    }
+    if (!std::isnan(data.cfr_15_plus)) {
+      odin_ll += monty::density::beta(data.cfr_15_plus, deaths_cumulative_15_plus, cases_cumulative_15_plus - deaths_cumulative_15_plus, true);
     }
     if (!std::isnan(data.cases_total) && !std::isnan(data.cases_HCW)) {
       odin_ll += monty::density::binomial(data.cases_HCW, data.cases_total, model_prop_HCW, true);

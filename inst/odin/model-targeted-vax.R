@@ -934,6 +934,16 @@ model_deaths_15_plus <- deaths_inc_15_plus + Exponential(exp_noise)
 deaths_15_plus ~ 
   NegativeBinomial(size = 1 / alpha_deaths_15_plus, mu = model_deaths_15_plus)
 
+# Cumulative CFR
+cfr_00_04 <- data()
+cfr_00_04 ~ Beta(deaths_cumulative_00_04,
+                 cases_cumulative_00_04 - deaths_cumulative_00_04)
+cfr_05_14 <- data()
+cfr_05_14 ~ Beta(deaths_cumulative_05_14,
+                 cases_cumulative_05_14 - deaths_cumulative_05_14)
+cfr_15_plus <- data()
+cfr_15_plus ~ Beta(deaths_cumulative_15_plus,
+                   cases_cumulative_15_plus - deaths_cumulative_15_plus)
 
 # Proportion of cases in key pops
 # create a data stream of aggregated cases that will work regardless of whether
