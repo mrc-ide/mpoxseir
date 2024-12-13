@@ -1,3 +1,7 @@
+# mpoxseir 0.2.2
+
+* Added fitting to cumulative CFR by age group
+
 # mpoxseir 0.2.1
 
 * Export cases and deaths in key populations and vaccine doses by age group / key pop
