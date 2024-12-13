@@ -55,6 +55,9 @@ test_that("check cases and deaths are counted correctly", {
     expect_equal(t(apply(res[nm, , ], 1, cumsum)),
                  res[gsub("inc", "cumulative", nm), , ])
   }
+
+  expect_equal(apply(y$cases_cumulative_by_age, c(2, 3), sum),
+               res["cases_cumulative", , ])
 })
 
 
@@ -799,7 +802,10 @@ test_that("Test compiled compare components", {
                   deaths_15_plus = 25,
                   cases_total = 150,
                   cases_HCW = 5,
-                  cases_SW = 10)
+                  cases_SW = 10,
+                  cfr_00_04 = 0.01,
+                  cfr_05_14 = 0.03,
+                  cfr_15_plus = 0.05)
   
   parts <- list(
     c("cases"),
@@ -811,7 +817,10 @@ test_that("Test compiled compare components", {
     c("deaths_05_14"),
     c("deaths_15_plus"),
     c("cases_HCW", "cases_total"),
-    c("cases_SW", "cases_total"))
+    c("cases_SW", "cases_total"),
+    c("cfr_00_04"),
+    c("cfr_05_14"),
+    c("cfr_15_plus"))
 
   
   compare_part <- function(nms) {

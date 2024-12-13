@@ -1,6 +1,11 @@
+
 # mpoxseir 0.2.3
 
-* Export cases by transmsission route
+* Export cases by transmission route
+
+# mpoxseir 0.2.2
+
+* Added fitting to cumulative CFR by age group
 
 # mpoxseir 0.2.1
 

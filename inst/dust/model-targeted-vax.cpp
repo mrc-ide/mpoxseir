@@ -54,7 +54,7 @@ public:
         dust2::packing state;
       } packing;
       struct {
-        std::array<size_t, 110> state;
+        std::array<size_t, 111> state;
       } offset;
     } odin;
     struct dim_type {
@@ -129,6 +129,7 @@ public:
       dust2::array::dimensions<2> CFR;
       dust2::array::dimensions<1> ve_T;
       dust2::array::dimensions<2> ve_I;
+      dust2::array::dimensions<1> cases_cumulative_by_age;
       dust2::array::dimensions<2> n_vaccination_t_S;
       dust2::array::dimensions<2> n_vaccination_t_Ea;
       dust2::array::dimensions<2> n_vaccination_t_Eb;
@@ -258,6 +259,9 @@ public:
     real_type deaths_00_04;
     real_type deaths_05_14;
     real_type deaths_15_plus;
+    real_type cfr_00_04;
+    real_type cfr_05_14;
+    real_type cfr_15_plus;
     real_type cases_total;
     real_type cases_HCW;
     real_type cases_SW;
@@ -365,6 +369,7 @@ public:
     dim.CFR.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.ve_T.set({static_cast<size_t>(n_vax)});
     dim.ve_I.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.cases_cumulative_by_age.set({static_cast<size_t>(n_group)});
     dim.n_vaccination_t_S.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.n_vaccination_t_Ea.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.n_vaccination_t_Eb.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
@@ -535,7 +540,8 @@ public:
       {"D", std::vector<size_t>(dim.D.dim.begin(), dim.D.dim.end())},
       {"E", std::vector<size_t>(dim.E.dim.begin(), dim.E.dim.end())},
       {"I", std::vector<size_t>(dim.I.dim.begin(), dim.I.dim.end())},
-      {"N", std::vector<size_t>(dim.N.dim.begin(), dim.N.dim.end())}
+      {"N", std::vector<size_t>(dim.N.dim.begin(), dim.N.dim.end())},
+      {"cases_cumulative_by_age", std::vector<size_t>(dim.cases_cumulative_by_age.dim.begin(), dim.cases_cumulative_by_age.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
     return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, children_ind_raw, adults_ind_raw, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
@@ -608,10 +614,13 @@ public:
     auto deaths_00_04 = dust2::r::read_real(data, "deaths_00_04", NA_REAL);
     auto deaths_05_14 = dust2::r::read_real(data, "deaths_05_14", NA_REAL);
     auto deaths_15_plus = dust2::r::read_real(data, "deaths_15_plus", NA_REAL);
+    auto cfr_00_04 = dust2::r::read_real(data, "cfr_00_04", NA_REAL);
+    auto cfr_05_14 = dust2::r::read_real(data, "cfr_05_14", NA_REAL);
+    auto cfr_15_plus = dust2::r::read_real(data, "cfr_15_plus", NA_REAL);
     auto cases_total = dust2::r::read_real(data, "cases_total", NA_REAL);
     auto cases_HCW = dust2::r::read_real(data, "cases_HCW", NA_REAL);
     auto cases_SW = dust2::r::read_real(data, "cases_SW", NA_REAL);
-    return data_type{cases, cases_00_04, cases_05_14, cases_15_plus, deaths, deaths_00_04, deaths_05_14, deaths_15_plus, cases_total, cases_HCW, cases_SW};
+    return data_type{cases, cases_00_04, cases_05_14, cases_15_plus, deaths, deaths_00_04, deaths_05_14, deaths_15_plus, cfr_00_04, cfr_05_14, cfr_15_plus, cases_total, cases_HCW, cases_SW};
   }
   static void update_shared(cpp11::list parameters, shared_state& shared) {
     shared.beta_h = dust2::r::read_real(parameters, "beta_h", shared.beta_h);
@@ -756,6 +765,9 @@ public:
     state[42] = 0;
     state[43] = 0;
     state[44] = 0;
+    for (size_t i = 1; i <= shared.dim.cases_cumulative_by_age.size; ++i) {
+      state[i - 1 + shared.odin.offset.state[110]] = 0;
+    }
     state[45] = 0;
     state[46] = 0;
     state[47] = 0;
@@ -868,6 +880,7 @@ public:
     const auto dose2_inc_ASW = state[42];
     const auto dose2_inc_SW = state[43];
     const auto dose2_inc_HCW = state[44];
+    const auto * cases_cumulative_by_age = state + shared.odin.offset.state[110];
     const auto cases_cumulative_00_04 = state[45];
     const auto cases_cumulative_05_14 = state[46];
     const auto cases_cumulative_15_plus = state[47];
@@ -1347,6 +1360,9 @@ public:
     state_next[17] = cases_inc_SW + new_cases_SW;
     state_next[14] = cases_inc_PBS + new_cases_PBS;
     state_next[18] = cases_inc_HCW + new_cases_HCW;
+    for (size_t i = 1; i <= shared.dim.cases_cumulative_by_age.size; ++i) {
+      state_next[i - 1 + shared.odin.offset.state[110]] = cases_cumulative_by_age[i - 1] + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {i - 1, i - 1}, {0, shared.dim.n_SEa.dim[1] - 1});
+    }
     state_next[5] = cases_cumulative + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa);
     state_next[45] = cases_cumulative_00_04 + new_cases_00_04;
     state_next[46] = cases_cumulative_05_14 + new_cases_05_14;
@@ -1434,6 +1450,12 @@ public:
     const auto deaths_inc_00_04 = state[19];
     const auto deaths_inc_05_14 = state[20];
     const auto deaths_inc_15_plus = state[21];
+    const auto cases_cumulative_00_04 = state[45];
+    const auto cases_cumulative_05_14 = state[46];
+    const auto cases_cumulative_15_plus = state[47];
+    const auto deaths_cumulative_00_04 = state[53];
+    const auto deaths_cumulative_05_14 = state[54];
+    const auto deaths_cumulative_15_plus = state[55];
     real_type odin_ll = 0;
     const real_type model_cases = cases_inc + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_00_04 = cases_inc_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
@@ -1472,6 +1494,15 @@ public:
     }
     if (!std::isnan(data.deaths_15_plus)) {
       odin_ll += monty::density::negative_binomial_mu(data.deaths_15_plus, 1 / shared.alpha_deaths_15_plus, model_deaths_15_plus, true);
+    }
+    if (!std::isnan(data.cfr_00_04)) {
+      odin_ll += monty::density::beta(data.cfr_00_04, deaths_cumulative_00_04, cases_cumulative_00_04 - deaths_cumulative_00_04, true);
+    }
+    if (!std::isnan(data.cfr_05_14)) {
+      odin_ll += monty::density::beta(data.cfr_05_14, deaths_cumulative_05_14, cases_cumulative_05_14 - deaths_cumulative_05_14, true);
+    }
+    if (!std::isnan(data.cfr_15_plus)) {
+      odin_ll += monty::density::beta(data.cfr_15_plus, deaths_cumulative_15_plus, cases_cumulative_15_plus - deaths_cumulative_15_plus, true);
     }
     if (!std::isnan(data.cases_total) && !std::isnan(data.cases_HCW)) {
       odin_ll += monty::density::binomial(data.cases_HCW, data.cases_total, model_prop_HCW, true);

@@ -454,6 +454,7 @@ update(cases_inc_PBS) <- cases_inc_PBS + new_cases_PBS
 update(cases_inc_HCW) <- cases_inc_HCW + new_cases_HCW
 
 # cumulative cases
+update(cases_cumulative_by_age[]) <- cases_cumulative_by_age[i] + sum(n_SEa[i, ])
 update(cases_cumulative) <- cases_cumulative + sum(n_SEa[, ])
 update(cases_cumulative_00_04) <- cases_cumulative_00_04 + new_cases_00_04
 update(cases_cumulative_05_14) <- cases_cumulative_05_14 + new_cases_05_14
@@ -731,6 +732,7 @@ initial(dose2_inc_ASW, zero_every = 7) <- 0
 initial(dose2_inc_SW, zero_every = 7) <- 0
 initial(dose2_inc_HCW, zero_every = 7) <- 0
 
+initial(cases_cumulative_by_age[]) <- 0
 initial(cases_cumulative_00_04) <- 0
 initial(cases_cumulative_05_14) <- 0
 initial(cases_cumulative_15_plus) <- 0
@@ -888,6 +890,8 @@ dim(CFR) <- c(n_group, n_vax)
 dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group, n_vax)
 
+dim(cases_cumulative_by_age) <- n_group
+
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
 dim(n_vaccination_t_Eb) <- c(n_group, n_vax)
@@ -968,6 +972,16 @@ model_deaths_15_plus <- deaths_inc_15_plus + Exponential(exp_noise)
 deaths_15_plus ~ 
   NegativeBinomial(size = 1 / alpha_deaths_15_plus, mu = model_deaths_15_plus)
 
+# Cumulative CFR
+cfr_00_04 <- data()
+cfr_00_04 ~ Beta(deaths_cumulative_00_04,
+                 cases_cumulative_00_04 - deaths_cumulative_00_04)
+cfr_05_14 <- data()
+cfr_05_14 ~ Beta(deaths_cumulative_05_14,
+                 cases_cumulative_05_14 - deaths_cumulative_05_14)
+cfr_15_plus <- data()
+cfr_15_plus ~ Beta(deaths_cumulative_15_plus,
+                   cases_cumulative_15_plus - deaths_cumulative_15_plus)
 
 # Proportion of cases in key pops
 # create a data stream of aggregated cases that will work regardless of whether
