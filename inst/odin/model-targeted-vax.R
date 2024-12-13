@@ -414,6 +414,12 @@ update(I[, ]) <- Ir[i, j] + Id[i, j]
 update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] +
   R[i, j] +  D[i, j]
 
+# cumulative cases by transmission route
+update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
+update(cases_cumulative_s)   <- cases_cumulative_s + sum(n_SEa_s[, ])
+update(cases_cumulative_z)   <- cases_cumulative_z + sum(n_SEa_z[, ])
+update(cases_cumulative_hc) <- cases_cumulative_hc + sum(n_SEa_hc[, ])
+
 # weekly cases
 # group indices
 # [1: 0-4,    2: 5-9,    3: 10-14,  4: 15-19,  5: 20-24,  6: 25-29,
@@ -620,16 +626,32 @@ s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 
-lambda[, ] <- (beta_h * sum(s_ij_gen_pop[i, ]) +
-                 beta_s * sum(s_ij_sex[i, ]) +
-# additional foi in HCW only (i = 20) homogenous from infected as assumed equally
+lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j])
+lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j])
+# additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
-                 (i == 20) * beta_hcw * sum(I_infectious[, ]) +
-                 beta_z[i]) * (1 - ve_I[i, j])
+lambda_hc[, ] <-
+  if (i == 20) beta_hcw * sum(I_infectious[, ]) * (1 - ve_I[i, j]) else 0
+lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
+
+lambda[, ] <- lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j] 
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
 n_SEa[, ] <- Binomial(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
+
+p_hh[, ]  <- if (lambda[i, j] > 0) lambda_hh[i, j] / lambda[i, j] else 0
+p_s[, ]   <- if (lambda[i, j] > 0) lambda_s[i, j] / lambda[i, j] else 0
+p_hc[, ] <- if (lambda[i, j] > 0) lambda_hc[i, j] / lambda[i, j] else 0
+
+## Split n_SEa by transmission route
+n_SEa_hh[, ] <- Binomial(n_SEa[i, j], p_hh[i, j])
+n_SEa_s[, ] <- Binomial(n_SEa[i, j] - n_SEa_hh[i, j], p_s[i, j])
+n_SEa_hc[, ] <- Binomial(n_SEa[i, j] - n_SEa_hh[i, j] - n_SEa_s[i, j],
+                          p_hc[i, j])
+n_SEa_z[, ] <- n_SEa[i, j] - n_SEa_hh[i, j] - n_SEa_s[i, j] - n_SEa_hc[i, j]
+
+
 n_EaEb[, ] <- Binomial(Ea[i, j] + delta_Ea_n_vaccination[i, j], p_EE)
 n_EbI[, ] <- Binomial(Eb[i, j] + delta_Eb_n_vaccination[i, j], p_EI)
 # Proportion of the infections that will die, impact of vaccination included
@@ -666,6 +688,11 @@ initial(cases_inc, zero_every = 7) <- 0
 initial(deaths_inc, zero_every = 7) <- 0
 initial(cases_cumulative) <- 0
 initial(deaths_cumulative) <- 0
+
+initial(cases_cumulative_hh)  <- 0
+initial(cases_cumulative_s)   <- 0
+initial(cases_cumulative_z)   <- 0
+initial(cases_cumulative_hc) <- 0
 
 initial(cases_inc_00_04, zero_every = 7) <- 0
 initial(cases_inc_05_14, zero_every = 7) <- 0
@@ -837,6 +864,17 @@ dim(D0) <- c(n_group, n_vax)
 dim(delta_D) <- c(n_group, n_vax)
 
 dim(lambda) <- c(n_group, n_vax)
+dim(lambda_hh) <- c(n_group, n_vax)
+dim(lambda_s) <- c(n_group, n_vax)
+dim(lambda_hc) <- c(n_group, n_vax)
+dim(lambda_z) <- c(n_group, n_vax)
+dim(p_hh) <- c(n_group, n_vax)
+dim(p_s) <- c(n_group, n_vax)
+dim(p_hc) <- c(n_group, n_vax)
+dim(n_SEa_hh) <- c(n_group, n_vax)
+dim(n_SEa_s) <- c(n_group, n_vax)
+dim(n_SEa_hc) <- c(n_group, n_vax)
+dim(n_SEa_z) <- c(n_group, n_vax)
 dim(m_gen_pop) <- c(n_group, n_group)
 dim(m_sex) <- c(n_group, n_group)
 dim(I_infectious) <- c(n_group, n_vax)
