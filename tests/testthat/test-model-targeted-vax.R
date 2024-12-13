@@ -12,6 +12,12 @@ test_that("run is equal to reference", {
 
   expect_true(any(res["cases_inc", , ] > 0))
   expect_true(any(res["deaths_inc", , ] > 0))
+  
+  expect_equal(res["cases_cumulative", ,  ], 
+               res["cases_cumulative_z", ,  ] +
+                 res["cases_cumulative_hh", ,  ] +
+                 res["cases_cumulative_hc", ,  ] +
+                 res["cases_cumulative_s", ,  ])
 
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 })
@@ -94,6 +100,7 @@ test_that("when beta_hcw is > 0 there are infections in HCW only", {
   
   expect_true(all(res["cases_inc", , ] == res["cases_inc_HCW", , ]))
   expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
+  expect_equal(res["cases_cumulative_hc", , ], res["cases_cumulative", , ])
 })
 
 test_that("when CFR = 0 nobody dies", {
@@ -139,6 +146,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
+  pars$beta_hcw <- 0
   pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. HCW)
   n_init <- sum(pars$Ea0)
   pars$Ea0[] <- 0
@@ -150,8 +158,10 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
   t <- seq(1, 21)
   res <- dust2::dust_system_simulate(sys, t)
   y <- dust2::dust_unpack_state(sys, res)
+
   
-  # check only infections are in SW
+  # check only infections are in final group
+  expect_equal(y$cases_cumulative_z, y$cases_cumulative)
   expect_equal(y$cases_cumulative_HCW, y$cases_cumulative)
   expect_equal(sum(y$I[-pars$n_group, , , ]), 0)
   expect_equal(sum(y$N_tot + n_init - sum(pars$N0)), 0)
