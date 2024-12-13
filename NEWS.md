@@ -1,3 +1,7 @@
+# mpoxseir 0.2.3
+
+* Export cases by transmsission route
+
 # mpoxseir 0.2.1
 
 * Export cases and deaths in key populations and vaccine doses by age group / key pop
