@@ -54,7 +54,7 @@ public:
         dust2::packing state;
       } packing;
       struct {
-        std::array<size_t, 107> state;
+        std::array<size_t, 111> state;
       } offset;
     } odin;
     struct dim_type {
@@ -108,6 +108,17 @@ public:
       dust2::array::dimensions<2> D0;
       dust2::array::dimensions<2> delta_D;
       dust2::array::dimensions<2> lambda;
+      dust2::array::dimensions<2> lambda_hh;
+      dust2::array::dimensions<2> lambda_s;
+      dust2::array::dimensions<2> lambda_hc;
+      dust2::array::dimensions<2> lambda_z;
+      dust2::array::dimensions<2> p_hh;
+      dust2::array::dimensions<2> p_s;
+      dust2::array::dimensions<2> p_hc;
+      dust2::array::dimensions<2> n_SEa_hh;
+      dust2::array::dimensions<2> n_SEa_s;
+      dust2::array::dimensions<2> n_SEa_hc;
+      dust2::array::dimensions<2> n_SEa_z;
       dust2::array::dimensions<2> m_gen_pop;
       dust2::array::dimensions<2> m_sex;
       dust2::array::dimensions<2> I_infectious;
@@ -179,6 +190,7 @@ public:
     std::vector<real_type> CFR;
     std::vector<real_type> ve_T;
     std::vector<real_type> ve_I;
+    std::vector<real_type> lambda_z;
   };
   struct internal_state {
     std::vector<real_type> n_IrR;
@@ -205,6 +217,7 @@ public:
     std::vector<real_type> n_vaccination_t_R_children;
     std::vector<real_type> n_vaccination_t_R_adults;
     std::vector<real_type> prop_infectious;
+    std::vector<real_type> lambda_hc;
     std::vector<real_type> n_vaccination_t_S;
     std::vector<real_type> n_vaccination_t_Ea;
     std::vector<real_type> n_vaccination_t_Eb;
@@ -216,17 +229,26 @@ public:
     std::vector<real_type> delta_Eb_n_vaccination;
     std::vector<real_type> delta_R_n_vaccination;
     std::vector<real_type> n_vaccination_t;
+    std::vector<real_type> lambda_hh;
+    std::vector<real_type> lambda_s;
     std::vector<real_type> lambda;
-    std::vector<real_type> p_SE;
     std::vector<real_type> n_EaEb;
     std::vector<real_type> n_EbI;
-    std::vector<real_type> n_SEa;
+    std::vector<real_type> p_SE;
+    std::vector<real_type> p_hh;
+    std::vector<real_type> p_s;
+    std::vector<real_type> p_hc;
     std::vector<real_type> n_EbId;
     std::vector<real_type> delta_Eb;
+    std::vector<real_type> n_SEa;
     std::vector<real_type> n_EbIr;
-    std::vector<real_type> delta_Ea;
     std::vector<real_type> delta_Id;
+    std::vector<real_type> n_SEa_hh;
+    std::vector<real_type> delta_Ea;
     std::vector<real_type> delta_Ir;
+    std::vector<real_type> n_SEa_s;
+    std::vector<real_type> n_SEa_hc;
+    std::vector<real_type> n_SEa_z;
   };
   struct data_type {
     real_type cases;
@@ -326,6 +348,17 @@ public:
     dim.D0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.delta_D.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.lambda.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.lambda_hh.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.lambda_s.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.lambda_hc.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.lambda_z.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.p_hh.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.p_s.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.p_hc.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_SEa_hh.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_SEa_s.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_SEa_hc.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
+    dim.n_SEa_z.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.m_gen_pop.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
     dim.m_sex.set({static_cast<size_t>(n_group), static_cast<size_t>(n_group)});
     dim.I_infectious.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
@@ -390,6 +423,12 @@ public:
     dust2::r::read_real_array(parameters, dim.ve_T, ve_T.data(), "ve_T", true);
     std::vector<real_type> ve_I(dim.ve_I.size);
     dust2::r::read_real_array(parameters, dim.ve_I, ve_I.data(), "ve_I", true);
+    std::vector<real_type> lambda_z(dim.lambda_z.size);
+    for (size_t i = 1; i <= dim.lambda_z.dim[0]; ++i) {
+      for (size_t j = 1; j <= dim.lambda_z.dim[1]; ++j) {
+        lambda_z[i - 1 + (j - 1) * dim.lambda_z.mult[1]] = beta_z[i - 1] * (1 - ve_I[i - 1 + (j - 1) * dim.ve_I.mult[1]]);
+      }
+    }
     shared_state::odin_internals_type odin;
     odin.packing.state = dust2::packing{
       {"prioritisation_step_1st_dose_children", {}},
@@ -399,6 +438,10 @@ public:
       {"deaths_inc", {}},
       {"cases_cumulative", {}},
       {"deaths_cumulative", {}},
+      {"cases_cumulative_hh", {}},
+      {"cases_cumulative_s", {}},
+      {"cases_cumulative_z", {}},
+      {"cases_cumulative_hc", {}},
       {"cases_inc_00_04", {}},
       {"cases_inc_05_14", {}},
       {"cases_inc_15_plus", {}},
@@ -501,7 +544,7 @@ public:
       {"cases_cumulative_by_age", std::vector<size_t>(dim.cases_cumulative_by_age.dim.begin(), dim.cases_cumulative_by_age.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, children_ind_raw, adults_ind_raw, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I};
+    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, children_ind_raw, adults_ind_raw, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> n_IrR(shared.dim.n_IrR.size);
@@ -528,6 +571,7 @@ public:
     std::vector<real_type> n_vaccination_t_R_children(shared.dim.n_vaccination_t_R_children.size);
     std::vector<real_type> n_vaccination_t_R_adults(shared.dim.n_vaccination_t_R_adults.size);
     std::vector<real_type> prop_infectious(shared.dim.prop_infectious.size);
+    std::vector<real_type> lambda_hc(shared.dim.lambda_hc.size);
     std::vector<real_type> n_vaccination_t_S(shared.dim.n_vaccination_t_S.size);
     std::vector<real_type> n_vaccination_t_Ea(shared.dim.n_vaccination_t_Ea.size);
     std::vector<real_type> n_vaccination_t_Eb(shared.dim.n_vaccination_t_Eb.size);
@@ -539,18 +583,27 @@ public:
     std::vector<real_type> delta_Eb_n_vaccination(shared.dim.delta_Eb_n_vaccination.size);
     std::vector<real_type> delta_R_n_vaccination(shared.dim.delta_R_n_vaccination.size);
     std::vector<real_type> n_vaccination_t(shared.dim.n_vaccination_t.size);
+    std::vector<real_type> lambda_hh(shared.dim.lambda_hh.size);
+    std::vector<real_type> lambda_s(shared.dim.lambda_s.size);
     std::vector<real_type> lambda(shared.dim.lambda.size);
-    std::vector<real_type> p_SE(shared.dim.p_SE.size);
     std::vector<real_type> n_EaEb(shared.dim.n_EaEb.size);
     std::vector<real_type> n_EbI(shared.dim.n_EbI.size);
-    std::vector<real_type> n_SEa(shared.dim.n_SEa.size);
+    std::vector<real_type> p_SE(shared.dim.p_SE.size);
+    std::vector<real_type> p_hh(shared.dim.p_hh.size);
+    std::vector<real_type> p_s(shared.dim.p_s.size);
+    std::vector<real_type> p_hc(shared.dim.p_hc.size);
     std::vector<real_type> n_EbId(shared.dim.n_EbId.size);
     std::vector<real_type> delta_Eb(shared.dim.delta_Eb.size);
+    std::vector<real_type> n_SEa(shared.dim.n_SEa.size);
     std::vector<real_type> n_EbIr(shared.dim.n_EbIr.size);
-    std::vector<real_type> delta_Ea(shared.dim.delta_Ea.size);
     std::vector<real_type> delta_Id(shared.dim.delta_Id.size);
+    std::vector<real_type> n_SEa_hh(shared.dim.n_SEa_hh.size);
+    std::vector<real_type> delta_Ea(shared.dim.delta_Ea.size);
     std::vector<real_type> delta_Ir(shared.dim.delta_Ir.size);
-    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, prop_infectious, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, n_vaccination_t, lambda, p_SE, n_EaEb, n_EbI, n_SEa, n_EbId, delta_Eb, n_EbIr, delta_Ea, delta_Id, delta_Ir};
+    std::vector<real_type> n_SEa_s(shared.dim.n_SEa_s.size);
+    std::vector<real_type> n_SEa_hc(shared.dim.n_SEa_hc.size);
+    std::vector<real_type> n_SEa_z(shared.dim.n_SEa_z.size);
+    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, prop_infectious, lambda_hc, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, n_vaccination_t, lambda_hh, lambda_s, lambda, n_EaEb, n_EbI, p_SE, p_hh, p_s, p_hc, n_EbId, delta_Eb, n_SEa, n_EbIr, delta_Id, n_SEa_hh, delta_Ea, delta_Ir, n_SEa_s, n_SEa_hc, n_SEa_z};
   }
   static data_type build_data(cpp11::list data, const shared_state& shared) {
     auto cases = dust2::r::read_real(data, "cases", NA_REAL);
@@ -608,6 +661,11 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.CFR, shared.CFR.data(), "CFR", false);
     dust2::r::read_real_array(parameters, shared.dim.ve_T, shared.ve_T.data(), "ve_T", false);
     dust2::r::read_real_array(parameters, shared.dim.ve_I, shared.ve_I.data(), "ve_I", false);
+    for (size_t i = 1; i <= shared.dim.lambda_z.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.lambda_z.dim[1]; ++j) {
+        shared.lambda_z[i - 1 + (j - 1) * shared.dim.lambda_z.mult[1]] = shared.beta_z[i - 1] * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]);
+      }
+    }
   }
   static void update_internal(const shared_state& shared, internal_state& internal) {
   }
@@ -617,52 +675,52 @@ public:
     state[2] = 1;
     for (size_t i = 1; i <= shared.dim.S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.S.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.S.mult[1] + 96] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.S.mult[1] + 100] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Ea.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ea.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[97]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[101]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Eb.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Eb.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.Eb.mult[1] + shared.odin.offset.state[98]] = shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.Eb.mult[1] + shared.odin.offset.state[102]] = shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Ir.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ir.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.Ir.mult[1] + shared.odin.offset.state[99]] = shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.Ir.mult[1] + shared.odin.offset.state[103]] = shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Id.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Id.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.Id.mult[1] + shared.odin.offset.state[100]] = shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.Id.mult[1] + shared.odin.offset.state[104]] = shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.R.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.R.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.R.mult[1] + shared.odin.offset.state[101]] = shared.R0[i - 1 + (j - 1) * shared.dim.R0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.R.mult[1] + shared.odin.offset.state[105]] = shared.R0[i - 1 + (j - 1) * shared.dim.R0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.D.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.D.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.D.mult[1] + shared.odin.offset.state[102]] = shared.D0[i - 1 + (j - 1) * shared.dim.D0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.D.mult[1] + shared.odin.offset.state[106]] = shared.D0[i - 1 + (j - 1) * shared.dim.D0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.E.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.E.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[103]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[107]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.I.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.I.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[104]] = shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]] + shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[108]] = shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]] + shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.N.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.N.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[105]] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]] + shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]] + shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]] + shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]] + shared.R0[i - 1 + (j - 1) * shared.dim.R0.mult[1]] + shared.D0[i - 1 + (j - 1) * shared.dim.D0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[109]] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]] + shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]] + shared.Ir0[i - 1 + (j - 1) * shared.dim.Ir0.mult[1]] + shared.Id0[i - 1 + (j - 1) * shared.dim.Id0.mult[1]] + shared.R0[i - 1 + (j - 1) * shared.dim.R0.mult[1]] + shared.D0[i - 1 + (j - 1) * shared.dim.D0.mult[1]];
       }
     }
     state[3] = 0;
@@ -703,13 +761,13 @@ public:
     state[38] = 0;
     state[39] = 0;
     state[40] = 0;
-    for (size_t i = 1; i <= shared.dim.cases_cumulative_by_age.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[106]] = 0;
-    }
     state[41] = 0;
     state[42] = 0;
     state[43] = 0;
     state[44] = 0;
+    for (size_t i = 1; i <= shared.dim.cases_cumulative_by_age.size; ++i) {
+      state[i - 1 + shared.odin.offset.state[110]] = 0;
+    }
     state[45] = 0;
     state[46] = 0;
     state[47] = 0;
@@ -752,118 +810,126 @@ public:
     state[84] = 0;
     state[85] = 0;
     state[86] = 0;
-    state[87] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0);
-    state[88] = dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0);
-    state[89] = dust2::array::sum<real_type>(shared.Ir0.data(), shared.dim.Ir0) + dust2::array::sum<real_type>(shared.Id0.data(), shared.dim.Id0);
-    state[90] = dust2::array::sum<real_type>(shared.R0.data(), shared.dim.R0);
-    state[91] = dust2::array::sum<real_type>(shared.D0.data(), shared.dim.D0);
-    state[92] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0) + dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0) + dust2::array::sum<real_type>(shared.Ir0.data(), shared.dim.Ir0) + dust2::array::sum<real_type>(shared.Id0.data(), shared.dim.Id0) + dust2::array::sum<real_type>(shared.R0.data(), shared.dim.R0) + dust2::array::sum<real_type>(shared.D0.data(), shared.dim.D0);
-    state[93] = 0;
-    state[94] = 0;
-    state[95] = 0;
+    state[87] = 0;
+    state[88] = 0;
+    state[89] = 0;
+    state[90] = 0;
+    state[91] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0);
+    state[92] = dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0);
+    state[93] = dust2::array::sum<real_type>(shared.Ir0.data(), shared.dim.Ir0) + dust2::array::sum<real_type>(shared.Id0.data(), shared.dim.Id0);
+    state[94] = dust2::array::sum<real_type>(shared.R0.data(), shared.dim.R0);
+    state[95] = dust2::array::sum<real_type>(shared.D0.data(), shared.dim.D0);
+    state[96] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0) + dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0) + dust2::array::sum<real_type>(shared.Ir0.data(), shared.dim.Ir0) + dust2::array::sum<real_type>(shared.Id0.data(), shared.dim.Id0) + dust2::array::sum<real_type>(shared.R0.data(), shared.dim.R0) + dust2::array::sum<real_type>(shared.D0.data(), shared.dim.D0);
+    state[97] = 0;
+    state[98] = 0;
+    state[99] = 0;
   }
   static void update(real_type time, real_type dt, const real_type* state, const shared_state& shared, internal_state& internal, rng_state_type& rng_state, real_type* state_next) {
     const auto prioritisation_step_1st_dose_children = state[0];
     const auto prioritisation_step_1st_dose_adults = state[1];
     const auto prioritisation_step_2nd_dose_adults = state[2];
-    const auto * S = state + 96;
-    const auto * Ea = state + shared.odin.offset.state[97];
-    const auto * Eb = state + shared.odin.offset.state[98];
-    const auto * Ir = state + shared.odin.offset.state[99];
-    const auto * Id = state + shared.odin.offset.state[100];
-    const auto * R = state + shared.odin.offset.state[101];
-    const auto * D = state + shared.odin.offset.state[102];
-    const auto * E = state + shared.odin.offset.state[103];
-    const auto * I = state + shared.odin.offset.state[104];
-    const auto * N = state + shared.odin.offset.state[105];
+    const auto * S = state + 100;
+    const auto * Ea = state + shared.odin.offset.state[101];
+    const auto * Eb = state + shared.odin.offset.state[102];
+    const auto * Ir = state + shared.odin.offset.state[103];
+    const auto * Id = state + shared.odin.offset.state[104];
+    const auto * R = state + shared.odin.offset.state[105];
+    const auto * D = state + shared.odin.offset.state[106];
+    const auto * E = state + shared.odin.offset.state[107];
+    const auto * I = state + shared.odin.offset.state[108];
+    const auto * N = state + shared.odin.offset.state[109];
     const auto cases_inc = state[3];
     const auto deaths_inc = state[4];
     const auto cases_cumulative = state[5];
     const auto deaths_cumulative = state[6];
-    const auto cases_inc_00_04 = state[7];
-    const auto cases_inc_05_14 = state[8];
-    const auto cases_inc_15_plus = state[9];
-    const auto cases_inc_PBS = state[10];
-    const auto cases_inc_CSW = state[11];
-    const auto cases_inc_ASW = state[12];
-    const auto cases_inc_SW = state[13];
-    const auto cases_inc_HCW = state[14];
-    const auto deaths_inc_00_04 = state[15];
-    const auto deaths_inc_05_14 = state[16];
-    const auto deaths_inc_15_plus = state[17];
-    const auto deaths_inc_PBS = state[18];
-    const auto deaths_inc_CSW = state[19];
-    const auto deaths_inc_ASW = state[20];
-    const auto deaths_inc_SW = state[21];
-    const auto deaths_inc_HCW = state[22];
-    const auto dose1_inc = state[23];
-    const auto dose1_inc_00_04 = state[24];
-    const auto dose1_inc_05_14 = state[25];
-    const auto dose1_inc_15_plus = state[26];
-    const auto dose1_inc_PBS = state[27];
-    const auto dose1_inc_CSW = state[28];
-    const auto dose1_inc_ASW = state[29];
-    const auto dose1_inc_SW = state[30];
-    const auto dose1_inc_HCW = state[31];
-    const auto dose2_inc = state[32];
-    const auto dose2_inc_00_04 = state[33];
-    const auto dose2_inc_05_14 = state[34];
-    const auto dose2_inc_15_plus = state[35];
-    const auto dose2_inc_PBS = state[36];
-    const auto dose2_inc_CSW = state[37];
-    const auto dose2_inc_ASW = state[38];
-    const auto dose2_inc_SW = state[39];
-    const auto dose2_inc_HCW = state[40];
-    const auto * cases_cumulative_by_age = state + shared.odin.offset.state[106];
-    const auto cases_cumulative_00_04 = state[41];
-    const auto cases_cumulative_05_14 = state[42];
-    const auto cases_cumulative_15_plus = state[43];
-    const auto cases_cumulative_PBS = state[44];
-    const auto cases_cumulative_CSW = state[45];
-    const auto cases_cumulative_ASW = state[46];
-    const auto cases_cumulative_SW = state[47];
-    const auto cases_cumulative_HCW = state[48];
-    const auto deaths_cumulative_00_04 = state[49];
-    const auto deaths_cumulative_05_14 = state[50];
-    const auto deaths_cumulative_15_plus = state[51];
-    const auto deaths_cumulative_PBS = state[52];
-    const auto deaths_cumulative_CSW = state[53];
-    const auto deaths_cumulative_ASW = state[54];
-    const auto deaths_cumulative_SW = state[55];
-    const auto deaths_cumulative_HCW = state[56];
-    const auto dose1_cumulative = state[57];
-    const auto dose1_cumulative_00_04 = state[58];
-    const auto dose1_cumulative_05_14 = state[59];
-    const auto dose1_cumulative_15_plus = state[60];
-    const auto dose1_cumulative_PBS = state[61];
-    const auto dose1_cumulative_CSW = state[62];
-    const auto dose1_cumulative_ASW = state[63];
-    const auto dose1_cumulative_SW = state[64];
-    const auto dose1_cumulative_HCW = state[65];
-    const auto dose2_cumulative = state[66];
-    const auto dose2_cumulative_00_04 = state[67];
-    const auto dose2_cumulative_05_14 = state[68];
-    const auto dose2_cumulative_15_plus = state[69];
-    const auto dose2_cumulative_PBS = state[70];
-    const auto dose2_cumulative_CSW = state[71];
-    const auto dose2_cumulative_ASW = state[72];
-    const auto dose2_cumulative_SW = state[73];
-    const auto dose2_cumulative_HCW = state[74];
-    const auto vax_given_S = state[75];
-    const auto vax_given_Ea = state[76];
-    const auto vax_given_Eb = state[77];
-    const auto vax_given_R = state[78];
-    const auto vax_1stdose_given_S = state[79];
-    const auto vax_1stdose_given_Ea = state[80];
-    const auto vax_1stdose_given_Eb = state[81];
-    const auto vax_1stdose_given_R = state[82];
-    const auto vax_2nddose_given_S = state[83];
-    const auto vax_2nddose_given_Ea = state[84];
-    const auto vax_2nddose_given_Eb = state[85];
-    const auto vax_2nddose_given_R = state[86];
-    const auto total_vax = state[93];
-    const auto total_vax_1stdose = state[94];
-    const auto total_vax_2nddose = state[95];
+    const auto cases_cumulative_hh = state[7];
+    const auto cases_cumulative_s = state[8];
+    const auto cases_cumulative_z = state[9];
+    const auto cases_cumulative_hc = state[10];
+    const auto cases_inc_00_04 = state[11];
+    const auto cases_inc_05_14 = state[12];
+    const auto cases_inc_15_plus = state[13];
+    const auto cases_inc_PBS = state[14];
+    const auto cases_inc_CSW = state[15];
+    const auto cases_inc_ASW = state[16];
+    const auto cases_inc_SW = state[17];
+    const auto cases_inc_HCW = state[18];
+    const auto deaths_inc_00_04 = state[19];
+    const auto deaths_inc_05_14 = state[20];
+    const auto deaths_inc_15_plus = state[21];
+    const auto deaths_inc_PBS = state[22];
+    const auto deaths_inc_CSW = state[23];
+    const auto deaths_inc_ASW = state[24];
+    const auto deaths_inc_SW = state[25];
+    const auto deaths_inc_HCW = state[26];
+    const auto dose1_inc = state[27];
+    const auto dose1_inc_00_04 = state[28];
+    const auto dose1_inc_05_14 = state[29];
+    const auto dose1_inc_15_plus = state[30];
+    const auto dose1_inc_PBS = state[31];
+    const auto dose1_inc_CSW = state[32];
+    const auto dose1_inc_ASW = state[33];
+    const auto dose1_inc_SW = state[34];
+    const auto dose1_inc_HCW = state[35];
+    const auto dose2_inc = state[36];
+    const auto dose2_inc_00_04 = state[37];
+    const auto dose2_inc_05_14 = state[38];
+    const auto dose2_inc_15_plus = state[39];
+    const auto dose2_inc_PBS = state[40];
+    const auto dose2_inc_CSW = state[41];
+    const auto dose2_inc_ASW = state[42];
+    const auto dose2_inc_SW = state[43];
+    const auto dose2_inc_HCW = state[44];
+    const auto * cases_cumulative_by_age = state + shared.odin.offset.state[110];
+    const auto cases_cumulative_00_04 = state[45];
+    const auto cases_cumulative_05_14 = state[46];
+    const auto cases_cumulative_15_plus = state[47];
+    const auto cases_cumulative_PBS = state[48];
+    const auto cases_cumulative_CSW = state[49];
+    const auto cases_cumulative_ASW = state[50];
+    const auto cases_cumulative_SW = state[51];
+    const auto cases_cumulative_HCW = state[52];
+    const auto deaths_cumulative_00_04 = state[53];
+    const auto deaths_cumulative_05_14 = state[54];
+    const auto deaths_cumulative_15_plus = state[55];
+    const auto deaths_cumulative_PBS = state[56];
+    const auto deaths_cumulative_CSW = state[57];
+    const auto deaths_cumulative_ASW = state[58];
+    const auto deaths_cumulative_SW = state[59];
+    const auto deaths_cumulative_HCW = state[60];
+    const auto dose1_cumulative = state[61];
+    const auto dose1_cumulative_00_04 = state[62];
+    const auto dose1_cumulative_05_14 = state[63];
+    const auto dose1_cumulative_15_plus = state[64];
+    const auto dose1_cumulative_PBS = state[65];
+    const auto dose1_cumulative_CSW = state[66];
+    const auto dose1_cumulative_ASW = state[67];
+    const auto dose1_cumulative_SW = state[68];
+    const auto dose1_cumulative_HCW = state[69];
+    const auto dose2_cumulative = state[70];
+    const auto dose2_cumulative_00_04 = state[71];
+    const auto dose2_cumulative_05_14 = state[72];
+    const auto dose2_cumulative_15_plus = state[73];
+    const auto dose2_cumulative_PBS = state[74];
+    const auto dose2_cumulative_CSW = state[75];
+    const auto dose2_cumulative_ASW = state[76];
+    const auto dose2_cumulative_SW = state[77];
+    const auto dose2_cumulative_HCW = state[78];
+    const auto vax_given_S = state[79];
+    const auto vax_given_Ea = state[80];
+    const auto vax_given_Eb = state[81];
+    const auto vax_given_R = state[82];
+    const auto vax_1stdose_given_S = state[83];
+    const auto vax_1stdose_given_Ea = state[84];
+    const auto vax_1stdose_given_Eb = state[85];
+    const auto vax_1stdose_given_R = state[86];
+    const auto vax_2nddose_given_S = state[87];
+    const auto vax_2nddose_given_Ea = state[88];
+    const auto vax_2nddose_given_Eb = state[89];
+    const auto vax_2nddose_given_R = state[90];
+    const auto total_vax = state[97];
+    const auto total_vax_1stdose = state[98];
+    const auto total_vax_2nddose = state[99];
     const real_type p_EE = 1 - monty::math::exp(-shared.gamma_E * 2 * dt);
     const real_type p_EI = 1 - monty::math::exp(-shared.gamma_E * 2 * dt);
     const real_type p_IrR = 1 - monty::math::exp(-shared.gamma_Ir * dt);
@@ -995,6 +1061,11 @@ public:
     for (size_t i = 1; i <= shared.dim.prop_infectious.size; ++i) {
       internal.prop_infectious[i - 1] = (dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {0, shared.dim.N.dim[1] - 1}) == 0 ? 0 : dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious, {i - 1, i - 1}, {0, shared.dim.I_infectious.dim[1] - 1}) / dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {0, shared.dim.N.dim[1] - 1}));
     }
+    for (size_t i = 1; i <= shared.dim.lambda_hc.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.lambda_hc.dim[1]; ++j) {
+        internal.lambda_hc[i - 1 + (j - 1) * shared.dim.lambda_hc.mult[1]] = (i == 20 ? shared.beta_hcw * dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]) : 0);
+      }
+    }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_vaccination_t_S.dim[1]; ++j) {
         internal.n_vaccination_t_S[i - 1 + (j - 1) * shared.dim.n_vaccination_t_S.mult[1]] = 0;
@@ -1079,9 +1150,14 @@ public:
         internal.n_vaccination_t[i - 1 + (j - 1) * shared.dim.n_vaccination_t.mult[1]] = internal.n_vaccination_t_S[i - 1 + (j - 1) * shared.dim.n_vaccination_t_S.mult[1]] + internal.n_vaccination_t_Ea[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Ea.mult[1]] + internal.n_vaccination_t_Eb[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Eb.mult[1]] + internal.n_vaccination_t_R[i - 1 + (j - 1) * shared.dim.n_vaccination_t_R.mult[1]];
       }
     }
-    for (size_t i = 1; i <= shared.dim.lambda.dim[0]; ++i) {
-      for (size_t j = 1; j <= shared.dim.lambda.dim[1]; ++j) {
-        internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] = (shared.beta_h * dust2::array::sum<real_type>(internal.s_ij_gen_pop.data(), shared.dim.s_ij_gen_pop, {i - 1, i - 1}, {0, shared.dim.s_ij_gen_pop.dim[1] - 1}) + shared.beta_s * dust2::array::sum<real_type>(internal.s_ij_sex.data(), shared.dim.s_ij_sex, {i - 1, i - 1}, {0, shared.dim.s_ij_sex.dim[1] - 1}) + (i == 20) * shared.beta_hcw * dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious) + shared.beta_z[i - 1]) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]);
+    for (size_t i = 1; i <= shared.dim.lambda_hh.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.lambda_hh.dim[1]; ++j) {
+        internal.lambda_hh[i - 1 + (j - 1) * shared.dim.lambda_hh.mult[1]] = shared.beta_h * dust2::array::sum<real_type>(internal.s_ij_gen_pop.data(), shared.dim.s_ij_gen_pop, {i - 1, i - 1}, {0, shared.dim.s_ij_gen_pop.dim[1] - 1}) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.lambda_s.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.lambda_s.dim[1]; ++j) {
+        internal.lambda_s[i - 1 + (j - 1) * shared.dim.lambda_s.mult[1]] = shared.beta_s * dust2::array::sum<real_type>(internal.s_ij_sex.data(), shared.dim.s_ij_sex, {i - 1, i - 1}, {0, shared.dim.s_ij_sex.dim[1] - 1}) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]);
       }
     }
     const real_type new_dose1 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {0, shared.dim.n_vaccination_t.dim[0] - 1}, {1, 1});
@@ -1098,9 +1174,9 @@ public:
     const real_type new_dose2_ASW = internal.n_vaccination_t[17 + 2 * shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose2_PBS = internal.n_vaccination_t[18 + 2 * shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose2_HCW = internal.n_vaccination_t[19 + 2 * shared.dim.n_vaccination_t.mult[1]];
-    for (size_t i = 1; i <= shared.dim.p_SE.dim[0]; ++i) {
-      for (size_t j = 1; j <= shared.dim.p_SE.dim[1]; ++j) {
-        internal.p_SE[i - 1 + (j - 1) * shared.dim.p_SE.mult[1]] = 1 - monty::math::exp(-internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] * dt);
+    for (size_t i = 1; i <= shared.dim.lambda.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.lambda.dim[1]; ++j) {
+        internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] = internal.lambda_hh[i - 1 + (j - 1) * shared.dim.lambda_hh.mult[1]] + internal.lambda_s[i - 1 + (j - 1) * shared.dim.lambda_s.mult[1]] + internal.lambda_hc[i - 1 + (j - 1) * shared.dim.lambda_hc.mult[1]] + shared.lambda_z[i - 1 + (j - 1) * shared.dim.lambda_z.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.n_EaEb.dim[0]; ++i) {
@@ -1119,9 +1195,24 @@ public:
     const real_type new_dose2_SW_15_17 = internal.n_vaccination_t[16 + 2 * shared.dim.n_vaccination_t.mult[1]] - new_dose2_SW_12_14;
     const real_type new_dose2_05_14 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {1, 2}, {2, 2}) + new_dose2_SW_12_14;
     const real_type new_dose2_SW = new_dose2_CSW + new_dose2_ASW;
-    for (size_t i = 1; i <= shared.dim.n_SEa.dim[0]; ++i) {
-      for (size_t j = 1; j <= shared.dim.n_SEa.dim[1]; ++j) {
-        internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] = monty::random::binomial<real_type>(rng_state, S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + internal.delta_S_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_S_n_vaccination.mult[1]], internal.p_SE[i - 1 + (j - 1) * shared.dim.p_SE.mult[1]]);
+    for (size_t i = 1; i <= shared.dim.p_SE.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.p_SE.dim[1]; ++j) {
+        internal.p_SE[i - 1 + (j - 1) * shared.dim.p_SE.mult[1]] = 1 - monty::math::exp(-internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] * dt);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.p_hh.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.p_hh.dim[1]; ++j) {
+        internal.p_hh[i - 1 + (j - 1) * shared.dim.p_hh.mult[1]] = (internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] > 0 ? internal.lambda_hh[i - 1 + (j - 1) * shared.dim.lambda_hh.mult[1]] / internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] : 0);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.p_s.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.p_s.dim[1]; ++j) {
+        internal.p_s[i - 1 + (j - 1) * shared.dim.p_s.mult[1]] = (internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] > 0 ? internal.lambda_s[i - 1 + (j - 1) * shared.dim.lambda_s.mult[1]] / internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] : 0);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.p_hc.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.p_hc.dim[1]; ++j) {
+        internal.p_hc[i - 1 + (j - 1) * shared.dim.p_hc.mult[1]] = (internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] > 0 ? internal.lambda_hc[i - 1 + (j - 1) * shared.dim.lambda_hc.mult[1]] / internal.lambda[i - 1 + (j - 1) * shared.dim.lambda.mult[1]] : 0);
       }
     }
     for (size_t i = 1; i <= shared.dim.n_EbId.dim[0]; ++i) {
@@ -1134,22 +1225,16 @@ public:
         internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]] = internal.n_EaEb[i - 1 + (j - 1) * shared.dim.n_EaEb.mult[1]] - internal.n_EbI[i - 1 + (j - 1) * shared.dim.n_EbI.mult[1]];
       }
     }
-    const real_type new_cases_00_04 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {0, 0}, {0, shared.dim.n_SEa.dim[1] - 1});
-    const real_type new_cases_SW_12_14 = monty::random::binomial<real_type>(rng_state, dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1}), static_cast<real_type>(0.5));
-    const real_type new_cases_CSW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1});
-    const real_type new_cases_ASW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 17}, {0, shared.dim.n_SEa.dim[1] - 1});
-    const real_type new_cases_PBS = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {18, 18}, {0, shared.dim.n_SEa.dim[1] - 1});
-    const real_type new_cases_HCW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {19, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
     const real_type new_dose1_15_plus = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {3, 15}, {1, 1}) + new_dose1_SW_15_17 + dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {17, 19}, {1, 1});
     const real_type new_dose2_15_plus = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {3, 15}, {2, 2}) + new_dose2_SW_15_17 + dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {17, 19}, {2, 2});
+    for (size_t i = 1; i <= shared.dim.n_SEa.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.n_SEa.dim[1]; ++j) {
+        internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] = monty::random::binomial<real_type>(rng_state, S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + internal.delta_S_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_S_n_vaccination.mult[1]], internal.p_SE[i - 1 + (j - 1) * shared.dim.p_SE.mult[1]]);
+      }
+    }
     for (size_t i = 1; i <= shared.dim.n_EbIr.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_EbIr.dim[1]; ++j) {
         internal.n_EbIr[i - 1 + (j - 1) * shared.dim.n_EbIr.mult[1]] = internal.n_EbI[i - 1 + (j - 1) * shared.dim.n_EbI.mult[1]] - internal.n_EbId[i - 1 + (j - 1) * shared.dim.n_EbId.mult[1]];
-      }
-    }
-    for (size_t i = 1; i <= shared.dim.delta_Ea.dim[0]; ++i) {
-      for (size_t j = 1; j <= shared.dim.delta_Ea.dim[1]; ++j) {
-        internal.delta_Ea[i - 1 + (j - 1) * shared.dim.delta_Ea.mult[1]] = internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_EaEb[i - 1 + (j - 1) * shared.dim.n_EaEb.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.delta_Id.dim[0]; ++i) {
@@ -1157,185 +1242,220 @@ public:
         internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]] = internal.n_EbId[i - 1 + (j - 1) * shared.dim.n_EbId.mult[1]] - internal.n_IdD[i - 1 + (j - 1) * shared.dim.n_IdD.mult[1]];
       }
     }
-    const real_type new_cases_SW_15_17 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1}) - new_cases_SW_12_14;
-    const real_type new_cases_05_14 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {1, 2}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_12_14;
-    const real_type new_cases_SW = new_cases_CSW + new_cases_ASW;
+    const real_type new_cases_00_04 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {0, 0}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_SW_12_14 = monty::random::binomial<real_type>(rng_state, dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1}), static_cast<real_type>(0.5));
+    const real_type new_cases_CSW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_ASW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 17}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_PBS = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {18, 18}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_HCW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {19, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
+    for (size_t i = 1; i <= shared.dim.n_SEa_hh.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.n_SEa_hh.dim[1]; ++j) {
+        internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]] = monty::random::binomial<real_type>(rng_state, internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]], internal.p_hh[i - 1 + (j - 1) * shared.dim.p_hh.mult[1]]);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.delta_Ea.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.delta_Ea.dim[1]; ++j) {
+        internal.delta_Ea[i - 1 + (j - 1) * shared.dim.delta_Ea.mult[1]] = internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_EaEb[i - 1 + (j - 1) * shared.dim.n_EaEb.mult[1]];
+      }
+    }
     for (size_t i = 1; i <= shared.dim.delta_Ir.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.delta_Ir.dim[1]; ++j) {
         internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]] = internal.n_EbIr[i - 1 + (j - 1) * shared.dim.n_EbIr.mult[1]] - internal.n_IrR[i - 1 + (j - 1) * shared.dim.n_IrR.mult[1]];
       }
     }
+    const real_type new_cases_SW_15_17 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1}) - new_cases_SW_12_14;
+    const real_type new_cases_05_14 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {1, 2}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_12_14;
+    const real_type new_cases_SW = new_cases_CSW + new_cases_ASW;
+    for (size_t i = 1; i <= shared.dim.n_SEa_s.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.n_SEa_s.dim[1]; ++j) {
+        internal.n_SEa_s[i - 1 + (j - 1) * shared.dim.n_SEa_s.mult[1]] = monty::random::binomial<real_type>(rng_state, internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]], internal.p_s[i - 1 + (j - 1) * shared.dim.p_s.mult[1]]);
+      }
+    }
     const real_type new_cases_15_plus = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {3, 15}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_15_17 + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
+    for (size_t i = 1; i <= shared.dim.n_SEa_hc.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.n_SEa_hc.dim[1]; ++j) {
+        internal.n_SEa_hc[i - 1 + (j - 1) * shared.dim.n_SEa_hc.mult[1]] = monty::random::binomial<real_type>(rng_state, internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]] - internal.n_SEa_s[i - 1 + (j - 1) * shared.dim.n_SEa_s.mult[1]], internal.p_hc[i - 1 + (j - 1) * shared.dim.p_hc.mult[1]]);
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.n_SEa_z.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.n_SEa_z.dim[1]; ++j) {
+        internal.n_SEa_z[i - 1 + (j - 1) * shared.dim.n_SEa_z.mult[1]] = internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]] - internal.n_SEa_s[i - 1 + (j - 1) * shared.dim.n_SEa_s.mult[1]] - internal.n_SEa_hc[i - 1 + (j - 1) * shared.dim.n_SEa_hc.mult[1]];
+      }
+    }
     state_next[0] = (prioritisation_step_1st_dose_children_proposal > shared.N_prioritisation_steps_children ? shared.N_prioritisation_steps_children : prioritisation_step_1st_dose_children_proposal);
     state_next[1] = (prioritisation_step_1st_dose_adults_proposal > shared.N_prioritisation_steps_adults ? shared.N_prioritisation_steps_adults : prioritisation_step_1st_dose_adults_proposal);
     state_next[2] = (prioritisation_step_2nd_dose_adults_proposal > shared.N_prioritisation_steps_adults ? shared.N_prioritisation_steps_adults : prioritisation_step_2nd_dose_adults_proposal);
-    state_next[75] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S);
-    state_next[76] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea);
-    state_next[77] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb);
-    state_next[78] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R);
-    state_next[79] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S, {0, shared.dim.n_vaccination_t_S.dim[0] - 1}, {1, 1});
-    state_next[80] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea, {0, shared.dim.n_vaccination_t_Ea.dim[0] - 1}, {1, 1});
-    state_next[81] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb, {0, shared.dim.n_vaccination_t_Eb.dim[0] - 1}, {1, 1});
-    state_next[82] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R, {0, shared.dim.n_vaccination_t_R.dim[0] - 1}, {1, 1});
-    state_next[83] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S, {0, shared.dim.n_vaccination_t_S.dim[0] - 1}, {2, 2});
-    state_next[84] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea, {0, shared.dim.n_vaccination_t_Ea.dim[0] - 1}, {2, 2});
-    state_next[85] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb, {0, shared.dim.n_vaccination_t_Eb.dim[0] - 1}, {2, 2});
-    state_next[86] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R, {0, shared.dim.n_vaccination_t_R.dim[0] - 1}, {2, 2});
+    state_next[79] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S);
+    state_next[80] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea);
+    state_next[81] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb);
+    state_next[82] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R);
+    state_next[83] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S, {0, shared.dim.n_vaccination_t_S.dim[0] - 1}, {1, 1});
+    state_next[84] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea, {0, shared.dim.n_vaccination_t_Ea.dim[0] - 1}, {1, 1});
+    state_next[85] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb, {0, shared.dim.n_vaccination_t_Eb.dim[0] - 1}, {1, 1});
+    state_next[86] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R, {0, shared.dim.n_vaccination_t_R.dim[0] - 1}, {1, 1});
+    state_next[87] = dust2::array::sum<real_type>(internal.n_vaccination_t_S.data(), shared.dim.n_vaccination_t_S, {0, shared.dim.n_vaccination_t_S.dim[0] - 1}, {2, 2});
+    state_next[88] = dust2::array::sum<real_type>(internal.n_vaccination_t_Ea.data(), shared.dim.n_vaccination_t_Ea, {0, shared.dim.n_vaccination_t_Ea.dim[0] - 1}, {2, 2});
+    state_next[89] = dust2::array::sum<real_type>(internal.n_vaccination_t_Eb.data(), shared.dim.n_vaccination_t_Eb, {0, shared.dim.n_vaccination_t_Eb.dim[0] - 1}, {2, 2});
+    state_next[90] = dust2::array::sum<real_type>(internal.n_vaccination_t_R.data(), shared.dim.n_vaccination_t_R, {0, shared.dim.n_vaccination_t_R.dim[0] - 1}, {2, 2});
     for (size_t i = 1; i <= shared.dim.S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.S.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.S.mult[1] + 96] = S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + internal.delta_S_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_S_n_vaccination.mult[1]] - internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.S.mult[1] + 100] = S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + internal.delta_S_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_S_n_vaccination.mult[1]] - internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Ea.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ea.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[97]] = Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + internal.delta_Ea_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Ea_n_vaccination.mult[1]] + internal.delta_Ea[i - 1 + (j - 1) * shared.dim.delta_Ea.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[101]] = Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + internal.delta_Ea_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Ea_n_vaccination.mult[1]] + internal.delta_Ea[i - 1 + (j - 1) * shared.dim.delta_Ea.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Eb.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Eb.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.Eb.mult[1] + shared.odin.offset.state[98]] = Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + internal.delta_Eb_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Eb_n_vaccination.mult[1]] + internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.Eb.mult[1] + shared.odin.offset.state[102]] = Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + internal.delta_Eb_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Eb_n_vaccination.mult[1]] + internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Ir.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ir.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.Ir.mult[1] + shared.odin.offset.state[99]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.Ir.mult[1] + shared.odin.offset.state[103]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Id.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Id.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.Id.mult[1] + shared.odin.offset.state[100]] = Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.Id.mult[1] + shared.odin.offset.state[104]] = Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.R.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.R.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.R.mult[1] + shared.odin.offset.state[101]] = R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + internal.delta_R_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_R_n_vaccination.mult[1]] + internal.delta_R[i - 1 + (j - 1) * shared.dim.delta_R.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.R.mult[1] + shared.odin.offset.state[105]] = R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + internal.delta_R_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_R_n_vaccination.mult[1]] + internal.delta_R[i - 1 + (j - 1) * shared.dim.delta_R.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.D.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.D.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.D.mult[1] + shared.odin.offset.state[102]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1]] + internal.delta_D[i - 1 + (j - 1) * shared.dim.delta_D.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.D.mult[1] + shared.odin.offset.state[106]] = D[i - 1 + (j - 1) * shared.dim.D.mult[1]] + internal.delta_D[i - 1 + (j - 1) * shared.dim.delta_D.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.E.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.E.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[103]] = Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[107]] = Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.I.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.I.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[104]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[108]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.N.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.N.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[105]] = S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[109]] = S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1]];
       }
     }
+    state_next[7] = cases_cumulative_hh + dust2::array::sum<real_type>(internal.n_SEa_hh.data(), shared.dim.n_SEa_hh);
+    state_next[8] = cases_cumulative_s + dust2::array::sum<real_type>(internal.n_SEa_s.data(), shared.dim.n_SEa_s);
+    state_next[9] = cases_cumulative_z + dust2::array::sum<real_type>(internal.n_SEa_z.data(), shared.dim.n_SEa_z);
+    state_next[10] = cases_cumulative_hc + dust2::array::sum<real_type>(internal.n_SEa_hc.data(), shared.dim.n_SEa_hc);
     state_next[3] = cases_inc + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa);
-    state_next[7] = cases_inc_00_04 + new_cases_00_04;
-    state_next[8] = cases_inc_05_14 + new_cases_05_14;
-    state_next[9] = cases_inc_15_plus + new_cases_15_plus;
-    state_next[11] = cases_inc_CSW + new_cases_CSW;
-    state_next[12] = cases_inc_ASW + new_cases_ASW;
-    state_next[13] = cases_inc_SW + new_cases_SW;
-    state_next[10] = cases_inc_PBS + new_cases_PBS;
-    state_next[14] = cases_inc_HCW + new_cases_HCW;
+    state_next[11] = cases_inc_00_04 + new_cases_00_04;
+    state_next[12] = cases_inc_05_14 + new_cases_05_14;
+    state_next[13] = cases_inc_15_plus + new_cases_15_plus;
+    state_next[15] = cases_inc_CSW + new_cases_CSW;
+    state_next[16] = cases_inc_ASW + new_cases_ASW;
+    state_next[17] = cases_inc_SW + new_cases_SW;
+    state_next[14] = cases_inc_PBS + new_cases_PBS;
+    state_next[18] = cases_inc_HCW + new_cases_HCW;
     for (size_t i = 1; i <= shared.dim.cases_cumulative_by_age.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[106]] = cases_cumulative_by_age[i - 1] + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {i - 1, i - 1}, {0, shared.dim.n_SEa.dim[1] - 1});
+      state_next[i - 1 + shared.odin.offset.state[110]] = cases_cumulative_by_age[i - 1] + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {i - 1, i - 1}, {0, shared.dim.n_SEa.dim[1] - 1});
     }
     state_next[5] = cases_cumulative + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa);
-    state_next[41] = cases_cumulative_00_04 + new_cases_00_04;
-    state_next[42] = cases_cumulative_05_14 + new_cases_05_14;
-    state_next[43] = cases_cumulative_15_plus + new_cases_15_plus;
-    state_next[45] = cases_cumulative_CSW + new_cases_CSW;
-    state_next[46] = cases_cumulative_ASW + new_cases_ASW;
-    state_next[47] = cases_cumulative_SW + new_cases_SW;
-    state_next[44] = cases_cumulative_PBS + new_cases_PBS;
-    state_next[48] = cases_cumulative_HCW + new_cases_HCW;
+    state_next[45] = cases_cumulative_00_04 + new_cases_00_04;
+    state_next[46] = cases_cumulative_05_14 + new_cases_05_14;
+    state_next[47] = cases_cumulative_15_plus + new_cases_15_plus;
+    state_next[49] = cases_cumulative_CSW + new_cases_CSW;
+    state_next[50] = cases_cumulative_ASW + new_cases_ASW;
+    state_next[51] = cases_cumulative_SW + new_cases_SW;
+    state_next[48] = cases_cumulative_PBS + new_cases_PBS;
+    state_next[52] = cases_cumulative_HCW + new_cases_HCW;
     state_next[4] = deaths_inc + dust2::array::sum<real_type>(internal.n_IdD.data(), shared.dim.n_IdD);
-    state_next[15] = deaths_inc_00_04 + new_deaths_00_04;
-    state_next[16] = deaths_inc_05_14 + new_deaths_05_14;
-    state_next[17] = deaths_inc_15_plus + new_deaths_15_plus;
-    state_next[19] = deaths_inc_CSW + new_deaths_CSW;
-    state_next[20] = deaths_inc_ASW + new_deaths_ASW;
-    state_next[21] = deaths_inc_SW + new_deaths_SW;
-    state_next[18] = deaths_inc_PBS + new_deaths_PBS;
-    state_next[22] = deaths_inc_HCW + new_deaths_HCW;
+    state_next[19] = deaths_inc_00_04 + new_deaths_00_04;
+    state_next[20] = deaths_inc_05_14 + new_deaths_05_14;
+    state_next[21] = deaths_inc_15_plus + new_deaths_15_plus;
+    state_next[23] = deaths_inc_CSW + new_deaths_CSW;
+    state_next[24] = deaths_inc_ASW + new_deaths_ASW;
+    state_next[25] = deaths_inc_SW + new_deaths_SW;
+    state_next[22] = deaths_inc_PBS + new_deaths_PBS;
+    state_next[26] = deaths_inc_HCW + new_deaths_HCW;
     state_next[6] = deaths_cumulative + dust2::array::sum<real_type>(internal.n_IdD.data(), shared.dim.n_IdD);
-    state_next[49] = deaths_cumulative_00_04 + new_deaths_00_04;
-    state_next[50] = deaths_cumulative_05_14 + new_deaths_05_14;
-    state_next[51] = deaths_cumulative_15_plus + new_deaths_15_plus;
-    state_next[53] = deaths_cumulative_CSW + new_deaths_CSW;
-    state_next[54] = deaths_cumulative_ASW + new_deaths_ASW;
-    state_next[55] = deaths_cumulative_SW + new_deaths_SW;
-    state_next[52] = deaths_cumulative_PBS + new_deaths_PBS;
-    state_next[56] = deaths_cumulative_HCW + new_deaths_HCW;
-    state_next[87] = dust2::array::sum<real_type>(S, shared.dim.S);
-    state_next[88] = dust2::array::sum<real_type>(E, shared.dim.E);
-    state_next[89] = dust2::array::sum<real_type>(I, shared.dim.I);
-    state_next[90] = dust2::array::sum<real_type>(R, shared.dim.R);
-    state_next[91] = dust2::array::sum<real_type>(D, shared.dim.D);
-    state_next[92] = dust2::array::sum<real_type>(N, shared.dim.N);
-    state_next[93] = total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R;
-    state_next[94] = total_vax_1stdose + vax_1stdose_given_S + vax_1stdose_given_Ea + vax_1stdose_given_Eb + vax_1stdose_given_R;
-    state_next[95] = total_vax_2nddose + vax_2nddose_given_S + vax_2nddose_given_Ea + vax_2nddose_given_Eb + vax_2nddose_given_R;
-    state_next[23] = dose1_inc + new_dose1;
-    state_next[24] = dose1_inc_00_04 + new_dose1_00_04;
-    state_next[25] = dose1_inc_05_14 + new_dose1_05_14;
-    state_next[26] = dose1_inc_15_plus + new_dose1_15_plus;
-    state_next[30] = dose1_inc_SW + new_dose1_SW;
-    state_next[28] = dose1_inc_CSW + new_dose1_CSW;
-    state_next[29] = dose1_inc_ASW + new_dose1_ASW;
-    state_next[27] = dose1_inc_PBS + new_dose1_PBS;
-    state_next[31] = dose1_inc_HCW + new_dose1_HCW;
-    state_next[32] = dose2_inc + new_dose2;
-    state_next[33] = dose2_inc_00_04 + new_dose2_00_04;
-    state_next[34] = dose2_inc_05_14 + new_dose2_05_14;
-    state_next[35] = dose2_inc_15_plus + new_dose2_15_plus;
-    state_next[39] = dose2_inc_SW + new_dose2_SW;
-    state_next[37] = dose2_inc_CSW + new_dose2_CSW;
-    state_next[38] = dose2_inc_ASW + new_dose2_ASW;
-    state_next[36] = dose2_inc_PBS + new_dose2_PBS;
-    state_next[40] = dose2_inc_HCW + new_dose2_HCW;
-    state_next[57] = dose1_cumulative + new_dose1;
-    state_next[58] = dose1_cumulative_00_04 + new_dose1_00_04;
-    state_next[59] = dose1_cumulative_05_14 + new_dose1_05_14;
-    state_next[60] = dose1_cumulative_15_plus + new_dose1_15_plus;
-    state_next[62] = dose1_cumulative_CSW + new_dose1_CSW;
-    state_next[63] = dose1_cumulative_ASW + new_dose1_ASW;
-    state_next[64] = dose1_cumulative_SW + new_dose1_SW;
-    state_next[61] = dose1_cumulative_PBS + new_dose1_PBS;
-    state_next[65] = dose1_cumulative_HCW + new_dose1_HCW;
-    state_next[66] = dose2_cumulative + new_dose2;
-    state_next[67] = dose2_cumulative_00_04 + new_dose2_00_04;
-    state_next[68] = dose2_cumulative_05_14 + new_dose2_05_14;
-    state_next[69] = dose2_cumulative_15_plus + new_dose2_15_plus;
-    state_next[71] = dose2_cumulative_CSW + new_dose2_CSW;
-    state_next[72] = dose2_cumulative_ASW + new_dose2_ASW;
-    state_next[73] = dose2_cumulative_SW + new_dose2_SW;
-    state_next[70] = dose2_cumulative_PBS + new_dose2_PBS;
-    state_next[74] = dose2_cumulative_HCW + new_dose2_HCW;
+    state_next[53] = deaths_cumulative_00_04 + new_deaths_00_04;
+    state_next[54] = deaths_cumulative_05_14 + new_deaths_05_14;
+    state_next[55] = deaths_cumulative_15_plus + new_deaths_15_plus;
+    state_next[57] = deaths_cumulative_CSW + new_deaths_CSW;
+    state_next[58] = deaths_cumulative_ASW + new_deaths_ASW;
+    state_next[59] = deaths_cumulative_SW + new_deaths_SW;
+    state_next[56] = deaths_cumulative_PBS + new_deaths_PBS;
+    state_next[60] = deaths_cumulative_HCW + new_deaths_HCW;
+    state_next[91] = dust2::array::sum<real_type>(S, shared.dim.S);
+    state_next[92] = dust2::array::sum<real_type>(E, shared.dim.E);
+    state_next[93] = dust2::array::sum<real_type>(I, shared.dim.I);
+    state_next[94] = dust2::array::sum<real_type>(R, shared.dim.R);
+    state_next[95] = dust2::array::sum<real_type>(D, shared.dim.D);
+    state_next[96] = dust2::array::sum<real_type>(N, shared.dim.N);
+    state_next[97] = total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R;
+    state_next[98] = total_vax_1stdose + vax_1stdose_given_S + vax_1stdose_given_Ea + vax_1stdose_given_Eb + vax_1stdose_given_R;
+    state_next[99] = total_vax_2nddose + vax_2nddose_given_S + vax_2nddose_given_Ea + vax_2nddose_given_Eb + vax_2nddose_given_R;
+    state_next[27] = dose1_inc + new_dose1;
+    state_next[28] = dose1_inc_00_04 + new_dose1_00_04;
+    state_next[29] = dose1_inc_05_14 + new_dose1_05_14;
+    state_next[30] = dose1_inc_15_plus + new_dose1_15_plus;
+    state_next[34] = dose1_inc_SW + new_dose1_SW;
+    state_next[32] = dose1_inc_CSW + new_dose1_CSW;
+    state_next[33] = dose1_inc_ASW + new_dose1_ASW;
+    state_next[31] = dose1_inc_PBS + new_dose1_PBS;
+    state_next[35] = dose1_inc_HCW + new_dose1_HCW;
+    state_next[36] = dose2_inc + new_dose2;
+    state_next[37] = dose2_inc_00_04 + new_dose2_00_04;
+    state_next[38] = dose2_inc_05_14 + new_dose2_05_14;
+    state_next[39] = dose2_inc_15_plus + new_dose2_15_plus;
+    state_next[43] = dose2_inc_SW + new_dose2_SW;
+    state_next[41] = dose2_inc_CSW + new_dose2_CSW;
+    state_next[42] = dose2_inc_ASW + new_dose2_ASW;
+    state_next[40] = dose2_inc_PBS + new_dose2_PBS;
+    state_next[44] = dose2_inc_HCW + new_dose2_HCW;
+    state_next[61] = dose1_cumulative + new_dose1;
+    state_next[62] = dose1_cumulative_00_04 + new_dose1_00_04;
+    state_next[63] = dose1_cumulative_05_14 + new_dose1_05_14;
+    state_next[64] = dose1_cumulative_15_plus + new_dose1_15_plus;
+    state_next[66] = dose1_cumulative_CSW + new_dose1_CSW;
+    state_next[67] = dose1_cumulative_ASW + new_dose1_ASW;
+    state_next[68] = dose1_cumulative_SW + new_dose1_SW;
+    state_next[65] = dose1_cumulative_PBS + new_dose1_PBS;
+    state_next[69] = dose1_cumulative_HCW + new_dose1_HCW;
+    state_next[70] = dose2_cumulative + new_dose2;
+    state_next[71] = dose2_cumulative_00_04 + new_dose2_00_04;
+    state_next[72] = dose2_cumulative_05_14 + new_dose2_05_14;
+    state_next[73] = dose2_cumulative_15_plus + new_dose2_15_plus;
+    state_next[75] = dose2_cumulative_CSW + new_dose2_CSW;
+    state_next[76] = dose2_cumulative_ASW + new_dose2_ASW;
+    state_next[77] = dose2_cumulative_SW + new_dose2_SW;
+    state_next[74] = dose2_cumulative_PBS + new_dose2_PBS;
+    state_next[78] = dose2_cumulative_HCW + new_dose2_HCW;
   }
   static auto zero_every(const shared_state& shared) {
-    return dust2::zero_every_type<real_type>{{7, {3}}, {7, {4}}, {7, {7}}, {7, {8}}, {7, {9}}, {7, {10}}, {7, {11}}, {7, {12}}, {7, {13}}, {7, {14}}, {7, {15}}, {7, {16}}, {7, {17}}, {7, {18}}, {7, {19}}, {7, {20}}, {7, {21}}, {7, {22}}, {7, {23}}, {7, {24}}, {7, {25}}, {7, {26}}, {7, {27}}, {7, {28}}, {7, {29}}, {7, {30}}, {7, {31}}, {7, {32}}, {7, {33}}, {7, {34}}, {7, {35}}, {7, {36}}, {7, {37}}, {7, {38}}, {7, {39}}, {7, {40}}};
+    return dust2::zero_every_type<real_type>{{7, {3}}, {7, {4}}, {7, {11}}, {7, {12}}, {7, {13}}, {7, {14}}, {7, {15}}, {7, {16}}, {7, {17}}, {7, {18}}, {7, {19}}, {7, {20}}, {7, {21}}, {7, {22}}, {7, {23}}, {7, {24}}, {7, {25}}, {7, {26}}, {7, {27}}, {7, {28}}, {7, {29}}, {7, {30}}, {7, {31}}, {7, {32}}, {7, {33}}, {7, {34}}, {7, {35}}, {7, {36}}, {7, {37}}, {7, {38}}, {7, {39}}, {7, {40}}, {7, {41}}, {7, {42}}, {7, {43}}, {7, {44}}};
   }
   static real_type compare_data(real_type time, const real_type* state, const data_type& data, const shared_state& shared, internal_state& internal, rng_state_type& rng_state) {
     const auto cases_inc = state[3];
     const auto deaths_inc = state[4];
-    const auto cases_inc_00_04 = state[7];
-    const auto cases_inc_05_14 = state[8];
-    const auto cases_inc_15_plus = state[9];
-    const auto cases_inc_SW = state[13];
-    const auto cases_inc_HCW = state[14];
-    const auto deaths_inc_00_04 = state[15];
-    const auto deaths_inc_05_14 = state[16];
-    const auto deaths_inc_15_plus = state[17];
-    const auto cases_cumulative_00_04 = state[41];
-    const auto cases_cumulative_05_14 = state[42];
-    const auto cases_cumulative_15_plus = state[43];
-    const auto deaths_cumulative_00_04 = state[49];
-    const auto deaths_cumulative_05_14 = state[50];
-    const auto deaths_cumulative_15_plus = state[51];
+    const auto cases_inc_00_04 = state[11];
+    const auto cases_inc_05_14 = state[12];
+    const auto cases_inc_15_plus = state[13];
+    const auto cases_inc_SW = state[17];
+    const auto cases_inc_HCW = state[18];
+    const auto deaths_inc_00_04 = state[19];
+    const auto deaths_inc_05_14 = state[20];
+    const auto deaths_inc_15_plus = state[21];
+    const auto cases_cumulative_00_04 = state[45];
+    const auto cases_cumulative_05_14 = state[46];
+    const auto cases_cumulative_15_plus = state[47];
+    const auto deaths_cumulative_00_04 = state[53];
+    const auto deaths_cumulative_05_14 = state[54];
+    const auto deaths_cumulative_15_plus = state[55];
     real_type odin_ll = 0;
     const real_type model_cases = cases_inc + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_00_04 = cases_inc_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
