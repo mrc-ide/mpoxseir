@@ -319,7 +319,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   }
 
   ## Initialising variable that other parameters depend on
-  demographic_params <- parameters_demographic()
+  demographic_params <- parameters_demographic(region = region)
   age_bins <- get_age_bins()
   idx_compartment <- get_compartment_indices()
 
