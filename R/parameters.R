@@ -260,7 +260,7 @@ get_group_bins <- function() {
   groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
                        start = c(12, 18, 20, 20),
                        end = c(17, 49, 49, 69),
-                       children = c(1, 0, 0, 0))
+                       children = c(0, 0, 0, 0))
   ret <- rbind(age_bins, groups)
   ret$adults <- 1 - ret$children
   
