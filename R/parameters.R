@@ -12,7 +12,7 @@
 ##' @importFrom squire get_mixing_matrix
 ##' 
 ##' @export
-parameters_demographic <- function() {
+parameters_demographic <- function(region) {
   
   age_bins <- get_age_bins()
   group_bins <- get_group_bins()
@@ -39,7 +39,12 @@ parameters_demographic <- function() {
                                      group_bins["ASW", "end"])
   N_ASW <- N_age * w_ASW
 
-  p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
+  if(region=="equateur"){
+     p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
+  } else if(region=="sudkivu"){
+    p_SW <- 0.03 * 0.5 # WHO press release
+  }
+  
   N_CSW <- round(p_SW * N_CSW)
   N_ASW <- round(p_SW * N_ASW)
   
