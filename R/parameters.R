@@ -3,6 +3,9 @@
 ##' 
 ##' @title Get demographic parameters
 ##' 
+##' @param region The region for the parameters, must be either `"equateur"` or
+##'   `"sudkivu"`
+##' 
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
