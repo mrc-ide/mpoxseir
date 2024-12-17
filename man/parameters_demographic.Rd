@@ -4,7 +4,11 @@
 \alias{parameters_demographic}
 \title{Get demographic parameters}
 \usage{
-parameters_demographic()
+parameters_demographic(region)
+}
+\arguments{
+\item{region}{The region for the parameters, must be either \code{"equateur"} or
+\code{"sudkivu"}}
 }
 \value{
 A list containing all the demographic parameters
