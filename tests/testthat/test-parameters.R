@@ -5,7 +5,7 @@ test_that("assign seeds works", {
 })
 
 test_that("Mixing matrices are correct", {
-  pars <- parameters_demographic()
+  pars <- parameters_demographic(region = "equateur")
   
   expect_equal(sum(pars$N0), sum(pars$N_age))
   

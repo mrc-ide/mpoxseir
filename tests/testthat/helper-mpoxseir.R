@@ -54,8 +54,8 @@ reference_pars_targeted_vax <- function(region = "equateur") {
 
 
 reference_names <- function() {
-  n_group <- parameters_demographic()$n_group
-  n_vax <- parameters_demographic()$n_vax
+  n_group <- parameters_demographic(region = "equateur")$n_group
+  n_vax <- parameters_demographic(region = "equateur")$n_vax
   states <- c("S", "Ea", "Eb", "Ir", "Id", "R", "D")
   list(
     states = paste0(rep(states, each = n_group*n_vax), seq_len(n_group*n_vax))
