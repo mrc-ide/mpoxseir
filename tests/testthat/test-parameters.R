@@ -4,7 +4,7 @@ test_that("assign seeds works", {
   expect_equal(assign_seeds(6, c(3, 2, 1)), c(3, 2, 1))
 })
 
-test_that("Mixing matrices are correct", {
+test_that("Mixing matrices are correct in Equateur", {
   pars <- parameters_demographic(region = "equateur")
   
   expect_equal(sum(pars$N0), sum(pars$N_age))
@@ -15,6 +15,25 @@ test_that("Mixing matrices are correct", {
   m <- M / pars$N0
   m[is.na(m)] <- 0
 
+  expect_true(isSymmetric(M))
+  expect_equal(sum(M_age - t(M_age)), 0)
+  
+  expect_equal(sum(upper.tri(M, diag = TRUE) * M), 
+               sum(upper.tri(M_age, diag = TRUE) * M_age))
+  expect_equal(m, pars$m_gen_pop)
+})
+
+test_that("Mixing matrices are correct in Sud Kivu", {
+  pars <- parameters_demographic(region = "sudkivu")
+  
+  expect_equal(sum(pars$N0), sum(pars$N_age))
+  
+  M <- pars$total_contacts_nonsexual
+  M_age <- pars$total_contacts_age
+  
+  m <- M / pars$N0
+  m[is.na(m)] <- 0
+  
   expect_true(isSymmetric(M))
   expect_equal(sum(M_age - t(M_age)), 0)
   
