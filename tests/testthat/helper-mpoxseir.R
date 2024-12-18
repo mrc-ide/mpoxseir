@@ -34,8 +34,8 @@ reference_pars_targeted_vax <- function(region = "equateur") {
                                   times=pars$N_prioritisation_steps_children),
                               ncol=pars$N_prioritisation_steps_children,
                               byrow=FALSE)
-  priority_children[c(3,4,17),1] <- 0
-  priority_children[c(4,17),2] <- 0
+  priority_children[c(2,3),1] <- 0
+  priority_children[3,2] <- 0
   
   pars$prioritisation_strategy_children <- priority_children * 0.5
   
@@ -43,7 +43,7 @@ reference_pars_targeted_vax <- function(region = "equateur") {
                                 times=pars$N_prioritisation_steps_adults),
                             ncol=pars$N_prioritisation_steps_adults,
                             byrow=FALSE)
-  priority_adults[c(4:16,20),1] <- 0
+  priority_adults[c(3:16),1] <- 0
   
   pars$prioritisation_strategy_adults <- priority_adults * 0.5
 
