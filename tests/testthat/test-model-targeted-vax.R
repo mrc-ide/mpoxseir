@@ -436,8 +436,8 @@ test_that("1st/2nd dose and adult/child prioritisation steps can be different de
   pars$prioritisation_strategy_children[,1] <- pars$prioritisation_strategy_children[,1]/4
   pars$prioritisation_strategy_adults[,1] <- pars$prioritisation_strategy_adults[,1]/4
   
-  # give lots of vaccines to push through quickly 
-  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  # give lots of vaccines to push through quickly
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 10
   pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 100
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
