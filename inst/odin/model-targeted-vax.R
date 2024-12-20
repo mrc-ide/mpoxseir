@@ -534,7 +534,7 @@ n_vaccination_t[, ] <- n_vaccination_t_S[i, j] + n_vaccination_t_Ea[i, j] +
 
 new_dose1 <- sum(n_vaccination_t[, 2])
 new_dose1_00_04 <- n_vaccination_t[1, 2]
-new_dose1_SW_12_14 <- Binomial(n_vaccination_t[17, 2], 0.5)
+new_dose1_SW_12_14 <- round(n_vaccination_t[17, 2] * 0.5)
 new_dose1_SW_15_17 <- n_vaccination_t[17, 2] - new_dose1_SW_12_14
 new_dose1_05_14 <- sum(n_vaccination_t[2:3, 2]) + new_dose1_SW_12_14
 new_dose1_15_plus <-
@@ -557,7 +557,7 @@ update(dose1_inc_HCW) <- dose1_inc_HCW + new_dose1_HCW
 
 new_dose2 <- sum(n_vaccination_t[, 3])
 new_dose2_00_04 <- n_vaccination_t[1, 3]
-new_dose2_SW_12_14 <- Binomial(n_vaccination_t[17, 3], 0.5)
+new_dose2_SW_12_14 <- round(n_vaccination_t[17, 3] * 0.5)
 new_dose2_SW_15_17 <- n_vaccination_t[17, 3] - new_dose2_SW_12_14
 new_dose2_05_14 <- sum(n_vaccination_t[2:3, 3]) + new_dose2_SW_12_14
 new_dose2_15_plus <-
