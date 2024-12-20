@@ -222,7 +222,7 @@ n_vaccination_t_S[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_S[4, 2] <- min(n_vaccination_t_S[4, 2], S[4, 2])
+n_vaccination_t_S[3, 2] <- min(n_vaccination_t_S[3, 2], S[3, 2])
 
 ## allocate 2nd doses (adults only for now)
 n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
