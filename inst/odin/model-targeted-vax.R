@@ -521,12 +521,15 @@ update(R_tot) <- sum(new_R[, ])
 update(D_tot) <- sum(new_D[, ])
 update(N_tot) <- sum(new_N[, ])
 
-update(total_vax) <- total_vax + vax_given_S + vax_given_Ea + vax_given_Eb +
-  vax_given_R
-update(total_vax_1stdose) <- total_vax_1stdose + vax_1stdose_given_S +
-  vax_1stdose_given_Ea + vax_1stdose_given_Eb + vax_1stdose_given_R
-update(total_vax_2nddose) <- total_vax_2nddose + vax_2nddose_given_S +
-  vax_2nddose_given_Ea + vax_2nddose_given_Eb + vax_2nddose_given_R
+update(total_vax) <- total_vax + sum(n_vaccination_t_S[, ]) +
+  sum(n_vaccination_t_Ea[, ]) + sum(n_vaccination_t_Eb[, ]) +
+  sum(n_vaccination_t_R[, ])
+update(total_vax_1stdose) <- total_vax_1stdose + sum(n_vaccination_t_S[, 2]) +
+  sum(n_vaccination_t_Ea[, 2]) + sum(n_vaccination_t_Eb[, 2]) +
+  sum(n_vaccination_t_R[, 2])
+update(total_vax_2nddose) <- total_vax_2nddose + sum(n_vaccination_t_S[, 3]) +
+  sum(n_vaccination_t_Ea[, 3]) + sum(n_vaccination_t_Eb[, 3]) +
+  sum(n_vaccination_t_R[, 3])
 
 ## Vaccine doses by age / KP
 # group indices
