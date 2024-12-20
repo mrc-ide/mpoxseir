@@ -262,7 +262,7 @@ n_vaccination_t_Ea[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_Ea[4, 2] <- min(n_vaccination_t_Ea[4, 2], Ea[4, 2])
+n_vaccination_t_Ea[3, 2] <- min(n_vaccination_t_Ea[3, 2], Ea[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -302,7 +302,7 @@ n_vaccination_t_Eb[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_Eb[4, 2] <- min(n_vaccination_t_Eb[4, 2], Eb[4, 2])
+n_vaccination_t_Eb[3, 2] <- min(n_vaccination_t_Eb[3, 2], Eb[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -342,7 +342,7 @@ n_vaccination_t_R[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_R[4, 2] <- min(n_vaccination_t_R[4, 2], R[4, 2])
+n_vaccination_t_R[3, 2] <- min(n_vaccination_t_R[3, 2], R[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
