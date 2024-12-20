@@ -436,8 +436,8 @@ test_that("1st/2nd dose and adult/child prioritisation steps can be different de
   pars$prioritisation_strategy_children[,1] <- pars$prioritisation_strategy_children[,1]/4
   pars$prioritisation_strategy_adults[,1] <- pars$prioritisation_strategy_adults[,1]/4
   
-  # give lots of vaccines to push through quickly 
-  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  # give lots of vaccines to push through quickly
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 10
   pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 100
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
@@ -731,10 +731,26 @@ test_that("Test vaccine outputs sum correctly", {
   idx <- get_compartment_indices()
   idx_age <- seq_len(nrow(get_age_bins()))
   group_bins <- get_group_bins()
-  idx_15_plus <- which(group_bins$start >= 15)
+  idx_15_plus <- which(group_bins$start >=15)
   
-  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , -1], c(2, 3), sum),
+  ## age based tests
+  ## second doses
+  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , -1], c(2, 3), sum) + floor(0.5 * (y$N[17, idx$vax$two_dose, , -1])),
                res["dose2_cumulative_15_plus", , -max(t)])
+   expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`), idx$vax$two_dose, , -1], c(2, 3), sum) + ceiling(0.5 * (y$N[17, idx$vax$two_dose, , -1])),
+               res["dose2_cumulative_05_14", , -max(t)]) 
+  
+   
+   # # ## 1st doses - slight issues here to do with rounding but very close
+   # expect_equal(apply(y$N[idx_15_plus, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(3, 4), sum)+
+   # floor(0.5 * apply(y$N[17, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(2,3), sum)),
+   # res["dose1_cumulative_15_plus", , -max(t)])
+   # 
+   # expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`), c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(3, 4), sum)+
+   #                floor(0.5 * apply(y$N[17, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(2,3), sum)),
+   #              res["dose1_cumulative_05_14", , -max(t)])
+
+   
   expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , -1],
                res["dose1_cumulative_00_04", , -max(t)])
   

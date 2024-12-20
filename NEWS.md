@@ -1,4 +1,12 @@
 
+# mpoxseir 0.2.5
+
+* Those aged 12 and above are considered adults (relevant to 12 - 17 & CSWs)
+
+# mpoxseir 0.2.4
+
+* Increase population of SWs in Sud Kivu
+
 # mpoxseir 0.2.3
 
 * Export cases by transmission route
