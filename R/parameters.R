@@ -264,11 +264,13 @@ get_group_bins <- function() {
   
   age_bins <- get_age_bins()
   age_bins$children <- proportion_in_age_bins(0, 11)
+  age_bins$fifteen_plus <- 1 - proportion_in_age_bins(0,14)
   
   groups <- data.frame(label = c("CSW", "ASW", "PBS", "HCW"),
                        start = c(12, 18, 20, 20),
                        end = c(17, 49, 49, 69),
-                       children = c(0, 0, 0, 0))
+                       children = c(0, 0, 0, 0),
+                       fifteen_plus = c(0.5,1,1,1))
   ret <- rbind(age_bins, groups)
   ret$adults <- 1 - ret$children
   
