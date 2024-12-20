@@ -1164,14 +1164,14 @@ public:
     }
     const real_type new_dose1 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {0, shared.dim.n_vaccination_t.dim[0] - 1}, {1, 1});
     const real_type new_dose1_00_04 = internal.n_vaccination_t[shared.dim.n_vaccination_t.mult[1]];
-    const real_type new_dose1_SW_12_14 = monty::random::binomial<real_type>(rng_state, internal.n_vaccination_t[16 + shared.dim.n_vaccination_t.mult[1]], static_cast<real_type>(0.5));
+    const real_type new_dose1_SW_12_14 = monty::math::round(internal.n_vaccination_t[16 + shared.dim.n_vaccination_t.mult[1]] * static_cast<real_type>(0.5));
     const real_type new_dose1_CSW = internal.n_vaccination_t[16 + shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose1_ASW = internal.n_vaccination_t[17 + shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose1_PBS = internal.n_vaccination_t[18 + shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose1_HCW = internal.n_vaccination_t[19 + shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose2 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {0, shared.dim.n_vaccination_t.dim[0] - 1}, {2, 2});
     const real_type new_dose2_00_04 = internal.n_vaccination_t[2 * shared.dim.n_vaccination_t.mult[1]];
-    const real_type new_dose2_SW_12_14 = monty::random::binomial<real_type>(rng_state, internal.n_vaccination_t[16 + 2 * shared.dim.n_vaccination_t.mult[1]], static_cast<real_type>(0.5));
+    const real_type new_dose2_SW_12_14 = monty::math::round(internal.n_vaccination_t[16 + 2 * shared.dim.n_vaccination_t.mult[1]] * static_cast<real_type>(0.5));
     const real_type new_dose2_CSW = internal.n_vaccination_t[16 + 2 * shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose2_ASW = internal.n_vaccination_t[17 + 2 * shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose2_PBS = internal.n_vaccination_t[18 + 2 * shared.dim.n_vaccination_t.mult[1]];
