@@ -417,10 +417,14 @@ update(R[, ]) <- new_R[i, j]
 update(D[, ]) <- new_D[i, j]
 
 ## Additional outputs
-update(E[, ]) <- Ea[i, j] + Eb[i, j]
-update(I[, ]) <- Ir[i, j] + Id[i, j]
-update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] +
-  R[i, j] +  D[i, j]
+new_E[, ] <- new_Ea[i, j] + new_Eb[i, j]
+new_I[, ] <- new_Ir[i, j] + new_Id[i, j]
+new_N[, ] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
+  new_Id[i, j] + new_R[i, j] + new_D[i, j]
+
+update(E[, ]) <- new_E[i, j] 
+update(I[, ]) <- new_I[i, j]
+update(N[, ]) <- new_N[i, j]
 
 # cumulative cases by transmission route
 update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
@@ -510,12 +514,12 @@ update(deaths_cumulative_SW) <- deaths_cumulative_SW + new_deaths_SW
 update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + new_deaths_PBS
 update(deaths_cumulative_HCW) <- deaths_cumulative_HCW + new_deaths_HCW
 
-update(S_tot) <- sum(S[, ])
-update(E_tot) <- sum(E[, ])
-update(I_tot) <- sum(I[, ])
-update(R_tot) <- sum(R[, ])
-update(D_tot) <- sum(D[, ])
-update(N_tot) <- sum(N[, ])
+update(S_tot) <- sum(new_S[, ])
+update(E_tot) <- sum(new_E[, ])
+update(I_tot) <- sum(new_I[, ])
+update(R_tot) <- sum(new_R[, ])
+update(D_tot) <- sum(new_D[, ])
+update(N_tot) <- sum(new_N[, ])
 
 update(total_vax) <- total_vax + vax_given_S + vax_given_Ea + vax_given_Eb +
   vax_given_R
@@ -834,7 +838,7 @@ n_group <- parameter()
 
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
-dim(N) <- c(n_group, n_vax)
+dim(N, new_N) <- c(n_group, n_vax)
 dim(S, new_S) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
@@ -852,7 +856,7 @@ dim(n_EbI) <- c(n_group, n_vax)
 
 dim(n_EbId) <- c(n_group, n_vax)
 dim(n_EbIr) <- c(n_group, n_vax)
-dim(E) <- c(n_group, n_vax)
+dim(E, new_E) <- c(n_group, n_vax)
 
 dim(Ir0) <- c(n_group, n_vax)
 dim(Ir, new_Ir) <- c(n_group, n_vax)
@@ -863,7 +867,7 @@ dim(Id0) <- c(n_group, n_vax)
 dim(Id, new_Id) <- c(n_group, n_vax)
 dim(delta_Id) <- c(n_group, n_vax)
 dim(n_IdD) <- c(n_group, n_vax)
-dim(I) <- c(n_group, n_vax)
+dim(I, new_I) <- c(n_group, n_vax)
 
 dim(R, new_R) <- c(n_group, n_vax)
 dim(R0) <- c(n_group, n_vax)

@@ -254,6 +254,9 @@ public:
     std::vector<real_type> new_Ea;
     std::vector<real_type> new_Ir;
     std::vector<real_type> n_SEa_s;
+    std::vector<real_type> new_E;
+    std::vector<real_type> new_I;
+    std::vector<real_type> new_N;
     std::vector<real_type> n_SEa_hc;
     std::vector<real_type> n_SEa_z;
   };
@@ -615,9 +618,12 @@ public:
     std::vector<real_type> new_Ea(shared.dim.Ea.size);
     std::vector<real_type> new_Ir(shared.dim.Ir.size);
     std::vector<real_type> n_SEa_s(shared.dim.n_SEa_s.size);
+    std::vector<real_type> new_E(shared.dim.E.size);
+    std::vector<real_type> new_I(shared.dim.I.size);
+    std::vector<real_type> new_N(shared.dim.N.size);
     std::vector<real_type> n_SEa_hc(shared.dim.n_SEa_hc.size);
     std::vector<real_type> n_SEa_z(shared.dim.n_SEa_z.size);
-    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, new_D, prop_infectious, lambda_hc, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, n_vaccination_t, lambda_hh, lambda_s, new_R, lambda, n_EaEb, n_EbI, p_SE, p_hh, p_s, p_hc, n_EbId, delta_Eb, new_Eb, n_SEa, n_EbIr, delta_Id, new_S, new_Id, n_SEa_hh, delta_Ea, delta_Ir, new_Ea, new_Ir, n_SEa_s, n_SEa_hc, n_SEa_z};
+    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_achieved_1st_dose_children, coverage_achieved_1st_dose_adults, coverage_achieved_2nd_dose_adults, n_eligible_for_dose1_children, n_eligible_for_dose1_adults, n_eligible_for_dose2_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, n_vaccination_t_S_children, n_vaccination_t_S_adults, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_R_children, n_vaccination_t_R_adults, new_D, prop_infectious, lambda_hc, n_vaccination_t_S, n_vaccination_t_Ea, n_vaccination_t_Eb, n_vaccination_t_R, s_ij_gen_pop, s_ij_sex, delta_S_n_vaccination, delta_Ea_n_vaccination, delta_Eb_n_vaccination, delta_R_n_vaccination, n_vaccination_t, lambda_hh, lambda_s, new_R, lambda, n_EaEb, n_EbI, p_SE, p_hh, p_s, p_hc, n_EbId, delta_Eb, new_Eb, n_SEa, n_EbIr, delta_Id, new_S, new_Id, n_SEa_hh, delta_Ea, delta_Ir, new_Ea, new_Ir, n_SEa_s, new_E, new_I, new_N, n_SEa_hc, n_SEa_z};
   }
   static data_type build_data(cpp11::list data, const shared_state& shared) {
     auto cases = dust2::r::read_real(data, "cases", NA_REAL);
@@ -849,7 +855,6 @@ public:
     const auto * Id = state + shared.odin.offset.state[104];
     const auto * R = state + shared.odin.offset.state[105];
     const auto * D = state + shared.odin.offset.state[106];
-    const auto * E = state + shared.odin.offset.state[107];
     const auto * I = state + shared.odin.offset.state[108];
     const auto * N = state + shared.odin.offset.state[109];
     const auto cases_inc = state[3];
@@ -1320,6 +1325,21 @@ public:
         internal.n_SEa_s[i - 1 + (j - 1) * shared.dim.n_SEa_s.mult[1]] = monty::random::binomial<real_type>(rng_state, internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]] - internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]], internal.p_s[i - 1 + (j - 1) * shared.dim.p_s.mult[1]]);
       }
     }
+    for (size_t i = 1; i <= shared.dim.E.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.E.dim[1]; ++j) {
+        internal.new_E[i - 1 + (j - 1) * shared.dim.E.mult[1]] = internal.new_Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + internal.new_Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]];
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.I.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.I.dim[1]; ++j) {
+        internal.new_I[i - 1 + (j - 1) * shared.dim.I.mult[1]] = internal.new_Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.new_Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]];
+      }
+    }
+    for (size_t i = 1; i <= shared.dim.N.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.N.dim[1]; ++j) {
+        internal.new_N[i - 1 + (j - 1) * shared.dim.N.mult[1]] = internal.new_S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + internal.new_Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + internal.new_Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + internal.new_Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.new_Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + internal.new_R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + internal.new_D[i - 1 + (j - 1) * shared.dim.D.mult[1]];
+      }
+    }
     const real_type new_cases_15_plus = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {3, 15}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_15_17 + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
     for (size_t i = 1; i <= shared.dim.n_SEa_hc.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_SEa_hc.dim[1]; ++j) {
@@ -1383,17 +1403,17 @@ public:
     }
     for (size_t i = 1; i <= shared.dim.E.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.E.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[107]] = Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[107]] = internal.new_E[i - 1 + (j - 1) * shared.dim.E.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.I.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.I.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[108]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.I.mult[1] + shared.odin.offset.state[108]] = internal.new_I[i - 1 + (j - 1) * shared.dim.I.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.N.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.N.dim[1]; ++j) {
-        state_next[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[109]] = S[i - 1 + (j - 1) * shared.dim.S.mult[1]] + Ea[i - 1 + (j - 1) * shared.dim.Ea.mult[1]] + Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + R[i - 1 + (j - 1) * shared.dim.R.mult[1]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1]];
+        state_next[i - 1 + (j - 1) * shared.dim.N.mult[1] + shared.odin.offset.state[109]] = internal.new_N[i - 1 + (j - 1) * shared.dim.N.mult[1]];
       }
     }
     state_next[7] = cases_cumulative_hh + dust2::array::sum<real_type>(internal.n_SEa_hh.data(), shared.dim.n_SEa_hh);
@@ -1439,12 +1459,12 @@ public:
     state_next[59] = deaths_cumulative_SW + new_deaths_SW;
     state_next[56] = deaths_cumulative_PBS + new_deaths_PBS;
     state_next[60] = deaths_cumulative_HCW + new_deaths_HCW;
-    state_next[91] = dust2::array::sum<real_type>(S, shared.dim.S);
-    state_next[92] = dust2::array::sum<real_type>(E, shared.dim.E);
-    state_next[93] = dust2::array::sum<real_type>(I, shared.dim.I);
-    state_next[94] = dust2::array::sum<real_type>(R, shared.dim.R);
-    state_next[95] = dust2::array::sum<real_type>(D, shared.dim.D);
-    state_next[96] = dust2::array::sum<real_type>(N, shared.dim.N);
+    state_next[91] = dust2::array::sum<real_type>(internal.new_S.data(), shared.dim.S);
+    state_next[92] = dust2::array::sum<real_type>(internal.new_E.data(), shared.dim.E);
+    state_next[93] = dust2::array::sum<real_type>(internal.new_I.data(), shared.dim.I);
+    state_next[94] = dust2::array::sum<real_type>(internal.new_R.data(), shared.dim.R);
+    state_next[95] = dust2::array::sum<real_type>(internal.new_D.data(), shared.dim.D);
+    state_next[96] = dust2::array::sum<real_type>(internal.new_N.data(), shared.dim.N);
     state_next[97] = total_vax + vax_given_S + vax_given_Ea + vax_given_Eb + vax_given_R;
     state_next[98] = total_vax_1stdose + vax_1stdose_given_S + vax_1stdose_given_Ea + vax_1stdose_given_Eb + vax_1stdose_given_R;
     state_next[99] = total_vax_2nddose + vax_2nddose_given_S + vax_2nddose_given_Ea + vax_2nddose_given_Eb + vax_2nddose_given_R;
