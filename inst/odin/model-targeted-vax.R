@@ -400,19 +400,31 @@ update(vax_2nddose_given_R) <- sum(n_vaccination_t_R[, 3])
 ## Core equations for transitions between compartments:
 # by age groups and vaccination class
 # after vaccination has taken place
-update(S[, ]) <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
-update(Ea[, ]) <- Ea[i, j] + delta_Ea_n_vaccination[i, j] + delta_Ea[i, j]
-update(Eb[, ]) <- Eb[i, j] + delta_Eb_n_vaccination[i, j] + delta_Eb[i, j]
-update(Ir[, ]) <- Ir[i, j] + delta_Ir[i, j]
-update(Id[, ]) <- Id[i, j] + delta_Id[i, j]
-update(R[, ]) <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
-update(D[, ]) <- D[i, j] + delta_D[i, j]
+new_S[, ] <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
+new_Ea[, ] <- Ea[i, j] + delta_Ea_n_vaccination[i, j] + delta_Ea[i, j]
+new_Eb[, ] <- Eb[i, j] + delta_Eb_n_vaccination[i, j] + delta_Eb[i, j]
+new_Ir[, ] <- Ir[i, j] + delta_Ir[i, j]
+new_Id[, ] <- Id[i, j] + delta_Id[i, j]
+new_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
+new_D[, ] <- D[i, j] + delta_D[i, j]
+
+update(S[, ]) <- new_S[i, j]
+update(Ea[, ]) <- new_Ea[i, j]
+update(Eb[, ]) <- new_Eb[i, j]
+update(Ir[, ]) <- new_Ir[i, j]
+update(Id[, ]) <- new_Id[i, j]
+update(R[, ]) <- new_R[i, j]
+update(D[, ]) <- new_D[i, j]
 
 ## Additional outputs
-update(E[, ]) <- Ea[i, j] + Eb[i, j]
-update(I[, ]) <- Ir[i, j] + Id[i, j]
-update(N[, ]) <- S[i, j] + Ea[i, j] + Eb[i, j] + Ir[i, j] + Id[i, j] +
-  R[i, j] +  D[i, j]
+new_E[, ] <- new_Ea[i, j] + new_Eb[i, j]
+new_I[, ] <- new_Ir[i, j] + new_Id[i, j]
+new_N[, ] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
+  new_Id[i, j] + new_R[i, j] + new_D[i, j]
+
+update(E[, ]) <- new_E[i, j] 
+update(I[, ]) <- new_I[i, j]
+update(N[, ]) <- new_N[i, j]
 
 # cumulative cases by transmission route
 update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
@@ -502,19 +514,22 @@ update(deaths_cumulative_SW) <- deaths_cumulative_SW + new_deaths_SW
 update(deaths_cumulative_PBS) <- deaths_cumulative_PBS + new_deaths_PBS
 update(deaths_cumulative_HCW) <- deaths_cumulative_HCW + new_deaths_HCW
 
-update(S_tot) <- sum(S[, ])
-update(E_tot) <- sum(E[, ])
-update(I_tot) <- sum(I[, ])
-update(R_tot) <- sum(R[, ])
-update(D_tot) <- sum(D[, ])
-update(N_tot) <- sum(N[, ])
+update(S_tot) <- sum(new_S[, ])
+update(E_tot) <- sum(new_E[, ])
+update(I_tot) <- sum(new_I[, ])
+update(R_tot) <- sum(new_R[, ])
+update(D_tot) <- sum(new_D[, ])
+update(N_tot) <- sum(new_N[, ])
 
-update(total_vax) <- total_vax + vax_given_S + vax_given_Ea + vax_given_Eb +
-  vax_given_R
-update(total_vax_1stdose) <- total_vax_1stdose + vax_1stdose_given_S +
-  vax_1stdose_given_Ea + vax_1stdose_given_Eb + vax_1stdose_given_R
-update(total_vax_2nddose) <- total_vax_2nddose + vax_2nddose_given_S +
-  vax_2nddose_given_Ea + vax_2nddose_given_Eb + vax_2nddose_given_R
+update(total_vax) <- total_vax + sum(n_vaccination_t_S[, ]) +
+  sum(n_vaccination_t_Ea[, ]) + sum(n_vaccination_t_Eb[, ]) +
+  sum(n_vaccination_t_R[, ])
+update(total_vax_1stdose) <- total_vax_1stdose + sum(n_vaccination_t_S[, 2]) +
+  sum(n_vaccination_t_Ea[, 2]) + sum(n_vaccination_t_Eb[, 2]) +
+  sum(n_vaccination_t_R[, 2])
+update(total_vax_2nddose) <- total_vax_2nddose + sum(n_vaccination_t_S[, 3]) +
+  sum(n_vaccination_t_Ea[, 3]) + sum(n_vaccination_t_Eb[, 3]) +
+  sum(n_vaccination_t_R[, 3])
 
 ## Vaccine doses by age / KP
 # group indices
@@ -826,42 +841,42 @@ n_group <- parameter()
 
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
-dim(N) <- c(n_group, n_vax)
-dim(S) <- c(n_group, n_vax)
+dim(N, new_N) <- c(n_group, n_vax)
+dim(S, new_S) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
 dim(n_SEa) <- c(n_group, n_vax)
 
-dim(Ea) <- c(n_group, n_vax)
+dim(Ea, new_Ea) <- c(n_group, n_vax)
 dim(Ea0) <- c(n_group, n_vax)
 dim(Eb0) <- c(n_group, n_vax)
 dim(delta_Ea) <- c(n_group, n_vax)
 dim(n_EaEb) <- c(n_group, n_vax)
 
-dim(Eb) <- c(n_group, n_vax)
+dim(Eb, new_Eb) <- c(n_group, n_vax)
 dim(delta_Eb) <- c(n_group, n_vax)
 dim(n_EbI) <- c(n_group, n_vax)
 
 dim(n_EbId) <- c(n_group, n_vax)
 dim(n_EbIr) <- c(n_group, n_vax)
-dim(E) <- c(n_group, n_vax)
+dim(E, new_E) <- c(n_group, n_vax)
 
 dim(Ir0) <- c(n_group, n_vax)
-dim(Ir) <- c(n_group, n_vax)
+dim(Ir, new_Ir) <- c(n_group, n_vax)
 dim(delta_Ir) <- c(n_group, n_vax)
 dim(n_IrR) <- c(n_group, n_vax)
 
 dim(Id0) <- c(n_group, n_vax)
-dim(Id) <- c(n_group, n_vax)
+dim(Id, new_Id) <- c(n_group, n_vax)
 dim(delta_Id) <- c(n_group, n_vax)
 dim(n_IdD) <- c(n_group, n_vax)
-dim(I) <- c(n_group, n_vax)
+dim(I, new_I) <- c(n_group, n_vax)
 
-dim(R) <- c(n_group, n_vax)
+dim(R, new_R) <- c(n_group, n_vax)
 dim(R0) <- c(n_group, n_vax)
 dim(delta_R) <- c(n_group, n_vax)
 
-dim(D) <- c(n_group, n_vax)
+dim(D, new_D) <- c(n_group, n_vax)
 dim(D0) <- c(n_group, n_vax)
 dim(delta_D) <- c(n_group, n_vax)
 

@@ -733,21 +733,21 @@ test_that("Test vaccine outputs sum correctly", {
   group_bins <- get_group_bins()
   idx_15_plus <- which(group_bins$start >= 15)
   
-  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , -1], c(2, 3), sum),
-               res["dose2_cumulative_15_plus", , -max(t)])
-  expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , -1],
-               res["dose1_cumulative_00_04", , -max(t)])
+  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , ], c(2, 3), sum),
+               res["dose2_cumulative_15_plus", , ])
+  expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , ],
+               res["dose1_cumulative_00_04", , ])
   
   # check age outputs sum to total doses given
-  expect_equal(res["total_vax_1stdose", , -1],
-               res["dose1_cumulative_00_04", , -max(t)] +
-                 res["dose1_cumulative_05_14", , -max(t)] +
-                 res["dose1_cumulative_15_plus", , -max(t)])
+  expect_equal(res["total_vax_1stdose", , ],
+               res["dose1_cumulative_00_04", , ] +
+                 res["dose1_cumulative_05_14", , ] +
+                 res["dose1_cumulative_15_plus", , ])
   
-  expect_equal(res["total_vax_2nddose", , -1],
-               res["dose2_cumulative_00_04", , -max(t)] +
-                 res["dose2_cumulative_05_14", , -max(t)] +
-                 res["dose2_cumulative_15_plus", , -max(t)])
+  expect_equal(res["total_vax_2nddose", , ],
+               res["dose2_cumulative_00_04", , ] +
+                 res["dose2_cumulative_05_14", , ] +
+                 res["dose2_cumulative_15_plus", , ])
   
   # check key pop outputs sum to total doses given
   expect_equal(res["dose1_cumulative_SW", , ],
@@ -757,16 +757,17 @@ test_that("Test vaccine outputs sum correctly", {
                res["dose2_cumulative_CSW", , ] +
                  res["dose2_cumulative_ASW", , ])
   
-  expect_equal(res["total_vax_1stdose", , -1],
-               res["dose1_cumulative_SW", , -max(t)] +
-                 res["dose1_cumulative_PBS", , -max(t)] +
-                 res["dose1_cumulative_HCW", , -max(t)] +
-                 apply(y$N[idx_age, idx$vax$one_dose, , -1], c(2, 3), sum))
-  expect_equal(res["total_vax_2nddose", , -1],
-               res["dose2_cumulative_SW", , -max(t)] +
-                 res["dose2_cumulative_PBS", , -max(t)] +
-                 res["dose2_cumulative_HCW", , -max(t)] +
-                 apply(y$N[idx_age, idx$vax$two_dose, , -1], c(2, 3), sum))
+  expect_equal(res["total_vax_1stdose", , ],
+               res["dose1_cumulative_SW", , ] +
+                 res["dose1_cumulative_PBS", , ] +
+                 res["dose1_cumulative_HCW", , ] +
+                 apply(y$N[idx_age, c(idx$vax$one_dose, idx$vax$two_dose), , ],
+                       c(3, 4), sum))
+  expect_equal(res["total_vax_2nddose", , ],
+               res["dose2_cumulative_SW", , ] +
+                 res["dose2_cumulative_PBS", , ] +
+                 res["dose2_cumulative_HCW", , ] +
+                 apply(y$N[idx_age, idx$vax$two_dose, , ], c(2, 3), sum))
   
   # check all incident and cumulative dose outputs match
   t_eow <- seq(7, max(t), 7)
