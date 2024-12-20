@@ -733,8 +733,24 @@ test_that("Test vaccine outputs sum correctly", {
   group_bins <- get_group_bins()
   idx_15_plus <- which(group_bins$start >= 15)
   
+  # this is failing
   expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , -1], c(2, 3), sum),
                res["dose2_cumulative_15_plus", , -max(t)])
+  
+  
+  expect_equal(apply(y$N[idx_15_plus, idx$vax$one_dose, , -1], c(2, 3), sum),
+               res["dose1_cumulative_15_plus", , -max(t)])
+  
+  expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`),
+                         idx$vax$one_dose, , -1], c(2, 3), sum),
+               res["dose1_cumulative_05_14", , -max(t)])
+  
+  expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`),
+                         idx$vax$two_dose, , -1], c(2, 3), sum),
+               res["dose2_cumulative_05_14", , -max(t)])
+  
+  
+  # passes from here
   expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , -1],
                res["dose1_cumulative_00_04", , -max(t)])
   
