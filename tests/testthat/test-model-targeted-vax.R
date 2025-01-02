@@ -69,7 +69,7 @@ test_that("relevant states sum correctly", {
                                    n_particles = 3, seed = 1, dt = 1)
   dust2::dust_system_set_state_initial(sys)
   
-  t <- seq(7, 21, by = 7)
+  t <- seq(1, 21)
   res <- dust2::dust_system_simulate(sys, t)
   y <- dust2::dust_unpack_state(sys, res)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
@@ -93,14 +93,18 @@ test_that("relevant states sum correctly", {
   
   ## total_vax
   expect_equal(y$total_vax, y$total_vax_1stdose + y$total_vax_2nddose)
-  expect_equal(y$total_vax, 
-               y$vax_given_S + y$vax_given_Ea + y$vax_given_Eb + y$vax_given_R)
-  expect_equal(y$total_vax_1stdose, 
-               y$vax_1stdose_given_S + y$vax_1stdose_given_Ea +
-                 y$vax_1stdose_given_Eb + y$vax_1stdose_given_R)
-  expect_equal(y$total_vax_2nddose, 
-               y$vax_2nddose_given_S + y$vax_2nddose_given_Ea +
-                 y$vax_2nddose_given_Eb + y$vax_2nddose_given_R)
+  cumulative_vax_given <- 
+    t(apply(y$vax_given_S + y$vax_given_Ea + y$vax_given_Eb + y$vax_given_R,
+            1, cumsum))
+  expect_equal(y$total_vax, cumulative_vax_given)
+  cumulative_vax_1stdose_given <- 
+    t(apply(y$vax_1stdose_given_S + y$vax_1stdose_given_Ea +
+              y$vax_1stdose_given_Eb + y$vax_1stdose_given_R, 1, cumsum))
+  expect_equal(y$total_vax_1stdose, cumulative_vax_1stdose_given)
+  cumulative_vax_2nddose_given <- 
+    t(apply(y$vax_2nddose_given_S + y$vax_2nddose_given_Ea +
+              y$vax_2nddose_given_Eb + y$vax_2nddose_given_R, 1, cumsum))
+  expect_equal(y$total_vax_2nddose, cumulative_vax_2nddose_given)
   
 })
 
