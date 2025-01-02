@@ -61,6 +61,50 @@ test_that("check cases and deaths are counted correctly", {
 })
 
 
+test_that("relevant states sum correctly", {
+  pars <- reference_pars_targeted_vax()
+  nms <- reference_names()
+  
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(7, 21, by = 7)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+  
+  ## E
+  expect_equal(y$E, y$Ea + y$Eb)
+  
+  ## I
+  expect_equal(y$I, y$Ir + y$Id)
+  
+  ## N
+  expect_equal(y$N, y$S + y$E + y$I + y$R + y$D)
+  
+  ## X_tot
+  expect_equal(y$S_tot, apply(y$S, c(3, 4), sum))
+  expect_equal(y$E_tot, apply(y$E, c(3, 4), sum))
+  expect_equal(y$I_tot, apply(y$I, c(3, 4), sum))
+  expect_equal(y$R_tot, apply(y$R, c(3, 4), sum))
+  expect_equal(y$D_tot, apply(y$D, c(3, 4), sum))
+  expect_equal(y$N_tot, apply(y$N, c(3, 4), sum))
+  
+  ## total_vax
+  expect_equal(y$total_vax, y$total_vax_1stdose + y$total_vax_2nddose)
+  expect_equal(y$total_vax, 
+               y$vax_given_S + y$vax_given_Ea + y$vax_given_Eb + y$vax_given_R)
+  expect_equal(y$total_vax_1stdose, 
+               y$vax_1stdose_given_S + y$vax_1stdose_given_Ea +
+                 y$vax_1stdose_given_Eb + y$vax_1stdose_given_R)
+  expect_equal(y$total_vax_2nddose, 
+               y$vax_2nddose_given_S + y$vax_2nddose_given_Ea +
+                 y$vax_2nddose_given_Eb + y$vax_2nddose_given_R)
+  
+})
+
+
 test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
