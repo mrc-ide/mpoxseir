@@ -222,7 +222,7 @@ n_vaccination_t_S[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_S[4, 2] <- min(n_vaccination_t_S[4, 2], S[4, 2])
+n_vaccination_t_S[3, 2] <- min(n_vaccination_t_S[3, 2], S[3, 2])
 
 ## allocate 2nd doses (adults only for now)
 n_vaccination_t_S[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -262,7 +262,7 @@ n_vaccination_t_Ea[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_Ea[4, 2] <- min(n_vaccination_t_Ea[4, 2], Ea[4, 2])
+n_vaccination_t_Ea[3, 2] <- min(n_vaccination_t_Ea[3, 2], Ea[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_Ea[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -302,7 +302,7 @@ n_vaccination_t_Eb[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_Eb[4, 2] <- min(n_vaccination_t_Eb[4, 2], Eb[4, 2])
+n_vaccination_t_Eb[3, 2] <- min(n_vaccination_t_Eb[3, 2], Eb[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_Eb[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -342,7 +342,7 @@ n_vaccination_t_R[, 2] <-
 
 ## for the boundary case do an extra check that we haven't gone over the number
 ## of people in each compartment
-n_vaccination_t_R[4, 2] <- min(n_vaccination_t_R[4, 2], R[4, 2])
+n_vaccination_t_R[3, 2] <- min(n_vaccination_t_R[3, 2], R[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_R[, 3] <- if (sum(n_eligible_for_dose2_adults[]) == 0) 0 else
@@ -549,7 +549,7 @@ n_vaccination_t[, ] <- n_vaccination_t_S[i, j] + n_vaccination_t_Ea[i, j] +
 
 new_dose1 <- sum(n_vaccination_t[, 2])
 new_dose1_00_04 <- n_vaccination_t[1, 2]
-new_dose1_SW_12_14 <- Binomial(n_vaccination_t[17, 2], 0.5)
+new_dose1_SW_12_14 <- round(n_vaccination_t[17, 2] * 0.5)
 new_dose1_SW_15_17 <- n_vaccination_t[17, 2] - new_dose1_SW_12_14
 new_dose1_05_14 <- sum(n_vaccination_t[2:3, 2]) + new_dose1_SW_12_14
 new_dose1_15_plus <-
@@ -572,7 +572,7 @@ update(dose1_inc_HCW) <- dose1_inc_HCW + new_dose1_HCW
 
 new_dose2 <- sum(n_vaccination_t[, 3])
 new_dose2_00_04 <- n_vaccination_t[1, 3]
-new_dose2_SW_12_14 <- Binomial(n_vaccination_t[17, 3], 0.5)
+new_dose2_SW_12_14 <- round(n_vaccination_t[17, 3] * 0.5)
 new_dose2_SW_15_17 <- n_vaccination_t[17, 3] - new_dose2_SW_12_14
 new_dose2_05_14 <- sum(n_vaccination_t[2:3, 3]) + new_dose2_SW_12_14
 new_dose2_15_plus <-
