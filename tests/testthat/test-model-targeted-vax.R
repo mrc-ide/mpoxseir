@@ -781,26 +781,46 @@ test_that("Test vaccine outputs sum correctly", {
   group_bins <- get_group_bins()
   idx_15_plus <- which(group_bins$start >=15)
   
-  ## age based tests
+  ## function that does a diff but appends 0 at the beginning
+  diff0 <- function(x) c(0, diff(x))
+  
+  ## age/group based tests
   ## second doses
-  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , ], c(2, 3), sum) + floor(0.5 * (y$N[17, idx$vax$two_dose, , ])),
+  expect_equal(y$N[idx$group$ASW, idx$vax$two_dose, , ], y$dose2_cumulative_ASW)
+  expect_equal(y$N[idx$group$CSW, idx$vax$two_dose, , ], y$dose2_cumulative_CSW)
+  expect_equal(y$N[idx$group$HCW, idx$vax$two_dose, , ], y$dose2_cumulative_HCW)
+  expect_equal(y$N[idx$group$PBS, idx$vax$two_dose, , ], y$dose2_cumulative_PBS)
+  
+  ## This is a bit fiddly but we calculate daily incidence from cumulative,
+  ## split in half (taking the floor) and then calculate cumulative of that
+  dose2_cumulative_CSW_15_plus <- 
+    t(apply(floor(0.5 * apply(y$dose2_cumulative_CSW, 1, diff0)), 2, cumsum))
+  expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , ], c(2, 3), sum) + 
+                 dose2_cumulative_CSW_15_plus,
                res["dose2_cumulative_15_plus", , ])
-  expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`), idx$vax$two_dose, , ], c(2, 3), sum) + ceiling(0.5 * (y$N[17, idx$vax$two_dose, , ])),
+  expect_equal(apply(y$N[c(idx$group$`5-9`, idx$group$`10-14`), idx$vax$two_dose, , ], c(2, 3), sum) +
+                 y$dose2_cumulative_CSW - dose2_cumulative_CSW_15_plus,
                res["dose2_cumulative_05_14", , ])
   
    
-   # # ## 1st doses - slight issues here to do with rounding but very close
-   # expect_equal(apply(y$N[idx_15_plus, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(3, 4), sum)+
-   # floor(0.5 * apply(y$N[17, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(2,3), sum)),
-   # res["dose1_cumulative_15_plus", , -max(t)])
-   # 
-   # expect_equal(apply(y$N[c(idx$group$`5-9`,idx$group$`10-14`), c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(3, 4), sum)+
-   #                floor(0.5 * apply(y$N[17, c(idx$vax$one_dose,idx$vax$two_dose), , -1], c(2,3), sum)),
-   #              res["dose1_cumulative_05_14", , -max(t)])
+  ## first doses - note we have to account also for people who have had two doses!
+  expect_equal(apply(y$N[idx$group$ASW, c(idx$vax$one_dose, idx$vax$two_dose), , ], c(2, 3), sum), y$dose1_cumulative_ASW)
+  expect_equal(apply(y$N[idx$group$CSW, c(idx$vax$one_dose, idx$vax$two_dose), , ], c(2, 3), sum), y$dose1_cumulative_CSW)
+  expect_equal(apply(y$N[idx$group$HCW, c(idx$vax$one_dose, idx$vax$two_dose), , ], c(2, 3), sum), y$dose1_cumulative_HCW)
+  expect_equal(apply(y$N[idx$group$PBS, c(idx$vax$one_dose, idx$vax$two_dose), , ], c(2, 3), sum), y$dose1_cumulative_PBS)
+  
+  dose1_cumulative_CSW_15_plus <- 
+    t(apply(floor(0.5 * apply(y$dose1_cumulative_CSW, 1, diff0)), 2, cumsum)) 
+  expect_equal(apply(y$N[idx_15_plus, c(idx$vax$one_dose,idx$vax$two_dose), , ], c(3, 4), sum) +
+                 dose1_cumulative_CSW_15_plus,
+               res["dose1_cumulative_15_plus", , ])
+  expect_equal(apply(y$N[c(idx$group$`5-9`, idx$group$`10-14`), c(idx$vax$one_dose, idx$vax$two_dose), , ], c(3, 4), sum) +
+                 y$dose1_cumulative_CSW - dose1_cumulative_CSW_15_plus,
+               res["dose1_cumulative_05_14", , ])
 
-   
   expect_equal(y$N[idx$group$`0-4`, idx$vax$one_dose, , ],
                res["dose1_cumulative_00_04", , ])
+  
   
   # check age outputs sum to total doses given
   expect_equal(res["total_vax_1stdose", , ],
