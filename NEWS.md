@@ -1,7 +1,11 @@
 
-# mpoxseir 0.2.5
+# mpoxseir 0.2.6
 
 * Those aged 12 and above are considered adults (relevant to 12 - 17 & CSWs)
+
+# mpoxseir 0.2.5
+
+* Fixed lag issue affecting some states
 
 # mpoxseir 0.2.4
 
