@@ -192,7 +192,7 @@ parameters_demographic <- function(region) {
 get_age_bins <- function() {
   ## We always use these age bands, so rather than detect them, we will
   ## check that things conform to them.
-  end <- c(seq(4, 75, by = 5), 100)
+  end <- c(4, 11, seq(14, 74, by = 5), 100)
   start <- c(0, end[-length(end)] + 1L)
   label <- paste(start, end, sep = "-")
   label[length(label)] <- paste0(max(start), "+")
