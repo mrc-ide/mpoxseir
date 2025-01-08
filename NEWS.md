@@ -1,4 +1,8 @@
 
+# mpoxseir 0.2.7
+
+* Age groups are now 0-4, 5-11, 12-14, 15-19, then in 5yr bands to allow for new guidance on vaccines for +/-12yo
+
 # mpoxseir 0.2.6
 
 * Those aged 12 and above are considered adults (relevant to 12 - 17 & CSWs)
