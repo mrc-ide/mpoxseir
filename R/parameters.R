@@ -24,7 +24,11 @@ parameters_demographic <- function(region) {
   ## Set up population denominators
   country <- "Democratic Republic of Congo"
   data <- squire::get_population(country)
-  N_age <- c(data$n[1:15], sum(data$n[16:17])) # combine 75+
+  N_age <- c(data$n[1],
+             ## split into 5-11 and 12-14 assuming uniformly distributed
+             data$n[2]+0.4*data$n[3],0.6*data$n[3],data$n[4:15],
+             ## combine 75+
+             sum(data$n[16:17])) # combine 75+
   names(N_age) <- age_bins$label
 
   ## Add in (child/adult) sex workers, (C/ASW), people who buy sex (PBS),
@@ -201,7 +205,6 @@ get_age_bins <- function() {
   
   label <- paste(start, end, sep = "-")
   label[length(label)] <- paste0(max(start), "+")
-
   data.frame(label = label, start = start, end = end)
 }
 
