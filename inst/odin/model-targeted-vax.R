@@ -84,6 +84,8 @@ target_met_children_t[, 3] <-
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
+## children_ind_raw -> is_child 
+## is_adult <- 1 - is_child 
 
 ## adults
 dim(target_met_adults_t) <- c(n_group, n_vax)
@@ -193,6 +195,14 @@ dim(n_eligible_for_dose2_adults) <- c(n_group)
 ## hacky fix for now
 
 ### allocate to S
+
+### if target_met == 1 then vax is 0; 
+## if n_eligb == 0 then 0;
+## else (daily_doses * S / n_elig) * ceiling(prioiritisation) (remove prioritisation)
+
+## give_dose_X X = {dose_1_children,dose_1_adult,dose_2_adult} length n_group 
+
+## is target met or elgiible or prioiritsation step - single indicator 
 
 ## children 1st doses
 n_vaccination_t_S_children[] <- 0
