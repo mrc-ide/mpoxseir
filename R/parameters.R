@@ -194,6 +194,11 @@ get_age_bins <- function() {
   ## check that things conform to them.
   end <- c(seq(4, 75, by = 5), 100)
   start <- c(0, end[-length(end)] + 1L)
+  
+  ## split groups so have 5 - 11 and 12 - 14 for sake of adult/child vaccination
+  end[which(end==9)] <- 11
+  start[which(start==10)] <- 12
+  
   label <- paste(start, end, sep = "-")
   label[length(label)] <- paste0(max(start), "+")
 
