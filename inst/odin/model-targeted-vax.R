@@ -100,7 +100,6 @@ target_met_adults_t[, 4] <-
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
      sum(N[i, ]))
 
-
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
 ## like it to be done properly)
@@ -108,22 +107,22 @@ target_met_adults_t[, 4] <-
 ## the target goal for the current prioritisation strategy
 ## with ceiling basically saying if there is any target in that group to account
 ## for it
-coverage_achieved_1st_dose_children[] <- ceiling(
+coverage_target_1st_dose_children[] <- ceiling(
   prioritisation_strategy_children[i, prioritisation_step_1st_dose_children])
-dim(coverage_achieved_1st_dose_children) <- c(n_group)
+dim(coverage_target_1st_dose_children) <- c(n_group)
 
-coverage_achieved_1st_dose_adults[] <- ceiling(
+coverage_target_1st_dose_adults[] <- ceiling(
   prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults])
-dim(coverage_achieved_1st_dose_adults) <- c(n_group)
+dim(coverage_target_1st_dose_adults) <- c(n_group)
 
-coverage_achieved_2nd_dose_adults[] <- ceiling(
+coverage_target_2nd_dose_adults[] <- ceiling(
   prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults])
-dim(coverage_achieved_2nd_dose_adults) <- c(n_group)
+dim(coverage_target_2nd_dose_adults) <- c(n_group)
 
 ## children
 prioritisation_step_1st_dose_children_proposal <-
   if (sum(target_met_children_t[, 3]) ==
-      sum(coverage_achieved_1st_dose_children[]))
+      sum(coverage_target_1st_dose_children[]))
     prioritisation_step_1st_dose_children + 1 else
     prioritisation_step_1st_dose_children
 
@@ -136,7 +135,7 @@ update(prioritisation_step_1st_dose_children) <-
 
 ## adults
 prioritisation_step_1st_dose_adults_proposal <-
-  if (sum(target_met_adults_t[, 3]) == sum(coverage_achieved_1st_dose_adults[]))
+  if (sum(target_met_adults_t[, 3]) == sum(coverage_target_1st_dose_adults[]))
     prioritisation_step_1st_dose_adults + 1 else
     prioritisation_step_1st_dose_adults
 
@@ -147,7 +146,7 @@ update(prioritisation_step_1st_dose_adults) <-
       prioritisation_step_1st_dose_adults_proposal
 
 prioritisation_step_2nd_dose_adults_proposal <-
-  if (sum(target_met_adults_t[, 4]) == sum(coverage_achieved_2nd_dose_adults[]))
+  if (sum(target_met_adults_t[, 4]) == sum(coverage_target_2nd_dose_adults[]))
     prioritisation_step_2nd_dose_adults + 1 else
     prioritisation_step_2nd_dose_adults
 
