@@ -109,7 +109,7 @@ test_that("relevant states sum correctly", {
 })
 
 
-test_that("when beta_h = beta_z = beta_s = 0 there are no new infections", {
+test_that("when beta_h = beta_z = beta_s = beta_hcw = 0 there are no new infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
