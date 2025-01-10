@@ -68,14 +68,14 @@ dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 ## neither children or adults, for children col 4 (2nd dose) also doesn't matter
 
 ## children
-dim(target_met_children_t) <- c(n_group, n_vax)
+dim(target_met_children_t) <- c(n_group)
 
 ## 1st doses
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target - this now isn't strictly relevant for
 ## children but leaving it in in case we do expand this to 2 doses in future
-target_met_children_t[, ] <- 0
-target_met_children_t[, 3] <-
+target_met_children_t[] <- 0
+target_met_children_t[i] <-
   ((sum(N[i, 3:4]) * is_child[i]) >
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
