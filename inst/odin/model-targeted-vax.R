@@ -10,12 +10,8 @@
 ## Emergency use of the MVA-BN has not been granted for children (u18s) in DRC
 ## and so we split vaccination into two components depending on age
 ## below are indicators for children vs adult groups
-## use of _raw indicates that we are in prop form for the boundary category
-## of 15 - 19
 is_child <- parameter()
 dim(is_child) <- c(n_group)
-# adults_ind_raw <- parameter()
-# dim(adults_ind_raw) <- c(n_group)
 
 ### setup the number of daily doses
 ##    daily_doses_value has dimensions n_vax x n_time
@@ -642,15 +638,15 @@ s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 
-lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j])
-lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j])
+lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) 
+lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) 
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
 lambda_hc[, ] <-
-  if (i == 20) beta_hcw * sum(I_infectious[, ]) * (1 - ve_I[i, j]) else 0
-lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
+  if (i == 20) beta_hcw * sum(I_infectious[, ]) else 0
+lambda_z[, ] <- beta_z[i] 
 
-lambda[, ] <- lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j] 
+lambda[, ] <- (lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j]) * (1 - ve_I[i, j]) 
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
