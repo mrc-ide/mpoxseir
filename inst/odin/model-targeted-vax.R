@@ -54,8 +54,6 @@ dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 
 ## vaccination targets: for each group, what is the level of coverage we want to
 ## see before we move onto the next set of groups to target?
-## when we input this do the calc outside by the population size as part of
-## pre-processing to save faffing around in here.
 ## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0
 ## and j=1 this stays at 0
 
@@ -167,33 +165,6 @@ initial(prioritisation_step_2nd_dose_adults) <- 1
 ## now that we know the step we are on, we know who is eligible per age group to 
 ## be vaccinated
 
-#### Notes from meeting 8 Jan
-### if target_met == 1 then vax is 0; 
-## if n_eligb == 0 then 0;
-## else (daily_doses * S / n_elig) * ceiling(prioiritisation) (remove prioritisation)
-## give_dose_X X = {dose_1_children,dose_1_adult,dose_2_adult} length n_group 
-## is target met or elgiible or prioiritsation step - single indicator 
-
-## old eligibility 
-# ## isolate the relevant classes 
-# n_eligible_for_dose1_children[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2])
-# dim(n_eligible_for_dose1_children) <- c(n_group)
-# ## who can get a 1st dose
-# ## now we have to look in the preceding j class (e.g. who in unvaccinated j = 1
-# ## can get a 1st dose and move to j = 2) as these are the people who will be
-# ## eligible
-# n_eligible_for_dose1_adults[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) 
-# dim(n_eligible_for_dose1_adults) <- c(n_group)
-# ## who can get a 2nd dose
-# n_eligible_for_dose2_adults[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3])
-# dim(n_eligible_for_dose2_adults) <- c(n_group)
-
-# ## isolate the relevant compartments who can be vaccinated (relevant groups will be highlighted further down)
-# comps_eligible_dose1[] <- (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) 
-# dim(comps_eligible_dose1) <- c(n_group)
-# comps_eligible_dose2[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3])
-# dim(comps_eligible_dose2) <- c(n_group)
-
 ## create indicator for which groups are allowed to be vaccinated based on:
 ## 1) if they are an adult or a child (via is_child)
 ## 2) if they are in a prioritised group, dependent on being adult or child (prioritisation_strategy_X)
@@ -235,9 +206,6 @@ n_vaccination_t_S_children[] <-
                 sum(children_dose1_denom[])) * give_dose1_children[i]),
         S[i, 2])
 
-##### current concern about denominator here - I think all of the compartments will be summed over before the ones that are able to be vaccinated have been taken account of, so we won't be giving out all of the compartments
-
-
 n_vaccination_t_S_adults[] <- 0
 
 ## adults 1st doses
@@ -252,10 +220,7 @@ n_vaccination_t_S[, ] <- 0
 n_vaccination_t_S[, 2] <-
   n_vaccination_t_S_children[i] + n_vaccination_t_S_adults[i]
 
-## this should no longer be necessary 
-# ## for the boundary case do an extra check that we haven't gone over the number
-# ## of people in each compartment
-# n_vaccination_t_S[3, 2] <- min(n_vaccination_t_S[3, 2], S[3, 2])
+## no longer doing boundary checks as we won't have any groups which are a mix of children and adults
 
 ## allocate 2nd doses (adults only for now)
 n_vaccination_t_S[, 3] <- 
@@ -286,10 +251,6 @@ n_vaccination_t_Ea_adults[] <-
 n_vaccination_t_Ea[, ] <- 0
 n_vaccination_t_Ea[, 2] <-
   n_vaccination_t_Ea_children[i] + n_vaccination_t_Ea_adults[i]
-
-# ## for the boundary case do an extra check that we haven't gone over the number
-# ## of people in each compartment
-# n_vaccination_t_Ea[3, 2] <- min(n_vaccination_t_Ea[3, 2], Ea[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_Ea[, 3] <- 
@@ -322,10 +283,6 @@ n_vaccination_t_Eb[, ] <- 0
 n_vaccination_t_Eb[, 2] <-
   n_vaccination_t_Eb_children[i] + n_vaccination_t_Eb_adults[i]
 
-# ## for the boundary case do an extra check that we haven't gone over the number
-# ## of people in each compartment
-# n_vaccination_t_Eb[3, 2] <- min(n_vaccination_t_Eb[3, 2], Eb[3, 2])
-
 ## adults 2nd doses
 n_vaccination_t_Eb[, 3] <- 
   if (sum(adults_dose2_denom[]) == 0) 0 else
@@ -356,10 +313,6 @@ n_vaccination_t_R_adults[] <-
 n_vaccination_t_R[, ] <- 0
 n_vaccination_t_R[, 2] <-
   n_vaccination_t_R_children[i] + n_vaccination_t_R_adults[i]
-
-# ## for the boundary case do an extra check that we haven't gone over the number
-# ## of people in each compartment
-# n_vaccination_t_R[3, 2] <- min(n_vaccination_t_R[3, 2], R[3, 2])
 
 ## adults 2nd doses
 n_vaccination_t_R[, 3] <- 
