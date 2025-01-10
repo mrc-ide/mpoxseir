@@ -616,22 +616,12 @@ lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j])
 lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j])
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
-lambda_hc[, ] <- 
+lambda_hc[, ] <-
   if (i == 20) beta_hcw * sum(I_infectious) / sum(N) * (1 - ve_I[i, j]) else 0
 lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
 
-lambda[, ] <- lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j] 
+lambda[, ] <- lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j]
 
-#### did not like this
-# lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) 
-# lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) 
-# # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
-# # likely to attend hospital
-# lambda_hc[, ] <-
-#   if (i == 20) beta_hcw * sum(I_infectious[, ]) else 0
-# lambda_z[, ] <- beta_z[i] 
-# 
-# lambda[, ] <- (lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j]) * (1 - ve_I[i, j]) 
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
