@@ -121,7 +121,7 @@ dim(coverage_target_2nd_dose_adults) <- c(n_group)
 
 ## children
 prioritisation_step_1st_dose_children_proposal <-
-  if (sum(target_met_children_t[, 3]) ==
+  if (sum(target_met_children_t[]) ==
       sum(coverage_target_1st_dose_children[]))
     prioritisation_step_1st_dose_children + 1 else
     prioritisation_step_1st_dose_children
