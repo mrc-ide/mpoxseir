@@ -41,3 +41,20 @@ test_that("Mixing matrices are correct in Sud Kivu", {
                sum(upper.tri(M_age, diag = TRUE) * M_age))
   expect_equal(m, pars$m_gen_pop)
 })
+
+test_that("can load other mixing matrices", {
+  pars <- parameters_demographic(region = "equateur",
+                                 mixing_matrix = "synthetic_home")
+  old_pars <- parameters_demographic(region = "equateur")
+  pars$total_contacts_age
+  old_pars$total_contacts_age
+  expect_equal(pars$N_age, old_pars$N_age)
+  expect_false(any(pars$total_contacts_age == old_pars$total_contacts_age))
+
+  pars_all <- parameters_demographic(region = "equateur",
+                                      mixing_matrix = "synthetic_all")
+  expect_true(all(pars$total_contacts_age < pars_all$total_contacts_age))
+
+  expect_error(parameters_demographic(region = "equateur",
+                                      mixing_matrix = "hello"))
+})
