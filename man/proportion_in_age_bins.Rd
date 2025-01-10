@@ -5,7 +5,7 @@
 \title{calculate the proportion of each age group that lies between \code{min_age}
 and \code{max_age} (inclusive) based on uniform distribution within each age band}
 \usage{
-proportion_in_age_bins(min_age, max_age, bins = NULL)
+proportion_in_age_bins(min_age, max_age)
 }
 \arguments{
 \item{min_age}{a scalar giving the bottom of the age range}

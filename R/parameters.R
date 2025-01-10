@@ -295,8 +295,8 @@ create_age_bins <- function(start, max_age = 100) {
 ##' @param max_age a scalar giving the top of the age range
 ##' @return a vector of length n_age = 16 giving the proportion for each age band
 ##'   
-proportion_in_age_bins <- function(min_age, max_age, bins = NULL) {
-  if (is.null(bins)) bins <- get_age_bins()
+proportion_in_age_bins <- function(min_age, max_age) {
+  bins <- get_age_bins()
   
   # Calculate the overlap range for each bin
   overlap_start <- pmax(bins$start, min_age)
