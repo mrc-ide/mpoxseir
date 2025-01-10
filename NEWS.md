@@ -3,6 +3,9 @@
 * children_ind_raw replaced with is_child, adults_ind_raw replaced with (1 - ind_child)
 * vaccination allocation determined based on 3 criteria of eligibility, prioritisation and target met
 
+# mpoxseir 0.2.7
+
+* `beta_hcw` scaled by total population size
 
 # mpoxseir 0.2.6
 
