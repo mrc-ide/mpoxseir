@@ -365,7 +365,7 @@ test_that("vaccines are only given in the prioritised groups", {
 
   ## identify which child groups aren't prioritised for vaccination in the first step 
   idx_novax_children <- (pars$prioritisation_strategy_children[, 1] == 0) &
-    (pars$children_ind_raw > 0)
+    (pars$is_child > 0)
   idx_vax <- c(idx$vax$one_dose, idx$vax$two_dose)
   
   if(all(res["prioritisation_step_1st_dose_children", , ] == 1)){
@@ -376,7 +376,7 @@ test_that("vaccines are only given in the prioritised groups", {
   ## repeat above for adults, including first and second doses 
   
   idx_novax_adults <- (pars$prioritisation_strategy_adults[, 1] == 0) &
-    (pars$adults_ind_raw > 0)
+    ((1 - pars$is_child) > 0)
   
   if(all(res["prioritisation_step_1st_dose_adults",,] == 1)){
     expect_true(all(y$N[idx_novax_adults, idx_vax, , ] == 0))
@@ -442,7 +442,7 @@ test_that("2nd doses are not given to children", {
   expect_true(all(res["total_vax_2nddose",,max(t)]>0))
   
   # children_idx
-  idx_children <- (rep(ceiling(pars$children_ind_raw),pars$n_vax)) *seq(1:(pars$n_group*pars$n_vax))
+  idx_children <- (rep(ceiling(pars$is_child),pars$n_vax)) *seq(1:(pars$n_group*pars$n_vax))
   # 2nd dose compartments
   idx_children <- idx_children[which(idx_children!=0&idx_children>=3*pars$n_group)]
 
@@ -530,7 +530,7 @@ test_that("no 2nd doses are given if no 1st doses are given", {
   res <- dust2::dust_system_simulate(sys, t)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
 
-  idx_adults <- ceiling(pars$adults_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_adults <- ceiling(1-pars$is_child)*seq(1:(pars$n_group*pars$n_vax))
   idx_adults <- idx_adults[which(idx_adults!=0&idx_adults>2*pars$n_group)]
   
   idx_adults_vax <- paste0(rep("N", each = length(idx_adults)),
@@ -567,7 +567,7 @@ test_that("vaccination of children still occurs if adult vaccination is turned o
   expect_true(all(res["total_vax_2nddose",,max(t)]==0))
   
   # check that the doses aren't in the adult groups
-  idx_adults <- ceiling(pars$adults_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_adults <- ceiling(1-pars$is_child)*seq(1:(pars$n_group*pars$n_vax))
   idx_adults <- idx_adults[which(idx_adults!=0&idx_adults>2*pars$n_group)]
   
   idx_adults_vax <- paste0(rep("N", each = length(idx_adults)),
@@ -602,7 +602,7 @@ test_that("vaccination of adults still occurs if child vaccination is turned off
   expect_true(all(res["total_vax_2nddose",,max(t)]>0))
   
   # check that the doses aren't in the child groups
-  idx_children <- ceiling(pars$children_ind_raw)*seq(1:(pars$n_group*pars$n_vax))
+  idx_children <- ceiling(pars$is_child)*seq(1:(pars$n_group*pars$n_vax))
   idx_children <- idx_children[which(idx_children!=0&idx_children>2*pars$n_group)]
   
   idx_children_vax <- paste0(rep("N", each = length(idx_children)),
