@@ -1077,7 +1077,7 @@ public:
     }
     for (size_t i = 1; i <= shared.dim.lambda_hc.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.lambda_hc.dim[1]; ++j) {
-        internal.lambda_hc[i - 1 + (j - 1) * shared.dim.lambda_hc.mult[1]] = (i == 20 ? shared.beta_hcw * dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]) : 0);
+        internal.lambda_hc[i - 1 + (j - 1) * shared.dim.lambda_hc.mult[1]] = (i == 20 ? shared.beta_hcw * dust2::array::sum<real_type>(internal.I_infectious.data(), shared.dim.I_infectious) / dust2::array::sum<real_type>(N, shared.dim.N) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]) : 0);
       }
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_S.dim[0]; ++i) {

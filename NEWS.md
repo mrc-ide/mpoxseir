@@ -1,3 +1,6 @@
+# mpoxseir 0.2.7
+
+* `beta_hcw` scaled by total population size
 
 # mpoxseir 0.2.6
 
