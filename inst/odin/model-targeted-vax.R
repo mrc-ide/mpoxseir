@@ -75,13 +75,14 @@ dim(target_met_children_t) <- c(n_group)
 ## for this in the 1st dose target - this now isn't strictly relevant for
 ## children but leaving it in in case we do expand this to 2 doses in future
 target_met_children_t[] <- 0
-target_met_children_t[i] <-
+target_met_children_t[] <-
   ((sum(N[i, 3:4]) * is_child[i]) >
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
 
 ## adults
+## keep this as a vector because it means the columns match (E.g. 3 and 3, 4 and 4)
 dim(target_met_adults_t) <- c(n_group, n_vax)
 
 ## 1st doses
@@ -637,15 +638,27 @@ s_ij_gen_pop[, ] <- m_gen_pop[i, j] * prop_infectious[j]
 # as above but for the sexual contacts only
 s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 
-lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) 
-lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) 
+
+lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j])
+lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j])
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
-lambda_hc[, ] <-
-  if (i == 20) beta_hcw * sum(I_infectious[, ]) else 0
-lambda_z[, ] <- beta_z[i] 
+lambda_hc[, ] <- 
+  if (i == 20) beta_hcw * sum(I_infectious) / sum(N) * (1 - ve_I[i, j]) else 0
+lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
 
-lambda[, ] <- (lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j]) * (1 - ve_I[i, j]) 
+lambda[, ] <- lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j] 
+
+#### did not like this
+# lambda_hh[, ] <- beta_h * sum(s_ij_gen_pop[i, ]) 
+# lambda_s[, ] <- beta_s * sum(s_ij_sex[i, ]) 
+# # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
+# # likely to attend hospital
+# lambda_hc[, ] <-
+#   if (i == 20) beta_hcw * sum(I_infectious[, ]) else 0
+# lambda_z[, ] <- beta_z[i] 
+# 
+# lambda[, ] <- (lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j] + lambda_z[i, j]) * (1 - ve_I[i, j]) 
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
