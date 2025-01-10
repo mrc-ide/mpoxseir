@@ -193,7 +193,7 @@ test_that("when CFR = 1 everybody dies", {
 })
 
 
-test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
+test_that("when beta_h = 0, beta_s = 0, beta_hcw = 0 there are only zoonotic infections", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_s <- 0
@@ -219,7 +219,7 @@ test_that("when beta_h = 0 and beta_s = 0 there are only zoonotic infections", {
 })
 
 
-test_that("when beta_h = 0 and beta_z = 0 infections only from sexual contact", {
+test_that("when beta_h = 0, beta_z = 0, beta_hcw = 0 infections only from sexual contact", {
   pars <- reference_pars_targeted_vax()
   pars$beta_h <- 0
   pars$beta_z[] <- 0
