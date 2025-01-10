@@ -12,10 +12,10 @@
 ## below are indicators for children vs adult groups
 ## use of _raw indicates that we are in prop form for the boundary category
 ## of 15 - 19
-children_ind_raw <- parameter()
-dim(children_ind_raw) <- c(n_group)
-adults_ind_raw <- parameter()
-dim(adults_ind_raw) <- c(n_group)
+is_child <- parameter()
+dim(is_child) <- c(n_group)
+# adults_ind_raw <- parameter()
+# dim(adults_ind_raw) <- c(n_group)
 
 ### setup the number of daily doses
 ##    daily_doses_value has dimensions n_vax x n_time
@@ -80,7 +80,7 @@ dim(target_met_children_t) <- c(n_group, n_vax)
 ## children but leaving it in in case we do expand this to 2 doses in future
 target_met_children_t[, ] <- 0
 target_met_children_t[, 3] <-
-  ((sum(N[i, 3:4]) * children_ind_raw[i]) >
+  ((sum(N[i, 3:4]) * is_child[i]) >
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
@@ -93,14 +93,14 @@ dim(target_met_adults_t) <- c(n_group, n_vax)
 ## for this in the 1st dose target
 target_met_adults_t[, ] <- 0
 target_met_adults_t[, 3] <-
-  ((sum(N[i, 3:4]) * adults_ind_raw[i]) >
+  ((sum(N[i, 3:4]) * (1 - is_child[i])) >
      prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
      sum(N[i, ]))
 
 
 ## 2nd doses
 target_met_adults_t[, 4] <-
-  ((sum(N[i, 4]) * adults_ind_raw[i]) >
+  ((sum(N[i, 4]) * (1 - is_child[i])) >
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
      sum(N[i, ]))
 
