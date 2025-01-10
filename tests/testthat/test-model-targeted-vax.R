@@ -798,7 +798,7 @@ test_that("Test vaccine outputs sum correctly", {
   expect_equal(apply(y$N[idx_15_plus, idx$vax$two_dose, , ], c(2, 3), sum) + 
                  dose2_cumulative_CSW_15_plus,
                res["dose2_cumulative_15_plus", , ])
-  expect_equal(apply(y$N[c(idx$group$`5-9`, idx$group$`10-14`), idx$vax$two_dose, , ], c(2, 3), sum) +
+  expect_equal(apply(y$N[c(idx$group$`5-11`, idx$group$`12-14`), idx$vax$two_dose, , ], c(2, 3), sum) +
                  y$dose2_cumulative_CSW - dose2_cumulative_CSW_15_plus,
                res["dose2_cumulative_05_14", , ])
   
