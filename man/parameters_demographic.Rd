@@ -4,11 +4,14 @@
 \alias{parameters_demographic}
 \title{Get demographic parameters}
 \usage{
-parameters_demographic(region)
+parameters_demographic(region, mixing_matrix = "Zimbabwe")
 }
 \arguments{
 \item{region}{The region for the parameters, must be either \code{"equateur"} or
 \code{"sudkivu"}}
+
+\item{mixing_matrix}{The mixing matrix must be either \code{"Zimbabwe"},
+\code{"synthetic_home"}, or \code{"synthetic_all"}}
 }
 \value{
 A list containing all the demographic parameters

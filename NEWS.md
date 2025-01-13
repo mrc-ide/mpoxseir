@@ -3,6 +3,11 @@
 * children_ind_raw replaced with is_child, adults_ind_raw replaced with (1 - ind_child)
 * vaccination allocation determined based on 3 criteria of eligibility, prioritisation and target met
 
+# mpoxseir 0.2.8
+
+* Age groups are now 0-4, 5-11, 12-14, 15-19, then in 5yr bands to allow for new guidance on vaccines for +/-12yo
+* Add optional synthetic contact matrices from Prem et al. 2021
+
 # mpoxseir 0.2.7
 
 * `beta_hcw` scaled by total population size

@@ -5,7 +5,8 @@
 ##' 
 ##' @param region The region for the parameters, must be either `"equateur"` or
 ##'   `"sudkivu"`
-##' 
+##' @param mixing_matrix The mixing matrix must be either `"Zimbabwe"`,
+##'  `"synthetic_home"`, or `"synthetic_all"`
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
@@ -15,36 +16,46 @@
 ##' @importFrom squire get_mixing_matrix
 ##' 
 ##' @export
-parameters_demographic <- function(region) {
+parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   
   age_bins <- get_age_bins()
+  squire_age_bins <- create_age_bins(start = seq(0, 75, 5))
   group_bins <- get_group_bins()
   row.names(group_bins) <- group_bins$label
 
   ## Set up population denominators
   country <- "Democratic Republic of Congo"
   data <- squire::get_population(country)
-  N_age <- c(data$n[1:15], sum(data$n[16:17])) # combine 75+
-  names(N_age) <- age_bins$label
+  ## combine 75+
+  N_age_squire <- c(data$n[1:15], sum(data$n[16:17]))
+  names(N_age_squire) <- squire_age_bins$label
 
+  ## Calc new N_age
+  N_age <- N_age_squire
+  names(N_age) <- age_bins$label
+  p_10to14_in_05to11 <- 0.4
+  p_10to14_in_12to14 <- 1 - p_10to14_in_05to11
+  N_age["5-11"] <- N_age_squire["5-9"] + p_10to14_in_05to11 * N_age_squire["10-14"]
+  N_age["12-14"] <- p_10to14_in_12to14 * N_age_squire["10-14"]
+  
   ## Add in (child/adult) sex workers, (C/ASW), people who buy sex (PBS),
   ## and healthcare workers (HCW)
   
   ## CSW: age 12-17
   
   w_CSW <- proportion_in_age_bins(group_bins["CSW", "start"],
-                                    group_bins["CSW", "end"])
+                                  group_bins["CSW", "end"])
   # 60% 10-14 + 60% 15-19
   N_CSW <- N_age * w_CSW
   
   ## ASW: age 18-49
   w_ASW  <- proportion_in_age_bins(group_bins["ASW", "start"],
-                                     group_bins["ASW", "end"])
+                                   group_bins["ASW", "end"])
   N_ASW <- N_age * w_ASW
-
-  if(region=="equateur"){
-     p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
-  } else if(region=="sudkivu"){
+  
+  if (region == "equateur") {
+    p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
+  } else if (region == "sudkivu"){
     p_SW <- 0.03 * 0.5 # WHO press release
   }
   
@@ -53,7 +64,7 @@ parameters_demographic <- function(region) {
   
   ## HCW / PBS: age 20-49
   w_PBS <- proportion_in_age_bins(group_bins["PBS", "start"],
-                                    group_bins["PBS", "end"])
+                                  group_bins["PBS", "end"])
   N_PBS <- N_age * w_PBS
   
   ## PBS
@@ -64,14 +75,14 @@ parameters_demographic <- function(region) {
   
   ## HCWs: age 20-69 (from https://apps.who.int/nhwaportal/)
   w_HCW <- proportion_in_age_bins(group_bins["HCW", "start"],
-                                    group_bins["HCW", "end"])
+                                  group_bins["HCW", "end"])
   N_HCW <- N_age * w_HCW
   
   
   ## HCW
   p_HCW <- 133809 / sum(N_age) # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
   N_HCW <- round(p_HCW * N_HCW)
-
+  
   N <- c(N_age - N_ASW - N_PBS - N_CSW - N_HCW,
          CSW = sum(N_CSW),
          ASW = sum(N_ASW),
@@ -86,12 +97,75 @@ parameters_demographic <- function(region) {
   # 3. add in non-age groups (CSW, ASW, PBS, HCW) and attribute non-sexual contacts
   # 4. convert back to rates
 
-  m_age <- squire::get_mixing_matrix(country)
-  M_raw <- t(t(m_age) * N_age) # total daily contacts in population
-
+  if (mixing_matrix == "Zimbabwe") {
+    m_age <- squire::get_mixing_matrix(country)
+  } else if (mixing_matrix == "synthetic_all") {
+    path <- system.file("extdata", "prem2021_synthetic_contact_all.rds",
+                        package = "mpoxseir")
+    m_age <- readRDS(path)
+  } else if (mixing_matrix == "synthetic_home") {
+    path <- system.file("extdata", "prem2021_synthetic_contact_home.rds",
+                        package = "mpoxseir")
+    m_age <- readRDS(path)
+  } else {
+    stop(sprintf("mixing_matrix %s not recognised", mixing_matrix))
+  }
+  
+  ## need to do this with the squire age groups, rather than the new ones
+  M_raw <- t(t(m_age) * N_age_squire) # total daily contacts in population
+  
+  
   ## balance the matrix so M[i,j] == M[j,i]
-  M_age <- (M_raw + t(M_raw)) / 2
+  M_age_squire <- (M_raw + t(M_raw)) / 2
+  rownames(M_age_squire) <- colnames(M_age_squire) <- squire_age_bins$label
 
+  # Adjust age groups to allow for new partition
+  # [0-4], [5-9],  [10-14], [15-19], ... ->
+  # [0-4], [5-11], [12-14], [15-19], ... ->
+  
+  # partition contacts within 10-14 category between 10-11 = 0.4 and 12-14 = 0.6
+  M_12to14_12to14 <- M_age_squire["10-14", "10-14"] * 0.6^2
+  M_10to11_12to14 <- M_age_squire["10-14", "10-14"] * 2 * 0.4 * 0.6
+  M_10to11_10to11 <- M_age_squire["10-14", "10-14"] * 0.4^2
+  
+  # check equal
+  stopifnot(M_10to11_10to11 + M_10to11_12to14 + M_12to14_12to14 ==
+              M_age_squire["10-14", "10-14"])
+  
+  # partition contacts between 5-9 and 10-14
+  M_05to09_10to11 <- M_age_squire["5-9", "10-14"] * (2 / 5) 
+  M_05to09_12to14 <- M_age_squire["5-9", "10-14"] - M_05to09_10to11
+  
+  # compile contacts between 5-11 and 12-14 
+  M_05to11_12to14 <- M_05to09_12to14 + M_10to11_12to14
+  
+  # compile contacts between 5-11
+  M_05to11_05to11 <- M_age_squire["5-9", "5-9"] + M_10to11_10to11 +
+    M_05to09_10to11
+
+  # check that all have been accounted for
+  stopifnot(abs(M_05to11_05to11 + M_05to11_12to14 + M_12to14_12to14 -
+              (M_age_squire["5-9", "5-9"] + M_age_squire["5-9", "10-14"] +
+              M_age_squire["10-14", "10-14"])) < 1e-6)
+  
+  M_10to11 <- M_age_squire["10-14", ] * 2 / 5
+  M_12to14 <- M_age_squire["10-14", ] - M_10to11
+  M_05to11 <- M_age_squire["5-9", ] + M_10to11
+  
+  M_age <- M_age_squire
+  rownames(M_age) <- colnames(M_age) <- age_bins$label
+  M_age["5-11", ] <- M_age[, "5-11"] <- M_05to11
+  M_age["12-14", ] <- M_age[, "12-14"] <- M_12to14
+  M_age[c("5-11", "12-14"), c("5-11", "12-14")] <-
+    matrix(c(M_05to11_05to11, M_05to11_12to14,
+             M_05to11_12to14, M_12to14_12to14), nrow = 2)
+  
+  M_age[lower.tri(M_age)] <- t(M_age)[lower.tri(M_age)] # populate lower triangle
+  # check the totals match
+  stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
+              sum(M_age_squire[upper.tri(M_age_squire, diag = TRUE)])) < 1e-6)
+
+  
   # Need to split total contacts i->j by gen pop / CSW / ASW / PBS
   # assume homogenous mixing in day-to-day contacts (will add sex in fitting)
   # create a matrix with the probability of being in each key pop by age
@@ -102,6 +176,7 @@ parameters_demographic <- function(region) {
                 HCW = p_HCW * w_HCW)
   nms_kp <- colnames(p_kp)
   p_kp <- cbind(gen = 1 - rowSums(p_kp), p_kp)
+  rownames(p_kp) <- age_bins$label
 
   ## For each i,j pair in M_age, split contacts up
 
@@ -120,7 +195,7 @@ parameters_demographic <- function(region) {
       # Calculate proportion of age: i -> j contacts that are between gen / key pops
       # p sums to 1 and can be used to allocate all of M_age[i,j]
       # can consider p as the proportion of total contacts that involve
-      # person 1. being in k and person 2. being in l, where k,l = gen, kp1, ...
+      # person 1 being in k and person 2 being in l, where k,l = gen, kp1, ...
       p <- outer(p_kp[i, ], p_kp[j, ])
       n <- M_age[i, j] * p
       # Separate out gen pop -> gen pop contacts and assign to age group
@@ -144,6 +219,13 @@ parameters_demographic <- function(region) {
 
   M[lower.tri(M)] <- t(M)[lower.tri(M)] # populate lower triangle
 
+  # check the totals match
+  stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
+                  sum(M[upper.tri(M, diag = TRUE)])) < 1e-6)
+  
+  
+  
+  
   # Convert to per-capita rates by dividing by population
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
@@ -192,11 +274,15 @@ parameters_demographic <- function(region) {
 get_age_bins <- function() {
   ## We always use these age bands, so rather than detect them, we will
   ## check that things conform to them.
-  end <- c(seq(4, 75, by = 5), 100)
-  start <- c(0, end[-length(end)] + 1L)
+  start <- c(0, 5, 12, seq(15, 75, by = 5))
+  create_age_bins(start, max_age = 100)
+}
+
+create_age_bins <- function(start, max_age = 100) {
+  if (max_age <= max(start)) stop("max_age is too small")
+  end <- c(start[-1] - 1L, max_age)
   label <- paste(start, end, sep = "-")
   label[length(label)] <- paste0(max(start), "+")
-
   data.frame(label = label, start = start, end = end)
 }
 
@@ -301,9 +387,7 @@ assign_seeds <- function(N, w) {
 ##' A function that gets the fixed parameters for use in the model
 ##' 
 ##' @title Get fixed parameters for use in the model
-##' 
-##' @param region The region for the parameters, must be either `"equateur"` or
-##'   `"sudkivu"`
+##' @inheritParams parameters_demographic
 ##'   
 ##' @param initial_infections The initial number of infections
 ##' @param use_ve_D logical, indicating whether model should allow for vaccine
@@ -316,7 +400,8 @@ assign_seeds <- function(N, w) {
 ##' @export
 ##' 
 #' @export
-parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overrides = list()) {
+parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, 
+                             mixing_matrix = "Zimbabwe", overrides = list()) {
 
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu"))) {
@@ -324,7 +409,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
   }
 
   ## Initialising variable that other parameters depend on
-  demographic_params <- parameters_demographic(region = region)
+  demographic_params <- parameters_demographic(region = region,
+                                               mixing_matrix = mixing_matrix)
   age_bins <- get_age_bins()
   idx_compartment <- get_compartment_indices()
 
@@ -492,4 +578,3 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, overr
 
   return(params_list)
 }
-

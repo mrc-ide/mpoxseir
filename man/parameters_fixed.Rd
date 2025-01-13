@@ -8,6 +8,7 @@ parameters_fixed(
   region,
   initial_infections,
   use_ve_D = FALSE,
+  mixing_matrix = "Zimbabwe",
   overrides = list()
 )
 }
@@ -19,6 +20,9 @@ parameters_fixed(
 
 \item{use_ve_D}{logical, indicating whether model should allow for vaccine
 efficacy against death (above and beyond protection against infection)}
+
+\item{mixing_matrix}{The mixing matrix must be either \code{"Zimbabwe"},
+\code{"synthetic_home"}, or \code{"synthetic_all"}}
 
 \item{overrides}{A list, containing any parameters for which you want to
 override the default values}
