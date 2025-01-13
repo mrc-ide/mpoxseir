@@ -78,7 +78,6 @@ target_met_children_t[] <-
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
-
 ## adults
 ## keep this as a vector because it means the columns match (E.g. 3 and 3, 4 and 4)
 dim(target_met_adults_t) <- c(n_group, n_vax)
@@ -183,6 +182,7 @@ dim(give_dose2_adults) <- c(n_group)
 give_dose2_adults[] <- 
   ((1 - is_child[i]) * ceiling(prioritisation_strategy_adults[
     i, prioritisation_step_2nd_dose_adults]) * (1 - target_met_adults_t[i, 4]))
+
 
 ## allocate the doses to the unvaccinated by age group, prioritisation strategy
 ## and across S, E, R
