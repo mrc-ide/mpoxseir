@@ -84,7 +84,6 @@ target_met_children_t[, 3] <-
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
 
-
 ## adults
 dim(target_met_adults_t) <- c(n_group, n_vax)
 
@@ -188,9 +187,6 @@ n_eligible_for_dose2_adults[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3]) *
   prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults]
 dim(n_eligible_for_dose2_adults) <- c(n_group)
 
-## allocate the doses to the unvaccinated by age group, prioritisation strategy
-## and across S, E, R
-## hacky fix for now
 
 ### allocate to S
 
