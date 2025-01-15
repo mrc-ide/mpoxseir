@@ -175,8 +175,7 @@ give_dose1_children[] <-
 
 dim(give_dose1_adults) <- c(n_group)
 give_dose1_adults[] <- 
-  ((1 - is_child[i]) * ceiling(prioritisation_strategy_adults[
-    i, prioritisation_step_1st_dose_adults]) * (1 - target_met_adults_t[i, 3])) 
+  (1 - is_child[i]) * coverage_target_1st_dose_adults[i] * (1 - target_met_adults_t[i, 3])
 dim(give_dose2_adults) <- c(n_group)
 give_dose2_adults[] <- 
   ((1 - is_child[i]) * ceiling(prioritisation_strategy_adults[
