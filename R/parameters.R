@@ -561,8 +561,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     daily_doses_children_time = 1,
     daily_doses_adults_value = matrix(0, nrow = n_vax, ncol = 1),
     daily_doses_adults_time = 1,
-    children_ind_raw = group_bins$children,
-    adults_ind_raw = group_bins$adults)
+    is_child = group_bins$children)
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
