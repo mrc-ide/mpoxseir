@@ -1011,13 +1011,13 @@ public:
     const real_type prioritisation_step_1st_dose_adults_proposal = (dust2::array::sum<real_type>(internal.target_met_adults_t.data(), shared.dim.target_met_adults_t, {0, shared.dim.target_met_adults_t.dim[0] - 1}, {2, 2}) == dust2::array::sum<real_type>(internal.coverage_target_1st_dose_adults.data(), shared.dim.coverage_target_1st_dose_adults) ? prioritisation_step_1st_dose_adults + 1 : prioritisation_step_1st_dose_adults);
     const real_type prioritisation_step_2nd_dose_adults_proposal = (dust2::array::sum<real_type>(internal.target_met_adults_t.data(), shared.dim.target_met_adults_t, {0, shared.dim.target_met_adults_t.dim[0] - 1}, {3, 3}) == dust2::array::sum<real_type>(internal.coverage_target_2nd_dose_adults.data(), shared.dim.coverage_target_2nd_dose_adults) ? prioritisation_step_2nd_dose_adults + 1 : prioritisation_step_2nd_dose_adults);
     for (size_t i = 1; i <= shared.dim.give_dose1_children.size; ++i) {
-      internal.give_dose1_children[i - 1] = (shared.is_child[i - 1] * monty::math::ceil(shared.prioritisation_strategy_children[i - 1 + (prioritisation_step_1st_dose_children - 1) * shared.dim.prioritisation_strategy_children.mult[1]]) * (1 - internal.target_met_children_t[i - 1]));
+      internal.give_dose1_children[i - 1] = shared.is_child[i - 1] * internal.coverage_target_1st_dose_children[i - 1] * (1 - internal.target_met_children_t[i - 1]);
     }
     for (size_t i = 1; i <= shared.dim.give_dose1_adults.size; ++i) {
-      internal.give_dose1_adults[i - 1] = ((1 - shared.is_child[i - 1]) * monty::math::ceil(shared.prioritisation_strategy_adults[i - 1 + (prioritisation_step_1st_dose_adults - 1) * shared.dim.prioritisation_strategy_adults.mult[1]]) * (1 - internal.target_met_adults_t[i - 1 + 2 * shared.dim.target_met_adults_t.mult[1]]));
+      internal.give_dose1_adults[i - 1] = (1 - shared.is_child[i - 1]) * internal.coverage_target_1st_dose_adults[i - 1] * (1 - internal.target_met_adults_t[i - 1 + 2 * shared.dim.target_met_adults_t.mult[1]]);
     }
     for (size_t i = 1; i <= shared.dim.give_dose2_adults.size; ++i) {
-      internal.give_dose2_adults[i - 1] = ((1 - shared.is_child[i - 1]) * monty::math::ceil(shared.prioritisation_strategy_adults[i - 1 + (prioritisation_step_2nd_dose_adults - 1) * shared.dim.prioritisation_strategy_adults.mult[1]]) * (1 - internal.target_met_adults_t[i - 1 + 3 * shared.dim.target_met_adults_t.mult[1]]));
+      internal.give_dose2_adults[i - 1] = (1 - shared.is_child[i - 1]) * internal.coverage_target_2nd_dose_adults[i - 1] * (1 - internal.target_met_adults_t[i - 1 + 3 * shared.dim.target_met_adults_t.mult[1]]);
     }
     for (size_t i = 1; i <= shared.dim.D.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.D.dim[1]; ++j) {
