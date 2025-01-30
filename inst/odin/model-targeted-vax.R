@@ -999,4 +999,4 @@ model_cumul_cases_15_plus <- cases_cumulative_15_plus + Exponential(exp_noise)
 model_cumul_cases_total <- model_cumul_cases_00_14 + model_cumul_cases_15_plus
 
 cases_cumul_00_14 ~ 
-  Binomial(cases_cumul_00_14, model_cumul_cases_00_14 / model_cumul_cases_total)
+  Binomial(cases_cumul_total, model_cumul_cases_00_14 / model_cumul_cases_total)

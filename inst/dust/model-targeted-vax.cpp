@@ -1589,8 +1589,8 @@ public:
     if (!std::isnan(data.cases_cumul_00_14) && !std::isnan(data.cases_cumul_00_04)) {
       odin_ll += monty::density::binomial(data.cases_cumul_00_04, data.cases_cumul_00_14, model_cumul_cases_00_04 / model_cumul_cases_00_14, true);
     }
-    if (!std::isnan(data.cases_cumul_00_14)) {
-      odin_ll += monty::density::binomial(data.cases_cumul_00_14, data.cases_cumul_00_14, model_cumul_cases_00_14 / model_cumul_cases_total, true);
+    if (!std::isnan(data.cases_cumul_total) && !std::isnan(data.cases_cumul_00_14)) {
+      odin_ll += monty::density::binomial(data.cases_cumul_00_14, data.cases_cumul_total, model_cumul_cases_00_14 / model_cumul_cases_total, true);
     }
     return odin_ll;
   }
