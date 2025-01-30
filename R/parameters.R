@@ -457,7 +457,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   if (region %in% c("sudkivu","burundi")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
-    index_sw <- which(colnames(demographic_params$m_gen_pop) == "SW")
+    index_sw <- which(colnames(demographic_params$m_gen_pop) == "ASW")
     Ea0[index_sw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
