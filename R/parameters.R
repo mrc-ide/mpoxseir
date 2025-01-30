@@ -3,8 +3,8 @@
 ##' 
 ##' @title Get demographic parameters
 ##' 
-##' @param region The region for the parameters, must be either `"equateur"` or
-##'   `"sudkivu"`
+##' @param region The region for the parameters, must be either `"equateur"`, 
+##'   `"sudkivu"` or `"burundi"`
 ##' @param mixing_matrix The mixing matrix must be either `"Zimbabwe"`,
 ##'  `"synthetic_home"`, or `"synthetic_all"`
 ##' @return A list containing all the demographic parameters
@@ -22,10 +22,16 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   squire_age_bins <- create_age_bins(start = seq(0, 75, 5))
   group_bins <- get_group_bins()
   row.names(group_bins) <- group_bins$label
-
+  
   ## Set up population denominators
+  if(region %in% c("equateur","sudkivu")){
   country <- "Democratic Republic of Congo"
+  } else if(region == "burundi"){
+    country <- "Burundi"
+  }
+
   data <- squire::get_population(country)
+  
   ## combine 75+
   N_age_squire <- c(data$n[1:15], sum(data$n[16:17]))
   names(N_age_squire) <- squire_age_bins$label
@@ -57,6 +63,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
     p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
     p_SW <- 0.03 * 0.5 # WHO press release
+  } else if (region == "burundi"){
+    p_SW <- 0.028 * 0.5 # Laga et al 
   }
   
   N_CSW <- round(p_SW * N_CSW)
@@ -71,6 +79,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   # not changing this based on age as we only heard about young SWs not young PBS
   p_PBS <- 0.11 * 0.5 # 11% men (50%) 15-49 DHS https://www.statcompiler.com/en/
   # we assume all greater than 20 to avoid vaccine issues
+  ## for Burundi same source saying 0.6% which seems far too low
   N_PBS <- round(p_PBS * N_PBS)
   
   ## HCWs: age 20-69 (from https://apps.who.int/nhwaportal/)
@@ -80,7 +89,13 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   
   
   ## HCW
-  p_HCW <- 133809 / sum(N_age) # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
+  if(region %in% c("equateur","sudkivu")){
+    p_HCW <- 133809 / sum(N_age)
+  } else if(region=="burundi"){
+    p_HCW <- 107721 / sum(N_age)
+  }
+   
+   # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
   N_HCW <- round(p_HCW * N_HCW)
   
   N <- c(N_age - N_ASW - N_PBS - N_CSW - N_HCW,
@@ -238,7 +253,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
 
   # province populations
   province_pop = list("equateur" = 1712000,
-                      "sudkivu" = 6565000)
+                      "sudkivu" = 6565000,
+                      "burundi" = 11890781)
 
   # proportion of susceptibles estimated to be unvaccinated (historically)
   p_unvaccinated <- setNames(rep(0, n_group), nms_group)
@@ -404,8 +420,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              mixing_matrix = "Zimbabwe", overrides = list()) {
 
   ## Checking region
-  if (!(region %in% c("equateur", "sudkivu"))) {
-    stop("region must be equateur or sudkivu")
+  if (!(region %in% c("equateur", "sudkivu","burundi"))) {
+    stop("region must be equateur, sudkivu or burundi")
   }
 
   ## Initialising variable that other parameters depend on
@@ -438,10 +454,10 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   Ea0 <- X0
 
   
-  if (region == "sudkivu") { # seeding in sex workers in Sud Kivu
+  if (region %in% c("sudkivu","burundi")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
-    index_sw <- which(colnames(demographic_params$m_gen_pop) == "SW")
+    index_sw <- which(colnames(demographic_params$m_gen_pop) == "ASW")
     Ea0[index_sw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
@@ -453,7 +469,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
-    stop("something is wrong with the name of the region - change to sudkivu or equateur")
+    stop("something is wrong with the name of the region - change to sudkivu, equateur or burundi")
   }
   
   p_unvaccinated <- demographic_params$p_unvaccinated
