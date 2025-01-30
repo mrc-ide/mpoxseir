@@ -4,6 +4,16 @@ test_that("assign seeds works", {
   expect_equal(assign_seeds(6, c(3, 2, 1)), c(3, 2, 1))
 })
 
+test_that("Clade Ib seeding in (Adult)SW actually happens", {
+  initial_infections <- 150
+  
+  pars_sudkivu <- parameters_fixed("sudkivu", initial_infections = initial_infections)
+  expect_equal(sum(pars_sudkivu$Ea0) , initial_infections)
+  
+  pars_burundi <- parameters_fixed("burundi", initial_infections = initial_infections)
+  expect_equal(sum(pars_burundi$Ea0) , initial_infections)
+})
+
 test_that("Mixing matrices are correct in Equateur", {
   pars <- parameters_demographic(region = "equateur")
   
