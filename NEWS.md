@@ -1,3 +1,11 @@
+# mpoxseir 0.2.11
+* Can fit to cumulative cases by age with nested binomials
+
+# mpoxseir 0.2.10
+
+* Now allow "burundi" as a option for region
+* Bug fixed where there was no seeding in ASW in Sud-Kivu
+
 # mpoxseir 0.2.9
 
 * children_ind_raw replaced with is_child, adults_ind_raw replaced with (1 - is_child)
