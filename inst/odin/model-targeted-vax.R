@@ -984,20 +984,19 @@ model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
 cases_SW ~ Binomial(cases_total, model_prop_SW)
 
 ## Proportion of cumulative cases by age (nested binomials)
+cases_cumul_00_04 <- data()
+cases_cumul_00_14 <- data()
 cases_cumul_total <- data()
 
-cases_cumul_15_plus <- data()
-model_cumul_cases_15_plus <- cases_cumulative_15_plus + Exponential(exp_noise)
 model_cumul_cases_00_04 <- cases_cumulative_00_04 + Exponential(exp_noise)
 model_cumul_cases_05_14 <- cases_cumulative_05_14 + Exponential(exp_noise)
-model_prop_cumul_cases_15_plus <- model_cumul_cases_15_plus / 
-  (model_cumul_cases_00_04 + model_cumul_cases_05_14 + model_cumul_cases_15_plus)
-cases_cumul_15_plus ~ 
-  Binomial(cases_cumul_total, model_prop_cumul_cases_15_plus)
+model_cumul_cases_00_14 <- model_cumul_cases_00_04 + model_cumul_cases_05_14
 
-cases_cumul_05_14 <- data()
-model_prop_cumul_cases_under15_05_14 <- model_cumul_cases_05_14 / 
-  (model_cumul_cases_00_04 + model_cumul_cases_05_14)
-cases_cumul_05_14 ~ 
-  Binomial(cases_cumul_total - cases_cumul_15_plus, 
-           model_prop_cumul_cases_under15_05_14)
+cases_cumul_00_04 ~ 
+  Binomial(cases_cumul_00_14, model_cumul_cases_00_04 / model_cumul_cases_00_14)
+
+model_cumul_cases_15_plus <- cases_cumulative_15_plus + Exponential(exp_noise)
+model_cumul_cases_total <- model_cumul_cases_00_14 + model_cumul_cases_15_plus
+
+cases_cumul_00_14 ~ 
+  Binomial(cases_cumul_00_14, model_cumul_cases_00_14 / model_cumul_cases_total)
