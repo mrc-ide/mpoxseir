@@ -257,10 +257,19 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
                       "burundi" = 11890781)
 
   # proportion of susceptibles estimated to be unvaccinated (historically)
+  # In Burundi, no-one born after 1970 thought to be historically (smallpox) vaccinated (source: Ruth's email from Jean-Claude)
+  # At time of writing (2025), this corresponds to over 55s
   p_unvaccinated <- setNames(rep(0, n_group), nms_group)
-  p_unvaccinated[which(age_bins$end < 40)] <- 1
-  p_unvaccinated[which(age_bins$start >= 40)] <-
-    c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
+  if (region %in% c("equateur", "sudkivu")) {
+    p_unvaccinated[which(age_bins$end < 40)] <- 1
+    p_unvaccinated[which(age_bins$start >= 40)] <-
+      c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
+  } else if (region == "burundi") {
+    p_unvaccinated[which(age_bins$end < 55)] <- 1
+    p_unvaccinated[which(age_bins$start >= 55)] <-
+      c(0.23, 0.21, 0.21, 0.21, 0.21)
+  }
+  
   p_unvaccinated[nms_kp] <- 1 # assume no prior vaccination in KPs
 
   list(
