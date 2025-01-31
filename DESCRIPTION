@@ -6,6 +6,7 @@ Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
              person("Ruth", "McCabe", role = c("aut")),
              person("Charlie", "Whittaker", role = c("aut")),
              person("Ed", "Knock", role = c("aut")),
+             person("Kieran", "Chopra", role = c("aut")),
              person("Imperial College of Science, Technology and Medicine",
                     role = "cph"))
 Description: Stochastic compartmental model of mpox transmission in odin.dust.
