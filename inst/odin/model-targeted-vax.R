@@ -197,15 +197,14 @@ dim(adults_dose2_denom) <- c(n_group)
 
 ## children 1st doses
 
-children_dose_state_prob[1] <- if (sum(children_dose1_denom[])==0) 0 else
-  S[i,2] * give_dose1_children[i]/sum(children_dose1_denom[])
-children_dose_state_prob[2] <- if (sum(children_dose1_denom[])==0) 0 else
-  Ea[i,2] * give_dose1_children[i]/sum(children_dose1_denom[]) 
-children_dose_state_prob[3] <- if (sum(children_dose1_denom[])==0) 0 else
-  Eb[i,2] * give_dose1_children[i]/sum(children_dose1_denom[])
-children_dose_state_prob[4] <- if (sum(children_dose1_denom[])==0) 0 else
-  R[i,2] * give_dose1_children[i]/sum(children_dose1_denom[])
-dim(children_dose_state_prob) <- 4
+children_dose_state_prob[i, 1] <- if (sum(children_dose1_denom)==0) 0 else
+  S[i, 2] * give_dose1_children[i] / sum(children_dose1_denom)
+children_dose_state_prob[i, 2] <- if (sum(children_dose1_denom)==0) 0 else
+  Ea[i, 2] * give_dose1_children[i] / sum(children_dose1_denom) 
+children_dose_state_prob[i, 3] <- if (sum(children_dose1_denom)==0) 0 else
+  Eb[i, 2] * give_dose1_children[i] / sum(children_dose1_denom)
+children_dose_state_prob[i, 4] <- if (sum(children_dose1_denom)==0) 0 else
+  R[i, 2] * give_dose1_children[i] /sum(children_dose1_denom)
 
 children_dose_state[] <- 0
 children_dose_state[1] <- Binomial(daily_doses_children_t[2],
