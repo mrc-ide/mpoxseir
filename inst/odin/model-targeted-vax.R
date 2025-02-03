@@ -203,7 +203,7 @@ dim(children_dose1_prob) <- n_group
 
 children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
   Binomial(daily_doses_children_t[2], children_dose1_prob[1])
-children_dose1_group[2:n_group] <- if (sum(children_dose1_denom) == 0) 0 else
+children_dose1_group[2:n_group] <- if (sum(children_dose1_prob[i:n_group]) == 0) 0 else
   Binomial(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]), 
            children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
 dim(children_dose1_group) <- n_group
@@ -248,7 +248,7 @@ dim(adults_dose1_prob) <- n_group
 
 adults_dose1_group[1] <- if (sum(adults_dose1_denom) == 0) 0 else
   Binomial(daily_doses_adults_t[2], adults_dose1_prob[1])
-adults_dose1_group[2:n_group] <- if (sum(adults_dose1_denom) == 0) 0 else
+adults_dose1_group[2:n_group] <- if (sum(adults_dose1_prob[i:n_group]) == 0) 0 else
   Binomial(daily_doses_adults_t[2] - sum(adults_dose1_group[1:(i - 1)]), 
            adults_dose1_prob[i] / sum(adults_dose1_prob[i:n_group]))
 dim(adults_dose1_group) <- n_group
