@@ -197,78 +197,48 @@ dim(adults_dose2_denom) <- c(n_group)
 
 ## children 1st doses
 
-children_dose_state_prob[i, 1] <- if (sum(children_dose1_denom)==0) 0 else
-  S[i, 2] * give_dose1_children[i] / sum(children_dose1_denom)
-children_dose_state_prob[i, 2] <- if (sum(children_dose1_denom)==0) 0 else
-  Ea[i, 2] * give_dose1_children[i] / sum(children_dose1_denom) 
-children_dose_state_prob[i, 3] <- if (sum(children_dose1_denom)==0) 0 else
-  Eb[i, 2] * give_dose1_children[i] / sum(children_dose1_denom)
-children_dose_state_prob[i, 4] <- if (sum(children_dose1_denom)==0) 0 else
-  R[i, 2] * give_dose1_children[i] /sum(children_dose1_denom)
+children_dose1_prob[i] <- if (sum(children_dose1_denom)==0) 0 else
+  children_dose1_denom[] / sum(children_dose1_denom)
+dim(children_dose1_prob) <- n_group
 
-children_dose_state[] <- 0
-children_dose_state[1] <- Binomial(daily_doses_children_t[2],
-                                   sum(children_dose_state_prob[, 1]))
-children_dose_state[2:4] <- if(sum(children_dose_state_prob[, i:4])==0) 0 else
-  Binomial(
-  daily_doses_children_t[2] - sum(children_dose_state[1:(i - 1)]),
-  sum(children_dose_state_prob[, i]) / sum(children_dose_state_prob[, i:4]))
-dim(children_dose_state) <- 4
+children_dose1_group[1] <- Binomial(daily_doses_children_t[2],
+                                    children_dose1_prob[1])
+children_dose1_group[2:n_group] <-
+  Binomial(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]), 
+           children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
+dim(children_dose1_group) <- n_group
 
 ### then we need to do another for within each state now that we have the value going to the state  
 
-
-children_dose_within_S_denom[] <- give_dose1_children[i]*S[i,2]
-dim(children_dose_within_S_denom) <- c(n_group)
-
-children_dose_prob_within_S[] <- if(sum(children_dose_within_S_denom[])==0) 0 else children_dose_within_S_denom[i]/sum(children_dose_within_S_denom[])
-dim(children_dose_prob_within_S) <- c(n_group)
-
 ## S
-n_vaccination_t_S_children[] <- 0
-n_vaccination_t_S_children[1] <-
-  if (sum(children_dose1_denom[]) == 0) 0 else
-    min(Binomial(children_dose_state[1],children_dose_prob_within_S[1]),
+n_vaccination_t_S_children[] <-
+  if (sum(children_dose1_denom[i]) == 0) 0 else
+    min(Binomial(children_dose1_group[i], 
+                 S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2])),
         S[i, 2])
 
-# Binomial(
-#   daily_doses_children_t[2] - sum(children_dose_state[1:(i - 1)]),
-#   children_dose_state_prob[i]/sum(children_dose_state_prob[i:4]))
-
-
-n_vaccination_t_S_children[2:n_group] <-
-  if (sum(children_dose_prob_within_S[i:n_group]) == 0) 0 else
-    min(
-      Binomial(
-        children_dose_state[1] - sum(n_vaccination_t_S_children[1:(i-1)]),
-        children_dose_prob_within_S[i]/sum(children_dose_prob_within_S[i:n_group])),
-      S[i, 2])
-
-
-
 ## Ea
-n_vaccination_t_Ea_children[] <- 0
 n_vaccination_t_Ea_children[] <-
-  if (sum(children_dose1_denom[]) == 0) 0 else
-    min(floor(((daily_doses_children_t[2] * Ea[i, 2]) /
-                 sum(children_dose1_denom[])) * give_dose1_children[i]),
+  if (sum(children_dose1_denom[i]) == 0) 0 else
+    min(Binomial(children_dose1_group[i] - n_vaccination_t_S_children[i], 
+                 Ea[i, 2] / (Ea[i, 2] + Eb[i, 2] + R[i, 2])),
         Ea[i, 2])
 
 ## Eb
-n_vaccination_t_Eb_children[] <- 0
 n_vaccination_t_Eb_children[] <-
-  if (sum(children_dose1_denom[]) == 0) 0 else
-    min(floor(((daily_doses_children_t[2] * Eb[i, 2]) /
-                 sum(children_dose1_denom[])) * give_dose1_children[i]),
+  if (sum(children_dose1_denom[i]) == 0) 0 else
+    min(Binomial(children_dose1_group[i] - n_vaccination_t_S_children[i] - 
+                   n_vaccination_t_Ea_children[i], 
+                 Eb[i, 2] / (Eb[i, 2] + R[i, 2])),
         Eb[i, 2])
 
 ## R
-n_vaccination_t_R_children[] <- 0
+## Eb
 n_vaccination_t_R_children[] <-
-  if (sum(children_dose1_denom[]) == 0) 0 else
-    min(floor(((daily_doses_children_t[2] * R[i, 2]) /
-                 sum(children_dose1_denom[])) * give_dose1_children[i]),
-        R[i, 2])
+  if (sum(children_dose1_denom[i]) == 0) 0 else
+    min(children_dose1_group[i] - n_vaccination_t_S_children[i] - 
+          n_vaccination_t_Ea_children[i] - n_vaccination_t_Eb_children[i],
+        Eb[i, 2])
 
 ### allocate to S
 
