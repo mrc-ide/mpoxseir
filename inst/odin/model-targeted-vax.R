@@ -197,13 +197,13 @@ dim(adults_dose2_denom) <- c(n_group)
 
 ## children 1st doses
 
-children_dose1_prob[i] <- if (sum(children_dose1_denom)==0) 0 else
-  children_dose1_denom[] / sum(children_dose1_denom)
+children_dose1_prob[i] <- if (sum(children_dose1_denom) == 0) 0 else
+  children_dose1_denom[i] / sum(children_dose1_denom)
 dim(children_dose1_prob) <- n_group
 
-children_dose1_group[1] <- Binomial(daily_doses_children_t[2],
-                                    children_dose1_prob[1])
-children_dose1_group[2:n_group] <-
+children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
+  Binomial(daily_doses_children_t[2], children_dose1_prob[1])
+children_dose1_group[2:n_group] <- if (sum(children_dose1_denom) == 0) 0 else
   Binomial(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]), 
            children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
 dim(children_dose1_group) <- n_group
@@ -233,7 +233,6 @@ n_vaccination_t_Eb_children[] <-
         Eb[i, 2])
 
 ## R
-## Eb
 n_vaccination_t_R_children[] <-
   if (sum(children_dose1_denom[i]) == 0) 0 else
     min(children_dose1_group[i] - n_vaccination_t_S_children[i] - 
