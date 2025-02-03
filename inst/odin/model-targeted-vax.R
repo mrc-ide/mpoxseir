@@ -208,11 +208,11 @@ children_dose_state_prob[i, 4] <- if (sum(children_dose1_denom)==0) 0 else
 
 children_dose_state[] <- 0
 children_dose_state[1] <- Binomial(daily_doses_children_t[2],
-                                   children_dose_state_prob[1])
-children_dose_state[2:4] <- if(sum(children_dose_state_prob[i:4])==0) 0 else
+                                   sum(children_dose_state_prob[, 1]))
+children_dose_state[2:4] <- if(sum(children_dose_state_prob[, i:4])==0) 0 else
   Binomial(
   daily_doses_children_t[2] - sum(children_dose_state[1:(i - 1)]),
-  children_dose_state_prob[i]/sum(children_dose_state_prob[i:4]))
+  sum(children_dose_state_prob[, i]) / sum(children_dose_state_prob[, i:4]))
 dim(children_dose_state) <- 4
 
 ### then we need to do another for within each state now that we have the value going to the state  
