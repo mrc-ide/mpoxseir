@@ -83,6 +83,8 @@ public:
       dust2::array::dimensions<1> children_dose1_group;
       dust2::array::dimensions<1> adults_dose1_prob;
       dust2::array::dimensions<1> adults_dose1_group;
+      dust2::array::dimensions<1> adults_dose2_prob;
+      dust2::array::dimensions<1> adults_dose2_group;
       dust2::array::dimensions<2> N;
       dust2::array::dimensions<2> S;
       dust2::array::dimensions<2> S0;
@@ -224,10 +226,12 @@ public:
     std::vector<real_type> s_ij_sex;
     std::vector<real_type> children_dose1_prob;
     std::vector<real_type> adults_dose1_prob;
+    std::vector<real_type> adults_dose2_prob;
     std::vector<real_type> lambda_hh;
     std::vector<real_type> lambda_s;
     std::vector<real_type> children_dose1_group;
     std::vector<real_type> adults_dose1_group;
+    std::vector<real_type> adults_dose2_group;
     std::vector<real_type> lambda;
     std::vector<real_type> n_vaccination_t_S_children;
     std::vector<real_type> n_vaccination_t_S_adults;
@@ -345,6 +349,8 @@ public:
     dim.children_dose1_group.set({static_cast<size_t>(n_group)});
     dim.adults_dose1_prob.set({static_cast<size_t>(n_group)});
     dim.adults_dose1_group.set({static_cast<size_t>(n_group)});
+    dim.adults_dose2_prob.set({static_cast<size_t>(n_group)});
+    dim.adults_dose2_group.set({static_cast<size_t>(n_group)});
     dim.N.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.S.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.S0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
@@ -599,10 +605,12 @@ public:
     std::vector<real_type> s_ij_sex(shared.dim.s_ij_sex.size);
     std::vector<real_type> children_dose1_prob(shared.dim.children_dose1_prob.size);
     std::vector<real_type> adults_dose1_prob(shared.dim.adults_dose1_prob.size);
+    std::vector<real_type> adults_dose2_prob(shared.dim.adults_dose2_prob.size);
     std::vector<real_type> lambda_hh(shared.dim.lambda_hh.size);
     std::vector<real_type> lambda_s(shared.dim.lambda_s.size);
     std::vector<real_type> children_dose1_group(shared.dim.children_dose1_group.size);
     std::vector<real_type> adults_dose1_group(shared.dim.adults_dose1_group.size);
+    std::vector<real_type> adults_dose2_group(shared.dim.adults_dose2_group.size);
     std::vector<real_type> lambda(shared.dim.lambda.size);
     std::vector<real_type> n_vaccination_t_S_children(shared.dim.n_vaccination_t_S_children.size);
     std::vector<real_type> n_vaccination_t_S_adults(shared.dim.n_vaccination_t_S_adults.size);
@@ -647,7 +655,7 @@ public:
     std::vector<real_type> new_Ir(shared.dim.Ir.size);
     std::vector<real_type> new_I(shared.dim.I.size);
     std::vector<real_type> new_N(shared.dim.N.size);
-    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_target_1st_dose_children, coverage_target_1st_dose_adults, coverage_target_2nd_dose_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, give_dose1_children, give_dose1_adults, give_dose2_adults, new_D, prop_infectious, lambda_hc, children_dose1_denom, adults_dose1_denom, adults_dose2_denom, s_ij_gen_pop, s_ij_sex, children_dose1_prob, adults_dose1_prob, lambda_hh, lambda_s, children_dose1_group, adults_dose1_group, lambda, n_vaccination_t_S_children, n_vaccination_t_S_adults, p_SE, p_hh, p_s, p_hc, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_S, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_Ea, delta_S_n_vaccination, n_vaccination_t_R_children, n_vaccination_t_R_adults, n_vaccination_t_Eb, delta_Ea_n_vaccination, n_SEa, n_vaccination_t_R, delta_Eb_n_vaccination, new_S, n_SEa_hh, n_EaEb, delta_R_n_vaccination, n_vaccination_t, n_SEa_s, n_EbI, delta_Ea, new_Ea, new_R, n_SEa_hc, n_EbId, delta_Eb, new_Eb, n_SEa_z, n_EbIr, delta_Id, new_Id, new_E, delta_Ir, new_Ir, new_I, new_N};
+    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_target_1st_dose_children, coverage_target_1st_dose_adults, coverage_target_2nd_dose_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, give_dose1_children, give_dose1_adults, give_dose2_adults, new_D, prop_infectious, lambda_hc, children_dose1_denom, adults_dose1_denom, adults_dose2_denom, s_ij_gen_pop, s_ij_sex, children_dose1_prob, adults_dose1_prob, adults_dose2_prob, lambda_hh, lambda_s, children_dose1_group, adults_dose1_group, adults_dose2_group, lambda, n_vaccination_t_S_children, n_vaccination_t_S_adults, p_SE, p_hh, p_s, p_hc, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_S, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_Ea, delta_S_n_vaccination, n_vaccination_t_R_children, n_vaccination_t_R_adults, n_vaccination_t_Eb, delta_Ea_n_vaccination, n_SEa, n_vaccination_t_R, delta_Eb_n_vaccination, new_S, n_SEa_hh, n_EaEb, delta_R_n_vaccination, n_vaccination_t, n_SEa_s, n_EbI, delta_Ea, new_Ea, new_R, n_SEa_hc, n_EbId, delta_Eb, new_Eb, n_SEa_z, n_EbIr, delta_Id, new_Id, new_E, delta_Ir, new_Ir, new_I, new_N};
   }
   static data_type build_data(cpp11::list data, const shared_state& shared) {
     auto cases = dust2::r::read_real(data, "cases", NA_REAL);
@@ -1077,6 +1085,9 @@ public:
     for (size_t i = 1; i <= shared.dim.adults_dose1_prob.size; ++i) {
       internal.adults_dose1_prob[i - 1] = (dust2::array::sum<real_type>(internal.adults_dose1_denom.data(), shared.dim.adults_dose1_denom) == 0 ? 0 : internal.adults_dose1_denom[i - 1] / dust2::array::sum<real_type>(internal.adults_dose1_denom.data(), shared.dim.adults_dose1_denom));
     }
+    for (size_t i = 1; i <= shared.dim.adults_dose2_prob.size; ++i) {
+      internal.adults_dose2_prob[i - 1] = (dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom) == 0 ? 0 : internal.adults_dose2_denom[i - 1] / dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom));
+    }
     for (size_t i = 1; i <= shared.dim.lambda_hh.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.lambda_hh.dim[1]; ++j) {
         internal.lambda_hh[i - 1 + (j - 1) * shared.dim.lambda_hh.mult[1]] = shared.beta_h * dust2::array::sum<real_type>(internal.s_ij_gen_pop.data(), shared.dim.s_ij_gen_pop, {i - 1, i - 1}, {0, shared.dim.s_ij_gen_pop.dim[1] - 1}) * (1 - shared.ve_I[i - 1 + (j - 1) * shared.dim.ve_I.mult[1]]);
@@ -1094,6 +1105,10 @@ public:
     internal.adults_dose1_group[0] = (dust2::array::sum<real_type>(internal.adults_dose1_denom.data(), shared.dim.adults_dose1_denom) == 0 ? 0 : monty::random::binomial<real_type>(rng_state, internal.daily_doses_adults_t[1], internal.adults_dose1_prob[0]));
     for (size_t i = 2; i <= static_cast<size_t>(shared.n_group); ++i) {
       internal.adults_dose1_group[i - 1] = (dust2::array::sum<real_type>(internal.adults_dose1_prob.data(), shared.dim.adults_dose1_prob, {i - 1, shared.n_group - 1}) == 0 ? 0 : monty::random::binomial<real_type>(rng_state, internal.daily_doses_adults_t[1] - dust2::array::sum<real_type>(internal.adults_dose1_group.data(), shared.dim.adults_dose1_group, {0, (i - 1) - 1}), internal.adults_dose1_prob[i - 1] / dust2::array::sum<real_type>(internal.adults_dose1_prob.data(), shared.dim.adults_dose1_prob, {i - 1, shared.n_group - 1})));
+    }
+    internal.adults_dose2_group[0] = (dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom) == 0 ? 0 : monty::random::binomial<real_type>(rng_state, internal.daily_doses_adults_t[2], internal.adults_dose2_prob[0]));
+    for (size_t i = 2; i <= static_cast<size_t>(shared.n_group); ++i) {
+      internal.adults_dose2_group[i - 1] = (dust2::array::sum<real_type>(internal.adults_dose2_prob.data(), shared.dim.adults_dose2_prob, {i - 1, shared.n_group - 1}) == 0 ? 0 : monty::random::binomial<real_type>(rng_state, internal.daily_doses_adults_t[2] - dust2::array::sum<real_type>(internal.adults_dose2_group.data(), shared.dim.adults_dose2_group, {0, (i - 1) - 1}), internal.adults_dose2_prob[i - 1] / dust2::array::sum<real_type>(internal.adults_dose2_prob.data(), shared.dim.adults_dose2_prob, {i - 1, shared.n_group - 1})));
     }
     for (size_t i = 1; i <= shared.dim.lambda.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.lambda.dim[1]; ++j) {
@@ -1141,7 +1156,7 @@ public:
       internal.n_vaccination_t_S[i - 1 + shared.dim.n_vaccination_t_S.mult[1]] = internal.n_vaccination_t_S_children[i - 1] + internal.n_vaccination_t_S_adults[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_S.dim[0]; ++i) {
-      internal.n_vaccination_t_S[i - 1 + 2 * shared.dim.n_vaccination_t_S.mult[1]] = (dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom) == 0 ? 0 : monty::math::min(monty::math::floor(((internal.daily_doses_adults_t[2] * S[i - 1 + 2 * shared.dim.S.mult[1]]) / dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom)) * internal.give_dose2_adults[i - 1]), S[i - 1 + 2 * shared.dim.S.mult[1]]));
+      internal.n_vaccination_t_S[i - 1 + 2 * shared.dim.n_vaccination_t_S.mult[1]] = (S[i - 1 + 2 * shared.dim.S.mult[1]] + Ea[i - 1 + 2 * shared.dim.Ea.mult[1]] + Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]] == 0 ? 0 : monty::math::min(monty::random::binomial<real_type>(rng_state, internal.adults_dose2_group[i - 1], S[i - 1 + 2 * shared.dim.S.mult[1]] / (S[i - 1 + 2 * shared.dim.S.mult[1]] + Ea[i - 1 + 2 * shared.dim.Ea.mult[1]] + Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]])), S[i - 1 + 2 * shared.dim.S.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb_children.size; ++i) {
       internal.n_vaccination_t_Eb_children[i - 1] = (Eb[i - 1 + shared.dim.Eb.mult[1]] + R[i - 1 + shared.dim.R.mult[1]] == 0 ? 0 : monty::math::min(monty::random::binomial<real_type>(rng_state, internal.children_dose1_group[i - 1] - internal.n_vaccination_t_S_children[i - 1] - internal.n_vaccination_t_Ea_children[i - 1], Eb[i - 1 + shared.dim.Eb.mult[1]] / (Eb[i - 1 + shared.dim.Eb.mult[1]] + R[i - 1 + shared.dim.R.mult[1]])), Eb[i - 1 + shared.dim.Eb.mult[1]]));
@@ -1158,7 +1173,7 @@ public:
       internal.n_vaccination_t_Ea[i - 1 + shared.dim.n_vaccination_t_Ea.mult[1]] = internal.n_vaccination_t_Ea_children[i - 1] + internal.n_vaccination_t_Ea_adults[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Ea.dim[0]; ++i) {
-      internal.n_vaccination_t_Ea[i - 1 + 2 * shared.dim.n_vaccination_t_Ea.mult[1]] = (dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom) == 0 ? 0 : monty::math::min(monty::math::floor(((internal.daily_doses_adults_t[2] * Ea[i - 1 + 2 * shared.dim.Ea.mult[1]]) / dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom)) * internal.give_dose2_adults[i - 1]), Ea[i - 1 + 2 * shared.dim.Ea.mult[1]]));
+      internal.n_vaccination_t_Ea[i - 1 + 2 * shared.dim.n_vaccination_t_Ea.mult[1]] = (Ea[i - 1 + 2 * shared.dim.Ea.mult[1]] + Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]] == 0 ? 0 : monty::math::min(monty::random::binomial<real_type>(rng_state, internal.adults_dose2_group[i - 1] - internal.n_vaccination_t_S[i - 1 + 2 * shared.dim.n_vaccination_t_S.mult[1]], Ea[i - 1 + 2 * shared.dim.Ea.mult[1]] / (Ea[i - 1 + 2 * shared.dim.Ea.mult[1]] + Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]])), Ea[i - 1 + 2 * shared.dim.Ea.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.delta_S_n_vaccination.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.delta_S_n_vaccination.dim[1]; ++j) {
@@ -1179,6 +1194,9 @@ public:
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb.dim[0]; ++i) {
       internal.n_vaccination_t_Eb[i - 1 + shared.dim.n_vaccination_t_Eb.mult[1]] = internal.n_vaccination_t_Eb_children[i - 1] + internal.n_vaccination_t_Eb_adults[i - 1];
     }
+    for (size_t i = 1; i <= shared.dim.n_vaccination_t_Eb.dim[0]; ++i) {
+      internal.n_vaccination_t_Eb[i - 1 + 2 * shared.dim.n_vaccination_t_Eb.mult[1]] = (Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]] == 0 ? 0 : monty::math::min(monty::random::binomial<real_type>(rng_state, internal.adults_dose2_group[i - 1] - internal.n_vaccination_t_S[i - 1 + 2 * shared.dim.n_vaccination_t_S.mult[1]] - internal.n_vaccination_t_Ea[i - 1 + 2 * shared.dim.n_vaccination_t_Ea.mult[1]], Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] / (Eb[i - 1 + 2 * shared.dim.Eb.mult[1]] + R[i - 1 + 2 * shared.dim.R.mult[1]])), Eb[i - 1 + 2 * shared.dim.Eb.mult[1]]));
+    }
     for (size_t i = 1; i <= shared.dim.delta_Ea_n_vaccination.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.delta_Ea_n_vaccination.dim[1]; ++j) {
         internal.delta_Ea_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Ea_n_vaccination.mult[1]] = (j == 1 ? 0 : (j == 2 ? (-internal.n_vaccination_t_Ea[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Ea.mult[1]]) : (static_cast<int>(j) == shared.n_vax ? (internal.n_vaccination_t_Ea[i - 1 + (j - 1 - 1) * shared.dim.n_vaccination_t_Ea.mult[1]]) : (-internal.n_vaccination_t_Ea[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Ea.mult[1]] + internal.n_vaccination_t_Ea[i - 1 + (j - 1 - 1) * shared.dim.n_vaccination_t_Ea.mult[1]]))));
@@ -1198,7 +1216,7 @@ public:
       internal.n_vaccination_t_R[i - 1 + shared.dim.n_vaccination_t_R.mult[1]] = internal.n_vaccination_t_R_children[i - 1] + internal.n_vaccination_t_R_adults[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_vaccination_t_R.dim[0]; ++i) {
-      internal.n_vaccination_t_R[i - 1 + 2 * shared.dim.n_vaccination_t_R.mult[1]] = (dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom) == 0 ? 0 : monty::math::min(monty::math::floor(((internal.daily_doses_adults_t[2] * R[i - 1 + 2 * shared.dim.R.mult[1]]) / dust2::array::sum<real_type>(internal.adults_dose2_denom.data(), shared.dim.adults_dose2_denom)) * internal.give_dose2_adults[i - 1]), R[i - 1 + 2 * shared.dim.R.mult[1]]));
+      internal.n_vaccination_t_R[i - 1 + 2 * shared.dim.n_vaccination_t_R.mult[1]] = (R[i - 1 + 2 * shared.dim.R.mult[1]] == 0 ? 0 : monty::math::min(internal.adults_dose2_group[i - 1] - internal.n_vaccination_t_S[i - 1 + 2 * shared.dim.n_vaccination_t_S.mult[1]] - internal.n_vaccination_t_Ea[i - 1 + 2 * shared.dim.n_vaccination_t_Ea.mult[1]] - internal.n_vaccination_t_Eb[i - 1 + 2 * shared.dim.n_vaccination_t_Eb.mult[1]], R[i - 1 + 2 * shared.dim.R.mult[1]]));
     }
     for (size_t i = 1; i <= shared.dim.delta_Eb_n_vaccination.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.delta_Eb_n_vaccination.dim[1]; ++j) {

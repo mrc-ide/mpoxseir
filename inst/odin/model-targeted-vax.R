@@ -284,111 +284,65 @@ n_vaccination_t_R_adults[] <-
           n_vaccination_t_Ea_adults[i] - n_vaccination_t_Eb_adults[i],
         R[i, 2])
 
-######################
 
+## adults dose 2
 
+adults_dose2_prob[] <- if (sum(adults_dose2_denom) == 0) 0 else
+  adults_dose2_denom[i] / sum(adults_dose2_denom)
+dim(adults_dose2_prob) <- n_group
 
-### allocate to S
+adults_dose2_group[1] <- if (sum(adults_dose2_denom) == 0) 0 else
+  Binomial(daily_doses_adults_t[3], adults_dose2_prob[1])
+adults_dose2_group[2:n_group] <- if (sum(adults_dose2_prob[i:n_group]) == 0) 0 else
+  Binomial(daily_doses_adults_t[3] - sum(adults_dose2_group[1:(i - 1)]), 
+           adults_dose2_prob[i] / sum(adults_dose2_prob[i:n_group]))
+dim(adults_dose2_group) <- n_group
 
-#n_vaccination_t_S_adults[] <- 0
+### then we need to do another for within each state now that we have the value going to the state  
 
-# ## adults 1st doses
-# n_vaccination_t_S_adults[] <-
-#   if (sum(adults_dose1_denom[]) == 0) 0 else
-#     min(floor(((daily_doses_adults_t[2] * S[i, 2]) /
-#                  sum(adults_dose1_denom[])) * give_dose1_adults[i]),
-#         S[i, 2])
-
-## combine total first doses
+## S
 n_vaccination_t_S[, ] <- 0
 n_vaccination_t_S[, 2] <-
   n_vaccination_t_S_children[i] + n_vaccination_t_S_adults[i]
-
-## no longer doing boundary checks as we won't have any groups which are a mix of children and adults
-
-## allocate 2nd doses (adults only for now)
-n_vaccination_t_S[, 3] <- 
-  if (sum(adults_dose2_denom[]) == 0) 0 else
-    min(floor(((daily_doses_adults_t[3] * S[i, 3]) /
-                 sum(adults_dose2_denom[])) * give_dose2_adults[i]),
+n_vaccination_t_S[,3] <-
+  if (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3] == 0) 0 else
+    min(Binomial(adults_dose2_group[i], 
+                 S[i, 3] / (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3])),
         S[i, 3])
 
-### allocate to Ea
-
-## children 1st doses
-
-
-# ## adults 1st doses
-# n_vaccination_t_Ea_adults[] <- 0
-# n_vaccination_t_Ea_adults[] <-
-#   if (sum(adults_dose1_denom[]) == 0) 0 else
-#     min(floor(((daily_doses_adults_t[2] * Ea[i, 2]) /
-#                  sum(adults_dose1_denom[])) * give_dose1_adults[i]),
-#         Ea[i, 2])
-
-## combine total first doses
+## Ea
 n_vaccination_t_Ea[, ] <- 0
 n_vaccination_t_Ea[, 2] <-
   n_vaccination_t_Ea_children[i] + n_vaccination_t_Ea_adults[i]
-
-## adults 2nd doses
-n_vaccination_t_Ea[, 3] <- 
-  if (sum(adults_dose2_denom[]) == 0) 0 else
-    min(floor(((daily_doses_adults_t[3] * Ea[i, 3]) /
-                 sum(adults_dose2_denom[])) * give_dose2_adults[i]),
+n_vaccination_t_Ea[,3] <-
+  if (Ea[i, 3] + Eb[i, 3] + R[i, 3] == 0) 0 else
+    min(Binomial(adults_dose2_group[i] - n_vaccination_t_S[i,3], 
+                 Ea[i, 3] / (Ea[i, 3] + Eb[i, 3] + R[i, 3])),
         Ea[i, 3])
 
-
-### allocate to Eb
-
-## children 1st doses
-
-
-# ## adults 1st doses
-# n_vaccination_t_Eb_adults[] <- 0
-# n_vaccination_t_Eb_adults[] <-
-#   if (sum(adults_dose1_denom[]) == 0) 0 else
-#     min(floor(((daily_doses_adults_t[2] * Eb[i, 2]) /
-#                  sum(adults_dose1_denom[])) * give_dose1_adults[i]),
-#         Eb[i, 2])
-
-## combine total first doses
+## Eb
 n_vaccination_t_Eb[, ] <- 0
 n_vaccination_t_Eb[, 2] <-
   n_vaccination_t_Eb_children[i] + n_vaccination_t_Eb_adults[i]
+n_vaccination_t_Eb[,3] <-
+  if (Eb[i, 3] + R[i, 3] == 0) 0 else
+    min(Binomial(adults_dose2_group[i] - n_vaccination_t_S[i,3] - 
+                   n_vaccination_t_Ea[i,3], 
+                 Eb[i, 3] / (Eb[i, 3] + R[i, 3])),
+        Eb[i, 3])
 
-# ## adults 2nd doses
-# n_vaccination_t_Eb[, 3] <- 
-#   if (sum(adults_dose2_denom[]) == 0) 0 else
-#     min(floor(((daily_doses_adults_t[3] * Eb[i, 3]) /
-#                  sum(adults_dose2_denom[])) * give_dose2_adults[i]),
-#         Eb[i, 3])
-
-
-### allocate to R
-
-## children 1st doses
-
-
-# ## adults 1st doses
-# n_vaccination_t_R_adults[] <- 0
-# n_vaccination_t_R_adults[] <-
-#   if (sum(adults_dose1_denom[]) == 0) 0 else
-#     min(floor(((daily_doses_adults_t[2] * R[i, 2]) /
-#                  sum(adults_dose1_denom[])) * give_dose1_adults[i]),
-#         R[i, 2])
-
-## combine total first doses
+## R
 n_vaccination_t_R[, ] <- 0
 n_vaccination_t_R[, 2] <-
   n_vaccination_t_R_children[i] + n_vaccination_t_R_adults[i]
-
-## adults 2nd doses
-n_vaccination_t_R[, 3] <- 
-  if (sum(adults_dose2_denom[]) == 0) 0 else
-    min(floor(((daily_doses_adults_t[3] * R[i, 3]) /
-                 sum(adults_dose2_denom[])) * give_dose2_adults[i]),
+n_vaccination_t_R[,3] <-
+  if (R[i, 3] == 0) 0 else
+    min(adults_dose2_group[i] - n_vaccination_t_S[i,3] - 
+          n_vaccination_t_Ea[i,3] - n_vaccination_t_Eb[i,3],
         R[i, 3])
+
+
+
 
 
 ## net vaccination change for relevant classes (S, Ea, Eb, R)
