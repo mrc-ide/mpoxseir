@@ -209,21 +209,21 @@ dim(children_dose1_group) <- n_group
 
 ## S
 n_vaccination_t_S_children[] <-
-  if (sum(children_dose1_denom[i]) == 0) 0 else
+  if (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2] == 0) 0 else
     min(Binomial(children_dose1_group[i], 
                  S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2])),
         S[i, 2])
 
 ## Ea
 n_vaccination_t_Ea_children[] <-
-  if (sum(children_dose1_denom[i]) == 0) 0 else
+  if (Ea[i, 2] + Eb[i, 2] + R[i, 2] == 0) 0 else
     min(Binomial(children_dose1_group[i] - n_vaccination_t_S_children[i], 
                  Ea[i, 2] / (Ea[i, 2] + Eb[i, 2] + R[i, 2])),
         Ea[i, 2])
 
 ## Eb
 n_vaccination_t_Eb_children[] <-
-  if (sum(children_dose1_denom[i]) == 0) 0 else
+  if (Eb[i, 2] + R[i, 2] == 0) 0 else
     min(Binomial(children_dose1_group[i] - n_vaccination_t_S_children[i] - 
                    n_vaccination_t_Ea_children[i], 
                  Eb[i, 2] / (Eb[i, 2] + R[i, 2])),
@@ -231,10 +231,10 @@ n_vaccination_t_Eb_children[] <-
 
 ## R
 n_vaccination_t_R_children[] <-
-  if (sum(children_dose1_denom[i]) == 0) 0 else
+  if (R[i, 2] == 0) 0 else
     min(children_dose1_group[i] - n_vaccination_t_S_children[i] - 
           n_vaccination_t_Ea_children[i] - n_vaccination_t_Eb_children[i],
-        Eb[i, 2])
+        R[i, 2])
 
 
 ###################################################
