@@ -4,7 +4,7 @@
 ##' @title Get demographic parameters
 ##' 
 ##' @param region The region for the parameters, must be either `"equateur"`, 
-##'   `"sudkivu"` or `"burundi"`
+##'   `"sudkivu"`, `"burundi"` or `"bujumbura"`
 ##' @param mixing_matrix The mixing matrix must be either `"Zimbabwe"`,
 ##'  `"synthetic_home"`, or `"synthetic_all"`
 ##' @return A list containing all the demographic parameters
@@ -26,7 +26,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   ## Set up population denominators
   if(region %in% c("equateur","sudkivu")){
   country <- "Democratic Republic of Congo"
-  } else if(region == "burundi"){
+  } else if(region %in% c("burundi","bujumbura")){
     country <- "Burundi"
   }
 
@@ -63,7 +63,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
     p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
     p_SW <- 0.03 * 0.5 # WHO press release
-  } else if (region == "burundi"){
+  } else if (region %in% c("burundi","bujumbura")){
     p_SW <- 0.028 * 0.5 # Laga et al 
   }
   
@@ -91,7 +91,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   ## HCW
   if(region %in% c("equateur","sudkivu")){
     p_HCW <- 133809 / sum(N_age)
-  } else if(region=="burundi"){
+  } else if(region %in% c("burundi","bujumbura")){
     p_HCW <- 107721 / sum(N_age)
   }
    
@@ -254,7 +254,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   # province populations
   province_pop = list("equateur" = 1712000,
                       "sudkivu" = 6565000,
-                      "burundi" = 11890781)
+                      "burundi" = 11890781, ## taken from squire (above)
+                      "bujumbura" = 1277050) ## https://worldpopulationreview.com/cities/burundi/bujumbura
 
   # proportion of susceptibles estimated to be unvaccinated (historically)
   # In Burundi, no-one born after 1970 thought to be historically (smallpox) vaccinated (source: Ruth's email from Jean-Claude)
@@ -264,7 +265,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
     p_unvaccinated[which(age_bins$end < 40)] <- 1
     p_unvaccinated[which(age_bins$start >= 40)] <-
       c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
-  } else if (region == "burundi") {
+  } else if (region %in% c("burundi","bujumbura")) {
     p_unvaccinated[which(age_bins$end < 55)] <- 1
     p_unvaccinated[which(age_bins$start >= 55)] <-
       c(0.23, 0.21, 0.21, 0.21, 0.21)
@@ -429,8 +430,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              mixing_matrix = "Zimbabwe", overrides = list()) {
 
   ## Checking region
-  if (!(region %in% c("equateur", "sudkivu","burundi"))) {
-    stop("region must be equateur, sudkivu or burundi")
+  if (!(region %in% c("equateur", "sudkivu","burundi","bujumbura"))) {
+    stop("region must be equateur, sudkivu, burundi or bujumbura")
   }
 
   ## Initialising variable that other parameters depend on
@@ -463,7 +464,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   Ea0 <- X0
 
   
-  if (region %in% c("sudkivu","burundi")) { # seeding in sex workers in Clade Ib affected areas
+  if (region %in% c("sudkivu","burundi","bujumbura")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
     index_asw <- get_compartment_indices()$group$ASW
@@ -478,7 +479,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
-    stop("something is wrong with the name of the region - change to sudkivu, equateur or burundi")
+    stop("something is wrong with the name of the region - change to sudkivu, equateur, burundi or bujumbura")
   }
   
   p_unvaccinated <- demographic_params$p_unvaccinated
