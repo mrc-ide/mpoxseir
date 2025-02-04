@@ -91,7 +91,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   ## HCW
   if(region %in% c("equateur","sudkivu")){
     p_HCW <- 133809 / sum(N_age)
-  } else if(region=="burundi"){
+  } else if(region %in% c("burundi","bujumbura")){
     p_HCW <- 107721 / sum(N_age)
   }
    
