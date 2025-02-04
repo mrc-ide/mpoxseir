@@ -982,3 +982,15 @@ model_cases_SW <- cases_inc_SW +  Exponential(exp_noise)
 model_cases_non_SW <- cases_inc - cases_inc_SW +  Exponential(exp_noise)
 model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
 cases_SW ~ Binomial(cases_total, model_prop_SW)
+
+## Proportion of cases by age (nested binomials)
+cases_00_04_binom <- data()
+cases_00_14_binom <- data()
+cases_binom <- data()
+# Model cases  00-04, 15 plus, and total defined above
+model_cases_00_14 <- model_cases_00_04 + model_cases_05_14
+
+cases_00_04_binom ~ 
+  Binomial(cases_00_14_binom, model_cases_00_04 / model_cases_00_14)
+cases_00_14_binom ~ 
+  Binomial(cases_binom, model_cases_00_14 / model_cases)
