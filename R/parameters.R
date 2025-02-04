@@ -66,7 +66,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   } else if (region == "burundi"){
     p_SW <- 0.028 * 0.5 # Laga et al
   } else if (region == "bujumbura"){
-    p_SW <- round(3852/(792503*0.5)) ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
+    p_SW <- 3852/(792503*0.5) ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
   }
   
   N_CSW <- round(p_SW * N_CSW)
@@ -257,7 +257,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   province_pop = list("equateur" = 1712000,
                       "sudkivu" = 6565000,
                       "burundi" = 11890781, ## taken from squire (above)
-                      "bujumbura" = 792503 + 302799) ## Annuaire statisitique 2022 (from Olivier, in folder in Teams) - Bujumbura Mairie + Isare
+                      "bujumbura" = 1095302) ## Annuaire statisitique 2022 (from Olivier, in folder in Teams) - Bujumbura Mairie + Isare
 
   # proportion of susceptibles estimated to be unvaccinated (historically)
   # In Burundi, no-one born after 1970 thought to be historically (smallpox) vaccinated (source: Ruth's email from Jean-Claude)
