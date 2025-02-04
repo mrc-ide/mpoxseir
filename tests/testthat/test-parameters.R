@@ -75,3 +75,14 @@ test_that("can load other mixing matrices", {
   expect_error(parameters_demographic(region = "equateur",
                                       mixing_matrix = "hello"))
 })
+
+
+test_that("unknown region throws error", {
+  
+  expect_error(parameters_fixed("burundi_not_bujumbura",
+                                initial_infections = 10))
+  
+})
+
+
+
