@@ -14,6 +14,11 @@ test_that("Clade Ib seeding in (Adult)SW actually happens", {
   pars_burundi <- parameters_fixed("burundi", initial_infections = initial_infections)
   expect_equal(sum(pars_burundi$Ea0) , initial_infections)
   expect_equal(sum(pars_burundi$Ea0[18,2]) , initial_infections) # check all are in unvaccinated ASW
+  
+  
+  pars_bujumbura <- parameters_fixed("bujumbura", initial_infections = initial_infections)
+  expect_equal(sum(pars_bujumbura$Ea0) , initial_infections)
+  expect_equal(sum(pars_bujumbura$Ea0[18,2]) , initial_infections) # check all are in unvaccinated ASW
 })
 
 test_that("Mixing matrices are correct in Equateur", {
