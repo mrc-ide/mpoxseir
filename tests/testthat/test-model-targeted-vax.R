@@ -891,7 +891,10 @@ test_that("Test compiled compare components", {
                   cases_SW = 10,
                   cfr_00_04 = 0.01,
                   cfr_05_14 = 0.03,
-                  cfr_15_plus = 0.05)
+                  cfr_15_plus = 0.05,
+                  cases_cumul_00_04 = 500,
+                  cases_cumul_00_14 = 1000,
+                  cases_cumul_total = 3000)
   
   parts <- list(
     c("cases"),
@@ -906,7 +909,9 @@ test_that("Test compiled compare components", {
     c("cases_SW", "cases_total"),
     c("cfr_00_04"),
     c("cfr_05_14"),
-    c("cfr_15_plus"))
+    c("cfr_15_plus"),
+    c("cases_cumul_00_04", "cases_cumul_00_14"),
+    c("cases_cumul_00_14", "cases_cumul_total"))
 
   
   compare_part <- function(nms) {
