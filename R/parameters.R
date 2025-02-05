@@ -66,7 +66,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   } else if (region == "burundi"){
     p_SW <- 0.028 * 0.5 # Laga et al
   } else if (region == "bujumbura"){
-    p_SW <- 3852/(792503*0.5) ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
+
+   p_poss_SW  <-  sum(N_ASW + N_CSW)/ sum(N_age)
+   p_SW <- 3852 / (792503 * p_poss_SW)  ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
   }
   
   N_CSW <- round(p_SW * N_CSW)
