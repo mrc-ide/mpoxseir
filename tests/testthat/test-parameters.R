@@ -85,4 +85,14 @@ test_that("unknown region throws error", {
 })
 
 
+test_that("total sex workers in Bujumbura as we expect", {
+  
+  expect_equal(
+    sum(parameters_fixed("bujumbura_mairie",
+                         initial_infections = 10)$N0[c("CSW","ASW")]),
+    3852
+  )
+
+})
+
 
