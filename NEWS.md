@@ -1,3 +1,11 @@
+# mpoxseir 0.2.13
+
+* Add likelihood term for % cases by age
+
+# mpoxseir 0.2.12
+
+* Add Bujumbura region
+
 # mpoxseir 0.2.9
 
 * children_ind_raw replaced with is_child, adults_ind_raw replaced with (1 - is_child)

@@ -122,7 +122,7 @@ prioritisation_step_1st_dose_children_proposal <-
   if (sum(target_met_children_t[]) ==
       sum(coverage_target_1st_dose_children[]))
     prioritisation_step_1st_dose_children + 1 else
-    prioritisation_step_1st_dose_children
+      prioritisation_step_1st_dose_children
 
 update(prioritisation_step_1st_dose_children) <-
   if (prioritisation_step_1st_dose_children_proposal >
@@ -135,7 +135,7 @@ update(prioritisation_step_1st_dose_children) <-
 prioritisation_step_1st_dose_adults_proposal <-
   if (sum(target_met_adults_t[, 3]) == sum(coverage_target_1st_dose_adults[]))
     prioritisation_step_1st_dose_adults + 1 else
-    prioritisation_step_1st_dose_adults
+      prioritisation_step_1st_dose_adults
 
 update(prioritisation_step_1st_dose_adults) <-
   if (prioritisation_step_1st_dose_adults_proposal >
@@ -146,7 +146,7 @@ update(prioritisation_step_1st_dose_adults) <-
 prioritisation_step_2nd_dose_adults_proposal <-
   if (sum(target_met_adults_t[, 4]) == sum(coverage_target_2nd_dose_adults[]))
     prioritisation_step_2nd_dose_adults + 1 else
-    prioritisation_step_2nd_dose_adults
+      prioritisation_step_2nd_dose_adults
 
 update(prioritisation_step_2nd_dose_adults) <-
   if (prioritisation_step_2nd_dose_adults_proposal >
@@ -200,7 +200,7 @@ n_vaccination_t_S_children[] <- 0
 n_vaccination_t_S_children[] <-
   if (sum(children_dose1_denom[]) == 0) 0 else
     min(floor(((daily_doses_children_t[2] * S[i, 2]) /
-                sum(children_dose1_denom[])) * give_dose1_children[i]),
+                 sum(children_dose1_denom[])) * give_dose1_children[i]),
         S[i, 2])
 
 n_vaccination_t_S_adults[] <- 0
@@ -222,9 +222,9 @@ n_vaccination_t_S[, 2] <-
 ## allocate 2nd doses (adults only for now)
 n_vaccination_t_S[, 3] <- 
   if (sum(adults_dose2_denom[]) == 0) 0 else
-  min(floor(((daily_doses_adults_t[3] * S[i, 3]) /
-               sum(adults_dose2_denom[])) * give_dose2_adults[i]),
-      S[i, 3])
+    min(floor(((daily_doses_adults_t[3] * S[i, 3]) /
+                 sum(adults_dose2_denom[])) * give_dose2_adults[i]),
+        S[i, 3])
 
 ### allocate to Ea
 
@@ -578,7 +578,7 @@ update(dose2_cumulative_ASW) <- dose2_cumulative_ASW + new_dose2_ASW
 update(dose2_cumulative_SW) <- dose2_cumulative_SW + new_dose2_SW
 update(dose2_cumulative_PBS) <- dose2_cumulative_PBS + new_dose2_PBS
 update(dose2_cumulative_HCW) <- dose2_cumulative_HCW + new_dose2_HCW
-  
+
 
 ## Individual probabilities of transition:
 # S to E - age dependent
@@ -632,7 +632,7 @@ p_hc[, ] <- if (lambda[i, j] > 0) lambda_hc[i, j] / lambda[i, j] else 0
 n_SEa_hh[, ] <- Binomial(n_SEa[i, j], p_hh[i, j])
 n_SEa_s[, ] <- Binomial(n_SEa[i, j] - n_SEa_hh[i, j], p_s[i, j])
 n_SEa_hc[, ] <- Binomial(n_SEa[i, j] - n_SEa_hh[i, j] - n_SEa_s[i, j],
-                          p_hc[i, j])
+                         p_hc[i, j])
 n_SEa_z[, ] <- n_SEa[i, j] - n_SEa_hh[i, j] - n_SEa_s[i, j] - n_SEa_hc[i, j]
 
 
@@ -903,29 +903,44 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 exp_noise <- parameter(1e+06)
 
-## cases
+# proportion of cases observed
+phi_00_04   <- parameter(1)
+phi_05_14   <- parameter(1)
+phi_15_plus <- parameter(1)
+
+## observed cases
+initial(observed_cases_00_04)  <- 0
+initial(observed_cases_05_14)  <- 0
+initial(observed_cases_15_plus) <- 0
+initial(observed_cases) <- 0
+
+update(observed_cases_00_04)   <- Binomial(new_cases_00_04, phi_00_04)
+update(observed_cases_05_14)   <- Binomial(new_cases_05_14, phi_05_14)
+update(observed_cases_15_plus) <- Binomial(new_cases_15_plus, phi_15_plus)
+update(observed_cases) <- observed_cases_00_04 + observed_cases_05_14 + observed_cases_15_plus
+
 # Aggregate
 alpha_cases <- parameter()
 cases <- data()
-model_cases <- cases_inc + Exponential(exp_noise)
+model_cases <- observed_cases + Exponential(exp_noise)
 cases ~ NegativeBinomial(size = 1 / alpha_cases, mu = model_cases)
 
 # By-age
 alpha_cases_00_04 <- parameter()
 cases_00_04 <- data()
-model_cases_00_04 <- cases_inc_00_04 + Exponential(exp_noise)
+model_cases_00_04 <- observed_cases_00_04 + Exponential(exp_noise)
 cases_00_04 ~
   NegativeBinomial(size = 1 / alpha_cases_00_04, mu = model_cases_00_04)
 
 alpha_cases_05_14 <- parameter()
 cases_05_14 <- data()
-model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
+model_cases_05_14 <- observed_cases_05_14 + Exponential(exp_noise)
 cases_05_14 ~ 
   NegativeBinomial(size = 1 / alpha_cases_05_14, mu = model_cases_05_14)
 
 alpha_cases_15_plus <- parameter()
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + Exponential(exp_noise)
+model_cases_15_plus <- observed_cases_15_plus + Exponential(exp_noise)
 cases_15_plus ~ 
   NegativeBinomial(size = 1 / alpha_cases_15_plus, mu = model_cases_15_plus)
 
@@ -988,7 +1003,7 @@ cases_00_04_binom <- data()
 cases_00_14_binom <- data()
 cases_binom <- data()
 # Model cases  00-04, 15 plus, and total defined above
-model_cases_00_14 <- model_cases_00_04 + model_cases_05_14
+model_cases_00_14 <- observed_cases_00_04 + observed_cases_05_14
 
 cases_00_04_binom ~ 
   Binomial(cases_00_14_binom, model_cases_00_04 / model_cases_00_14)
