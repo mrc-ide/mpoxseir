@@ -65,7 +65,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
     p_SW <- 0.03 * 0.5 # WHO press release
   } else if (region == "burundi"){
     p_SW <- 0.028 * 0.5 # Laga et al
-  } else if (region == "bujumbura"){
+  } else if (region %in% c("bujumbura","bujumbura_mairie")){
    p_poss_SW  <-  sum(N_ASW + N_CSW)/ sum(N_age)
    p_SW <- 3852 / (792503 * p_poss_SW)  ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
   }
@@ -94,7 +94,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   ## HCW
   if(region %in% c("equateur","sudkivu")){
     p_HCW <- 133809 / sum(N_age)
-  } else if(region %in% c("burundi","bujumbura")){
+  } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
     p_HCW <- 107721 / sum(N_age)
   }
    
@@ -269,7 +269,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
     p_unvaccinated[which(age_bins$end < 40)] <- 1
     p_unvaccinated[which(age_bins$start >= 40)] <-
       c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
-  } else if (region %in% c("burundi","bujumbura")) {
+  } else if (region %in% c("burundi","bujumbura","bujumbura_mairie")) {
     p_unvaccinated[which(age_bins$end < 55)] <- 1
     p_unvaccinated[which(age_bins$start >= 55)] <-
       c(0.23, 0.21, 0.21, 0.21, 0.21)
