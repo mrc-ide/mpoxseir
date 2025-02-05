@@ -945,3 +945,43 @@ test_that("Test compiled compare components", {
   
 })
 
+test_that("observed cases is working", {
+  pars <- reference_pars_targeted_vax()
+  nms <- reference_names()
+  
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(1, 21, by = 7)
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+  
+  expect_equal(res["observed_cases", , ], res["cases_inc", , ])
+  expect_equal(res["observed_cases_00_04", , ], res["cases_inc_00_04", , ])
+  expect_equal(res["observed_cases_05_14", , ], res["cases_inc_05_14", , ])
+  expect_equal(res["observed_cases_15_plus", , ], res["cases_inc_15_plus", , ])
+  
+  pars$phi_00_04 <- 0.5
+  pars$phi_05_14 <- 0.3
+  pars$phi_15_plus <- 0.1
+  
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 1, seed = 1, dt = 1,
+                                   deterministic = TRUE)
+  dust2::dust_system_set_state_initial(sys)
+  res <- dust2::dust_system_simulate(sys, t)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+  
+  expect_equal(res["observed_cases_00_04", ],
+               res["cases_inc_00_04",  ] * pars$phi_00_04)
+  expect_equal(res["observed_cases_05_14", ],
+               res["cases_inc_05_14",  ] * pars$phi_05_14)
+  expect_equal(res["observed_cases_15_plus", ],
+               res["cases_inc_15_plus",  ] * pars$phi_15_plus)
+  expect_equal(res["observed_cases_00_04", ] + res["observed_cases_05_14", ] +
+                 res["observed_cases_15_plus", ],
+               res["observed_cases", ])
+
+})
+
