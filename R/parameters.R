@@ -434,8 +434,9 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              mixing_matrix = "Zimbabwe", overrides = list()) {
 
   ## Checking region
-  if (!(region %in% c("equateur", "sudkivu","burundi","bujumbura"))) {
-    stop("region must be equateur, sudkivu, burundi or bujumbura")
+  if (!(region %in% c("equateur", "sudkivu",
+                      "burundi","bujumbura","bujumbura_mairie"))) {
+    stop("region must be equateur, sudkivu, burundi, bujumbura or bujumbura-mairie")
   }
 
   ## Initialising variable that other parameters depend on
@@ -468,7 +469,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   Ea0 <- X0
 
   
-  if (region %in% c("sudkivu","burundi","bujumbura")) { # seeding in sex workers in Clade Ib affected areas
+  if (region %in% c("sudkivu","burundi","bujumbura","bujumbura_mairie")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
     index_asw <- get_compartment_indices()$group$ASW
@@ -483,7 +484,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
-    stop("something is wrong with the name of the region - change to sudkivu, equateur, burundi or bujumbura")
+    stop("something is wrong with the name of the region - change to sudkivu, equateur, burundi, bujumbura or bujumbura_mairie")
   }
   
   p_unvaccinated <- demographic_params$p_unvaccinated
