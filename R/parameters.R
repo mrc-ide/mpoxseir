@@ -26,7 +26,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   ## Set up population denominators
   if(region %in% c("equateur","sudkivu")){
   country <- "Democratic Republic of Congo"
-  } else if(region %in% c("burundi","bujumbura")){
+  } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
     country <- "Burundi"
   }
 
