@@ -452,10 +452,15 @@ new_cases_SW <- new_cases_CSW + new_cases_ASW
 new_cases_PBS <- sum(n_SEa[19, ])
 new_cases_HCW <- sum(n_SEa[20, ])
 
-update(cases_inc) <- cases_inc + sum(n_SEa[, ])
-update(cases_inc_00_04) <- cases_inc_00_04 + new_cases_00_04
-update(cases_inc_05_14) <- cases_inc_05_14 + new_cases_05_14
-update(cases_inc_15_plus) <- cases_inc_15_plus + new_cases_15_plus
+new_cases_inc         <- cases_inc + sum(n_SEa[, ])
+new_cases_inc_00_04   <- cases_inc_00_04 + new_cases_00_04
+new_cases_inc_05_14   <- cases_inc_05_14 + new_cases_05_14
+new_cases_inc_15_plus <- cases_inc_15_plus + new_cases_15_plus
+
+update(cases_inc) <- new_cases_inc        
+update(cases_inc_00_04) <- new_cases_inc_00_04  
+update(cases_inc_05_14) <- new_cases_inc_05_14  
+update(cases_inc_15_plus) <- new_cases_inc_15_plus
 
 update(cases_inc_CSW) <- cases_inc_CSW + new_cases_CSW
 update(cases_inc_ASW) <- cases_inc_ASW + new_cases_ASW
@@ -946,10 +951,18 @@ initial(observed_cases_05_14)  <- 0
 initial(observed_cases_15_plus) <- 0
 initial(observed_cases) <- 0
 
-update(observed_cases_00_04)   <- Binomial(new_cases_00_04, phi_00_04)
-update(observed_cases_05_14)   <- Binomial(new_cases_05_14, phi_05_14)
-update(observed_cases_15_plus) <- Binomial(new_cases_15_plus, phi_15_plus)
-update(observed_cases) <- observed_cases_00_04 + observed_cases_05_14 + observed_cases_15_plus
+
+
+
+new_observed_cases_00_04   <- Binomial(new_cases_inc_00_04, phi_00_04)
+new_observed_cases_05_14   <- Binomial(new_cases_inc_05_14, phi_05_14)
+new_observed_cases_15_plus <- Binomial(new_cases_inc_15_plus, phi_15_plus)
+
+update(observed_cases_00_04)   <- new_observed_cases_00_04  
+update(observed_cases_05_14)   <- new_observed_cases_05_14  
+update(observed_cases_15_plus) <- new_observed_cases_15_plus
+update(observed_cases) <- new_observed_cases_00_04 + new_observed_cases_05_14 +
+  new_observed_cases_15_plus
 
 # Aggregate
 alpha_cases <- parameter()

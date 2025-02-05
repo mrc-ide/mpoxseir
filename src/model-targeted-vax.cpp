@@ -994,9 +994,6 @@ public:
     const auto total_vax = state[97];
     const auto total_vax_1stdose = state[98];
     const auto total_vax_2nddose = state[99];
-    const auto observed_cases_00_04 = state[100];
-    const auto observed_cases_05_14 = state[101];
-    const auto observed_cases_15_plus = state[102];
     const real_type p_EE = 1 - monty::math::exp(-shared.gamma_E * 2 * dt);
     const real_type p_EI = 1 - monty::math::exp(-shared.gamma_E * 2 * dt);
     const real_type p_IrR = 1 - monty::math::exp(-shared.gamma_Ir * dt);
@@ -1263,6 +1260,7 @@ public:
     const real_type new_cases_ASW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 17}, {0, shared.dim.n_SEa.dim[1] - 1});
     const real_type new_cases_PBS = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {18, 18}, {0, shared.dim.n_SEa.dim[1] - 1});
     const real_type new_cases_HCW = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {19, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_inc = cases_inc + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa);
     for (size_t i = 1; i <= shared.dim.n_SEa_hh.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_SEa_hh.dim[1]; ++j) {
         internal.n_SEa_hh[i - 1 + (j - 1) * shared.dim.n_SEa_hh.mult[1]] = monty::random::binomial<real_type>(rng_state, internal.n_SEa[i - 1 + (j - 1) * shared.dim.n_SEa.mult[1]], internal.p_hh[i - 1 + (j - 1) * shared.dim.p_hh.mult[1]]);
@@ -1281,6 +1279,7 @@ public:
     const real_type new_cases_SW_15_17 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {16, 16}, {0, shared.dim.n_SEa.dim[1] - 1}) - new_cases_SW_12_14;
     const real_type new_cases_05_14 = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {1, 2}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_12_14;
     const real_type new_cases_SW = new_cases_CSW + new_cases_ASW;
+    const real_type new_cases_inc_00_04 = cases_inc_00_04 + new_cases_00_04;
     for (size_t i = 1; i <= shared.dim.n_vaccination_t.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.n_vaccination_t.dim[1]; ++j) {
         internal.n_vaccination_t[i - 1 + (j - 1) * shared.dim.n_vaccination_t.mult[1]] = internal.n_vaccination_t_S[i - 1 + (j - 1) * shared.dim.n_vaccination_t_S.mult[1]] + internal.n_vaccination_t_Ea[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Ea.mult[1]] + internal.n_vaccination_t_Eb[i - 1 + (j - 1) * shared.dim.n_vaccination_t_Eb.mult[1]] + internal.n_vaccination_t_R[i - 1 + (j - 1) * shared.dim.n_vaccination_t_R.mult[1]];
@@ -1312,6 +1311,7 @@ public:
       }
     }
     const real_type new_cases_15_plus = dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {3, 15}, {0, shared.dim.n_SEa.dim[1] - 1}) + new_cases_SW_15_17 + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa, {17, 19}, {0, shared.dim.n_SEa.dim[1] - 1});
+    const real_type new_cases_inc_05_14 = cases_inc_05_14 + new_cases_05_14;
     const real_type new_dose1 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {0, shared.dim.n_vaccination_t.dim[0] - 1}, {1, 1});
     const real_type new_dose1_00_04 = internal.n_vaccination_t[shared.dim.n_vaccination_t.mult[1]];
     const real_type new_dose1_SW_12_14 = monty::math::round(internal.n_vaccination_t[16 + shared.dim.n_vaccination_t.mult[1]] * static_cast<real_type>(0.5));
@@ -1341,11 +1341,13 @@ public:
         internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]] = internal.n_EaEb[i - 1 + (j - 1) * shared.dim.n_EaEb.mult[1]] - internal.n_EbI[i - 1 + (j - 1) * shared.dim.n_EbI.mult[1]];
       }
     }
+    const real_type new_observed_cases_00_04 = monty::random::binomial<real_type>(rng_state, new_cases_inc_00_04, shared.phi_00_04);
     for (size_t i = 1; i <= shared.dim.Eb.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Eb.dim[1]; ++j) {
         internal.new_Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] = Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + internal.delta_Eb_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Eb_n_vaccination.mult[1]] + internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]];
       }
     }
+    const real_type new_cases_inc_15_plus = cases_inc_15_plus + new_cases_15_plus;
     const real_type new_dose1_SW_15_17 = internal.n_vaccination_t[16 + shared.dim.n_vaccination_t.mult[1]] - new_dose1_SW_12_14;
     const real_type new_dose1_05_14 = dust2::array::sum<real_type>(internal.n_vaccination_t.data(), shared.dim.n_vaccination_t, {1, 2}, {1, 1}) + new_dose1_SW_12_14;
     const real_type new_dose1_SW = new_dose1_CSW + new_dose1_ASW;
@@ -1367,6 +1369,7 @@ public:
         internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]] = internal.n_EbId[i - 1 + (j - 1) * shared.dim.n_EbId.mult[1]] - internal.n_IdD[i - 1 + (j - 1) * shared.dim.n_IdD.mult[1]];
       }
     }
+    const real_type new_observed_cases_05_14 = monty::random::binomial<real_type>(rng_state, new_cases_inc_05_14, shared.phi_05_14);
     for (size_t i = 1; i <= shared.dim.Id.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Id.dim[1]; ++j) {
         internal.new_Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] = Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]];
@@ -1384,6 +1387,7 @@ public:
         internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]] = internal.n_EbIr[i - 1 + (j - 1) * shared.dim.n_EbIr.mult[1]] - internal.n_IrR[i - 1 + (j - 1) * shared.dim.n_IrR.mult[1]];
       }
     }
+    const real_type new_observed_cases_15_plus = monty::random::binomial<real_type>(rng_state, new_cases_inc_15_plus, shared.phi_15_plus);
     for (size_t i = 1; i <= shared.dim.Ir.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ir.dim[1]; ++j) {
         internal.new_Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]];
@@ -1468,10 +1472,10 @@ public:
     state_next[8] = cases_cumulative_s + dust2::array::sum<real_type>(internal.n_SEa_s.data(), shared.dim.n_SEa_s);
     state_next[9] = cases_cumulative_z + dust2::array::sum<real_type>(internal.n_SEa_z.data(), shared.dim.n_SEa_z);
     state_next[10] = cases_cumulative_hc + dust2::array::sum<real_type>(internal.n_SEa_hc.data(), shared.dim.n_SEa_hc);
-    state_next[3] = cases_inc + dust2::array::sum<real_type>(internal.n_SEa.data(), shared.dim.n_SEa);
-    state_next[11] = cases_inc_00_04 + new_cases_00_04;
-    state_next[12] = cases_inc_05_14 + new_cases_05_14;
-    state_next[13] = cases_inc_15_plus + new_cases_15_plus;
+    state_next[3] = new_cases_inc;
+    state_next[11] = new_cases_inc_00_04;
+    state_next[12] = new_cases_inc_05_14;
+    state_next[13] = new_cases_inc_15_plus;
     state_next[15] = cases_inc_CSW + new_cases_CSW;
     state_next[16] = cases_inc_ASW + new_cases_ASW;
     state_next[17] = cases_inc_SW + new_cases_SW;
@@ -1552,10 +1556,10 @@ public:
     state_next[77] = dose2_cumulative_SW + new_dose2_SW;
     state_next[74] = dose2_cumulative_PBS + new_dose2_PBS;
     state_next[78] = dose2_cumulative_HCW + new_dose2_HCW;
-    state_next[100] = monty::random::binomial<real_type>(rng_state, new_cases_00_04, shared.phi_00_04);
-    state_next[101] = monty::random::binomial<real_type>(rng_state, new_cases_05_14, shared.phi_05_14);
-    state_next[102] = monty::random::binomial<real_type>(rng_state, new_cases_15_plus, shared.phi_15_plus);
-    state_next[103] = observed_cases_00_04 + observed_cases_05_14 + observed_cases_15_plus;
+    state_next[100] = new_observed_cases_00_04;
+    state_next[101] = new_observed_cases_05_14;
+    state_next[102] = new_observed_cases_15_plus;
+    state_next[103] = new_observed_cases_00_04 + new_observed_cases_05_14 + new_observed_cases_15_plus;
   }
   static auto zero_every(const shared_state& shared) {
     return dust2::zero_every_type<real_type>{{7, {3}}, {7, {4}}, {7, {11}}, {7, {12}}, {7, {13}}, {7, {14}}, {7, {15}}, {7, {16}}, {7, {17}}, {7, {18}}, {7, {19}}, {7, {20}}, {7, {21}}, {7, {22}}, {7, {23}}, {7, {24}}, {7, {25}}, {7, {26}}, {7, {27}}, {7, {28}}, {7, {29}}, {7, {30}}, {7, {31}}, {7, {32}}, {7, {33}}, {7, {34}}, {7, {35}}, {7, {36}}, {7, {37}}, {7, {38}}, {7, {39}}, {7, {40}}, {7, {41}}, {7, {42}}, {7, {43}}, {7, {44}}};
