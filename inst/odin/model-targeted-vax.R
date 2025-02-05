@@ -313,22 +313,6 @@ n_vaccination_t_S[,3] <-
 
 ### allocate to Ea
 
-## children 1st doses
-n_vaccination_t_Ea_children[] <- 0
-n_vaccination_t_Ea_children[] <-
-  if (sum(children_dose1_denom[]) == 0) 0 else
-    min(floor(((daily_doses_children_t[2] * Ea[i, 2]) /
-                 sum(children_dose1_denom[])) * give_dose1_children[i]),
-        Ea[i, 2])
-
-## adults 1st doses
-n_vaccination_t_Ea_adults[] <- 0
-n_vaccination_t_Ea_adults[] <-
-  if (sum(adults_dose1_denom[]) == 0) 0 else
-    min(floor(((daily_doses_adults_t[2] * Ea[i, 2]) /
-                 sum(adults_dose1_denom[])) * give_dose1_adults[i]),
-        Ea[i, 2])
-
 ## combine total first doses
 
 ## Ea
