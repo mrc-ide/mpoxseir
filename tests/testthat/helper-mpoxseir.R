@@ -27,8 +27,8 @@ reference_pars_targeted_vax <- function(region = "equateur") {
   pars$daily_doses_adults_value[idx$vax$unvaccinated, 1] <- 1000
   pars$daily_doses_adults_value[idx$vax$one_dose, 2] <- 1000
   
-  pars$N_prioritisation_steps_children <- 3
-  pars$N_prioritisation_steps_adults <- 2
+  pars$N_prioritisation_steps_children <- 2
+  pars$N_prioritisation_steps_adults <- 3
   
   priority_children <- matrix(rep(pars$prioritisation_strategy_children,
                                   times=pars$N_prioritisation_steps_children),
@@ -43,7 +43,8 @@ reference_pars_targeted_vax <- function(region = "equateur") {
                                 times=pars$N_prioritisation_steps_adults),
                             ncol=pars$N_prioritisation_steps_adults,
                             byrow=FALSE)
-  priority_adults[c(3:16),1] <- 0
+  priority_adults[c(3:16,19:20),1] <- 0
+  priority_adults[c(3:16),2] <- 0
   
   pars$prioritisation_strategy_adults <- priority_adults * 0.5
 
