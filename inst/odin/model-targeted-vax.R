@@ -941,9 +941,9 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 exp_noise <- parameter(1e+06)
 
 # proportion of cases observed
-phi_00_04   <- parameter(1)
-phi_05_14   <- parameter(1)
-phi_15_plus <- parameter(1)
+phi_00_04   <- parameter()
+phi_05_14   <- parameter()
+phi_15_plus <- parameter()
 
 ## observed cases
 initial(observed_cases_00_04)  <- 0

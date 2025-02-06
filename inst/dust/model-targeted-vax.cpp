@@ -34,9 +34,9 @@
 // [[dust2::parameter(n_vax, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(n_group, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(exp_noise, type = "real_type", rank = 0, required = FALSE, constant = FALSE)]]
-// [[dust2::parameter(phi_00_04, type = "real_type", rank = 0, required = FALSE, constant = FALSE)]]
-// [[dust2::parameter(phi_05_14, type = "real_type", rank = 0, required = FALSE, constant = FALSE)]]
-// [[dust2::parameter(phi_15_plus, type = "real_type", rank = 0, required = FALSE, constant = FALSE)]]
+// [[dust2::parameter(phi_00_04, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(phi_05_14, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(phi_15_plus, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(alpha_cases, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(alpha_cases_00_04, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(alpha_cases_05_14, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -320,9 +320,9 @@ public:
     const int n_vax = dust2::r::read_int(parameters, "n_vax");
     const int n_group = dust2::r::read_int(parameters, "n_group");
     const real_type exp_noise = dust2::r::read_real(parameters, "exp_noise", 1e+06);
-    const real_type phi_00_04 = dust2::r::read_real(parameters, "phi_00_04", 1);
-    const real_type phi_05_14 = dust2::r::read_real(parameters, "phi_05_14", 1);
-    const real_type phi_15_plus = dust2::r::read_real(parameters, "phi_15_plus", 1);
+    const real_type phi_00_04 = dust2::r::read_real(parameters, "phi_00_04");
+    const real_type phi_05_14 = dust2::r::read_real(parameters, "phi_05_14");
+    const real_type phi_15_plus = dust2::r::read_real(parameters, "phi_15_plus");
     const real_type alpha_cases = dust2::r::read_real(parameters, "alpha_cases");
     const real_type alpha_cases_00_04 = dust2::r::read_real(parameters, "alpha_cases_00_04");
     const real_type alpha_cases_05_14 = dust2::r::read_real(parameters, "alpha_cases_05_14");
