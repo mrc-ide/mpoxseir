@@ -1048,7 +1048,7 @@ cases_00_04_binom <- data()
 cases_00_14_binom <- data()
 cases_binom <- data()
 # Model cases  00-04, 15 plus, and total defined above
-model_cases_00_14 <- observed_cases_00_04 + observed_cases_05_14
+model_cases_00_14 <- model_cases_00_04 + model_cases_05_14
 
 cases_00_04_binom ~ 
   Binomial(cases_00_14_binom, model_cases_00_04 / model_cases_00_14)
