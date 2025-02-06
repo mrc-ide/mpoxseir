@@ -1581,7 +1581,6 @@ public:
     const auto observed_cases_15_plus = state[102];
     const auto observed_cases = state[103];
     real_type odin_ll = 0;
-    const real_type model_cases_00_14 = observed_cases_00_04 + observed_cases_05_14;
     const real_type model_cases = observed_cases + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_00_04 = observed_cases_00_04 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_cases_05_14 = observed_cases_05_14 + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
@@ -1596,6 +1595,7 @@ public:
     const real_type model_cases_non_SW = cases_inc - cases_inc_SW + monty::random::exponential_rate<real_type>(rng_state, shared.exp_noise);
     const real_type model_prop_HCW = model_cases_HCW / (model_cases_HCW + model_cases_non_HCW);
     const real_type model_prop_SW = model_cases_SW / (model_cases_SW + model_cases_non_SW);
+    const real_type model_cases_00_14 = model_cases_00_04 + model_cases_05_14;
     if (!std::isnan(data.cases)) {
       odin_ll += monty::density::negative_binomial_mu(data.cases, 1 / shared.alpha_cases, model_cases, true);
     }
