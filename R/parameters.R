@@ -466,22 +466,22 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
 
   ## Seed infections in the unvaccinated group in a region-specific manner
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  Ea0 <- X0
+  seed_rate <- X0
 
   
   if (region %in% c("sudkivu","burundi","bujumbura","bujumbura_mairie")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
     index_asw <- get_compartment_indices()$group$ASW
-    Ea0[index_asw, idx_unvax] <- initial_infections
+    seed_rate[index_asw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
     index_gen_pop <- seq_len(nrow(age_bins))
-    seeding_infections <- assign_seeds(initial_infections, w = RR_z[index_gen_pop])
+    seeding_infections <- initial_infections * w = RR_z[index_gen_pop]
 
-    Ea0[index_gen_pop, idx_unvax] <- seeding_infections
+    seed_rate[index_gen_pop, idx_unvax] <- seeding_infections
 
   } else {
     stop("something is wrong with the name of the region - change to sudkivu, equateur, burundi, bujumbura or bujumbura_mairie")
@@ -497,7 +497,6 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   S0 <- X0
   S0[, idx_unvax] <- round(N0 * p_unvaccinated)
   S0[, idx_historic_vax] <- N0 - S0[, idx_unvax]
-  S0 <- S0 - Ea0
   if (any (S0 < 0)) {
     stop("population size and seeding infections is incompatible")
   }
@@ -556,7 +555,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     n_group = n_group,
     n_vax = n_vax,
     S0 = S0,
-    Ea0 = Ea0,
+    Ea0 = X0,
     Eb0 = X0,
     Ir0 = X0,
     Id0 = X0,

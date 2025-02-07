@@ -14,6 +14,7 @@
 // [[dust2::parameter(prioritisation_strategy_adults, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(m_gen_pop, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(m_sex, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(seed_rate, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(S0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(Ea0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(Eb0, type = "real_type", rank = 2, required = TRUE, constant = FALSE)]]
@@ -86,6 +87,7 @@ public:
       dust2::array::dimensions<1> adults_dose1_group;
       dust2::array::dimensions<1> adults_dose2_prob;
       dust2::array::dimensions<1> adults_dose2_group;
+      dust2::array::dimensions<2> seed;
       dust2::array::dimensions<2> N;
       dust2::array::dimensions<2> S;
       dust2::array::dimensions<2> S0;
@@ -191,6 +193,7 @@ public:
     std::vector<real_type> prioritisation_strategy_adults;
     std::vector<real_type> m_gen_pop;
     std::vector<real_type> m_sex;
+    std::vector<real_type> seed_rate;
     std::vector<real_type> S0;
     std::vector<real_type> Ea0;
     std::vector<real_type> Eb0;
@@ -280,6 +283,7 @@ public:
     std::vector<real_type> new_Ir;
     std::vector<real_type> new_I;
     std::vector<real_type> new_N;
+    std::vector<real_type> seed;
   };
   struct data_type {
     real_type cases;
@@ -361,6 +365,7 @@ public:
     dim.adults_dose1_group.set({static_cast<size_t>(n_group)});
     dim.adults_dose2_prob.set({static_cast<size_t>(n_group)});
     dim.adults_dose2_group.set({static_cast<size_t>(n_group)});
+    dim.seed.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.N.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.S.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
     dim.S0.set({static_cast<size_t>(n_group), static_cast<size_t>(n_vax)});
@@ -444,6 +449,8 @@ public:
     dust2::r::read_real_array(parameters, dim.m_gen_pop, m_gen_pop.data(), "m_gen_pop", true);
     std::vector<real_type> m_sex(dim.m_sex.size);
     dust2::r::read_real_array(parameters, dim.m_sex, m_sex.data(), "m_sex", true);
+    std::vector<real_type> seed_rate(dim.seed.size);
+    dust2::r::read_real_array(parameters, dim.seed, seed_rate.data(), "seed_rate", true);
     std::vector<real_type> S0(dim.S0.size);
     dust2::r::read_real_array(parameters, dim.S0, S0.data(), "S0", true);
     std::vector<real_type> Ea0(dim.Ea0.size);
@@ -591,7 +598,7 @@ public:
       {"cases_cumulative_by_age", std::vector<size_t>(dim.cases_cumulative_by_age.dim.begin(), dim.cases_cumulative_by_age.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, phi_00_04, phi_05_14, phi_15_plus, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, is_child, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
+    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, phi_00_04, phi_05_14, phi_15_plus, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, is_child, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, seed_rate, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> n_IrR(shared.dim.n_IrR.size);
@@ -669,7 +676,8 @@ public:
     std::vector<real_type> new_Ir(shared.dim.Ir.size);
     std::vector<real_type> new_I(shared.dim.I.size);
     std::vector<real_type> new_N(shared.dim.N.size);
-    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_target_1st_dose_children, coverage_target_1st_dose_adults, coverage_target_2nd_dose_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, give_dose1_children, give_dose1_adults, give_dose2_adults, new_D, prop_infectious, lambda_hc, children_dose1_denom, adults_dose1_denom, adults_dose2_denom, s_ij_gen_pop, s_ij_sex, children_dose1_prob, adults_dose1_prob, adults_dose2_prob, lambda_hh, lambda_s, children_dose1_group, adults_dose1_group, adults_dose2_group, lambda, n_vaccination_t_S_children, n_vaccination_t_S_adults, p_SE, p_hh, p_s, p_hc, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_S, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_Ea, delta_S_n_vaccination, n_vaccination_t_R_children, n_vaccination_t_R_adults, n_vaccination_t_Eb, delta_Ea_n_vaccination, n_SEa, n_vaccination_t_R, delta_Eb_n_vaccination, new_S, n_SEa_hh, n_EaEb, delta_R_n_vaccination, n_vaccination_t, n_SEa_s, n_EbI, delta_Ea, new_Ea, new_R, n_SEa_hc, n_EbId, delta_Eb, new_Eb, n_SEa_z, n_EbIr, delta_Id, new_Id, new_E, delta_Ir, new_Ir, new_I, new_N};
+    std::vector<real_type> seed(shared.dim.seed.size);
+    return internal_state{n_IrR, n_IdD, target_met_children_t, target_met_adults_t, coverage_target_1st_dose_children, coverage_target_1st_dose_adults, coverage_target_2nd_dose_adults, I_infectious, delta_R, delta_D, daily_doses_children_t, daily_doses_adults_t, give_dose1_children, give_dose1_adults, give_dose2_adults, new_D, prop_infectious, lambda_hc, children_dose1_denom, adults_dose1_denom, adults_dose2_denom, s_ij_gen_pop, s_ij_sex, children_dose1_prob, adults_dose1_prob, adults_dose2_prob, lambda_hh, lambda_s, children_dose1_group, adults_dose1_group, adults_dose2_group, lambda, n_vaccination_t_S_children, n_vaccination_t_S_adults, p_SE, p_hh, p_s, p_hc, n_vaccination_t_Ea_children, n_vaccination_t_Ea_adults, n_vaccination_t_S, n_vaccination_t_Eb_children, n_vaccination_t_Eb_adults, n_vaccination_t_Ea, delta_S_n_vaccination, n_vaccination_t_R_children, n_vaccination_t_R_adults, n_vaccination_t_Eb, delta_Ea_n_vaccination, n_SEa, n_vaccination_t_R, delta_Eb_n_vaccination, new_S, n_SEa_hh, n_EaEb, delta_R_n_vaccination, n_vaccination_t, n_SEa_s, n_EbI, delta_Ea, new_Ea, new_R, n_SEa_hc, n_EbId, delta_Eb, new_Eb, n_SEa_z, n_EbIr, delta_Id, new_Id, new_E, delta_Ir, new_Ir, new_I, new_N, seed};
   }
   static data_type build_data(cpp11::list data, const shared_state& shared) {
     auto cases = dust2::r::read_real(data, "cases", NA_REAL);
@@ -721,6 +729,7 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.prioritisation_strategy_adults, shared.prioritisation_strategy_adults.data(), "prioritisation_strategy_adults", false);
     dust2::r::read_real_array(parameters, shared.dim.m_gen_pop, shared.m_gen_pop.data(), "m_gen_pop", false);
     dust2::r::read_real_array(parameters, shared.dim.m_sex, shared.m_sex.data(), "m_sex", false);
+    dust2::r::read_real_array(parameters, shared.dim.seed, shared.seed_rate.data(), "seed_rate", false);
     dust2::r::read_real_array(parameters, shared.dim.S0, shared.S0.data(), "S0", false);
     dust2::r::read_real_array(parameters, shared.dim.Ea0, shared.Ea0.data(), "Ea0", false);
     dust2::r::read_real_array(parameters, shared.dim.Eb0, shared.Eb0.data(), "Eb0", false);
@@ -741,17 +750,22 @@ public:
   static void update_internal(const shared_state& shared, internal_state& internal) {
   }
   static void initial(real_type time, const shared_state& shared, internal_state& internal, rng_state_type& rng_state, real_type* state) {
+    for (size_t i = 1; i <= shared.dim.seed.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.seed.dim[1]; ++j) {
+        internal.seed[i - 1 + (j - 1) * shared.dim.seed.mult[1]] = monty::math::min(monty::random::poisson<real_type>(rng_state, shared.seed_rate[i - 1 + (j - 1) * shared.dim.seed.mult[1]]), shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]]);
+      }
+    }
     state[0] = 1;
     state[1] = 1;
     state[2] = 1;
     for (size_t i = 1; i <= shared.dim.S.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.S.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.S.mult[1] + 104] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.S.mult[1] + 104] = shared.S0[i - 1 + (j - 1) * shared.dim.S0.mult[1]] - internal.seed[i - 1 + (j - 1) * shared.dim.seed.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Ea.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ea.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[105]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.Ea.mult[1] + shared.odin.offset.state[105]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + internal.seed[i - 1 + (j - 1) * shared.dim.seed.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.Eb.dim[0]; ++i) {

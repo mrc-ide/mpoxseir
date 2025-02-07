@@ -693,8 +693,12 @@ delta_R[, ] <- n_IrR[i, j]
 delta_D[, ] <- n_IdD[i, j]
 
 ## Initial states:
-initial(S[, ]) <- S0[i, j]
-initial(Ea[, ]) <- Ea0[i, j]
+seed[, ] <- min(Poisson(seed_rate[i, j]), S0[i, j])
+dim(seed, seed_rate) <- c(n_group, n_vax)
+seed_rate <- parameter()
+
+initial(S[, ]) <- S0[i, j] - seed[i, j]
+initial(Ea[, ]) <- Ea0[i, j] + seed[i, j]
 initial(Eb[, ]) <- Eb0[i, j]
 initial(Ir[, ]) <- Ir0[i, j]
 initial(Id[, ]) <- Id0[i, j]
