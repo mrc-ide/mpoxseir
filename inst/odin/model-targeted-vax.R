@@ -693,15 +693,19 @@ delta_R[, ] <- n_IrR[i, j]
 delta_D[, ] <- n_IdD[i, j]
 
 ## Initial states:
-initial(S[, ]) <- S0[i, j]
-initial(Ea[, ]) <- Ea0[i, j]
+seed[, ] <- min(Poisson(seed_rate[i, j]), S0[i, j])
+dim(seed, seed_rate) <- c(n_group, n_vax)
+seed_rate <- parameter()
+
+initial(S[, ]) <- S0[i, j] - seed[i, j]
+initial(Ea[, ]) <- Ea0[i, j] + seed[i, j]
 initial(Eb[, ]) <- Eb0[i, j]
 initial(Ir[, ]) <- Ir0[i, j]
 initial(Id[, ]) <- Id0[i, j]
 initial(R[, ]) <- R0[i, j]
 initial(D[, ]) <- D0[i, j]
 
-initial(E[, ]) <- Ea0[i, j] + Eb0[i, j]
+initial(E[, ]) <- Ea0[i, j] + Eb0[i, j] + seed[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
@@ -805,8 +809,8 @@ initial(vax_2nddose_given_Ea) <- 0
 initial(vax_2nddose_given_Eb) <- 0
 initial(vax_2nddose_given_R) <- 0
 
-initial(S_tot) <- sum(S0[, ])
-initial(E_tot) <- sum(Ea0[, ]) + sum(Eb0[, ])
+initial(S_tot) <- sum(S0[, ]) - sum(seed)
+initial(E_tot) <- sum(Ea0[, ]) + sum(Eb0[, ]) + sum(seed)
 initial(I_tot) <- sum(Ir0[, ]) + sum(Id0[, ])
 initial(R_tot) <- sum(R0[, ])
 initial(D_tot) <- sum(D0[, ])
