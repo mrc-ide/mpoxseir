@@ -310,7 +310,13 @@ n_vaccination_t_S[,3] <-
                  S[i, 3] / (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3])),
         S[i, 3])
 
+
+### allocate to Ea
+
+## combine total first doses
+
 ## Ea
+
 n_vaccination_t_Ea[, ] <- 0
 n_vaccination_t_Ea[, 2] <-
   n_vaccination_t_Ea_children[i] + n_vaccination_t_Ea_adults[i]
@@ -446,10 +452,15 @@ new_cases_SW <- new_cases_CSW + new_cases_ASW
 new_cases_PBS <- sum(n_SEa[19, ])
 new_cases_HCW <- sum(n_SEa[20, ])
 
-update(cases_inc) <- cases_inc + sum(n_SEa[, ])
-update(cases_inc_00_04) <- cases_inc_00_04 + new_cases_00_04
-update(cases_inc_05_14) <- cases_inc_05_14 + new_cases_05_14
-update(cases_inc_15_plus) <- cases_inc_15_plus + new_cases_15_plus
+new_cases_inc         <- cases_inc + sum(n_SEa[, ])
+new_cases_inc_00_04   <- cases_inc_00_04 + new_cases_00_04
+new_cases_inc_05_14   <- cases_inc_05_14 + new_cases_05_14
+new_cases_inc_15_plus <- cases_inc_15_plus + new_cases_15_plus
+
+update(cases_inc) <- new_cases_inc        
+update(cases_inc_00_04) <- new_cases_inc_00_04  
+update(cases_inc_05_14) <- new_cases_inc_05_14  
+update(cases_inc_15_plus) <- new_cases_inc_15_plus
 
 update(cases_inc_CSW) <- cases_inc_CSW + new_cases_CSW
 update(cases_inc_ASW) <- cases_inc_ASW + new_cases_ASW
@@ -929,29 +940,52 @@ dim(delta_R_n_vaccination) <- c(n_group, n_vax)
 
 exp_noise <- parameter(1e+06)
 
-## cases
+# proportion of cases observed
+phi_00_04   <- parameter()
+phi_05_14   <- parameter()
+phi_15_plus <- parameter()
+
+## observed cases
+initial(observed_cases_00_04)  <- 0
+initial(observed_cases_05_14)  <- 0
+initial(observed_cases_15_plus) <- 0
+initial(observed_cases) <- 0
+
+
+
+
+new_observed_cases_00_04   <- Binomial(new_cases_inc_00_04, phi_00_04)
+new_observed_cases_05_14   <- Binomial(new_cases_inc_05_14, phi_05_14)
+new_observed_cases_15_plus <- Binomial(new_cases_inc_15_plus, phi_15_plus)
+
+update(observed_cases_00_04)   <- new_observed_cases_00_04  
+update(observed_cases_05_14)   <- new_observed_cases_05_14  
+update(observed_cases_15_plus) <- new_observed_cases_15_plus
+update(observed_cases) <- new_observed_cases_00_04 + new_observed_cases_05_14 +
+  new_observed_cases_15_plus
+
 # Aggregate
 alpha_cases <- parameter()
 cases <- data()
-model_cases <- cases_inc + Exponential(exp_noise)
+model_cases <- observed_cases + Exponential(exp_noise)
 cases ~ NegativeBinomial(size = 1 / alpha_cases, mu = model_cases)
 
 # By-age
 alpha_cases_00_04 <- parameter()
 cases_00_04 <- data()
-model_cases_00_04 <- cases_inc_00_04 + Exponential(exp_noise)
+model_cases_00_04 <- observed_cases_00_04 + Exponential(exp_noise)
 cases_00_04 ~
   NegativeBinomial(size = 1 / alpha_cases_00_04, mu = model_cases_00_04)
 
 alpha_cases_05_14 <- parameter()
 cases_05_14 <- data()
-model_cases_05_14 <- cases_inc_05_14 + Exponential(exp_noise)
+model_cases_05_14 <- observed_cases_05_14 + Exponential(exp_noise)
 cases_05_14 ~ 
   NegativeBinomial(size = 1 / alpha_cases_05_14, mu = model_cases_05_14)
 
 alpha_cases_15_plus <- parameter()
 cases_15_plus <- data()
-model_cases_15_plus <- cases_inc_15_plus + Exponential(exp_noise)
+model_cases_15_plus <- observed_cases_15_plus + Exponential(exp_noise)
 cases_15_plus ~ 
   NegativeBinomial(size = 1 / alpha_cases_15_plus, mu = model_cases_15_plus)
 
@@ -1008,3 +1042,15 @@ model_cases_SW <- cases_inc_SW +  Exponential(exp_noise)
 model_cases_non_SW <- cases_inc - cases_inc_SW +  Exponential(exp_noise)
 model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
 cases_SW ~ Binomial(cases_total, model_prop_SW)
+
+## Proportion of cases by age (nested binomials)
+cases_00_04_binom <- data()
+cases_00_14_binom <- data()
+cases_binom <- data()
+# Model cases  00-04, 15 plus, and total defined above
+model_cases_00_14 <- model_cases_00_04 + model_cases_05_14
+
+cases_00_04_binom ~ 
+  Binomial(cases_00_14_binom, model_cases_00_04 / model_cases_00_14)
+cases_00_14_binom ~ 
+  Binomial(cases_binom, model_cases_00_14 / model_cases)
