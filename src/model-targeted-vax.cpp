@@ -797,7 +797,7 @@ public:
     }
     for (size_t i = 1; i <= shared.dim.E.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.E.dim[1]; ++j) {
-        state[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[111]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]];
+        state[i - 1 + (j - 1) * shared.dim.E.mult[1] + shared.odin.offset.state[111]] = shared.Ea0[i - 1 + (j - 1) * shared.dim.Ea0.mult[1]] + shared.Eb0[i - 1 + (j - 1) * shared.dim.Eb0.mult[1]] + internal.seed[i - 1 + (j - 1) * shared.dim.seed.mult[1]];
       }
     }
     for (size_t i = 1; i <= shared.dim.I.dim[0]; ++i) {
@@ -901,8 +901,8 @@ public:
     state[88] = 0;
     state[89] = 0;
     state[90] = 0;
-    state[91] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0);
-    state[92] = dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0);
+    state[91] = dust2::array::sum<real_type>(shared.S0.data(), shared.dim.S0) - dust2::array::sum<real_type>(internal.seed.data(), shared.dim.seed);
+    state[92] = dust2::array::sum<real_type>(shared.Ea0.data(), shared.dim.Ea0) + dust2::array::sum<real_type>(shared.Eb0.data(), shared.dim.Eb0) + dust2::array::sum<real_type>(internal.seed.data(), shared.dim.seed);
     state[93] = dust2::array::sum<real_type>(shared.Ir0.data(), shared.dim.Ir0) + dust2::array::sum<real_type>(shared.Id0.data(), shared.dim.Id0);
     state[94] = dust2::array::sum<real_type>(shared.R0.data(), shared.dim.R0);
     state[95] = dust2::array::sum<real_type>(shared.D0.data(), shared.dim.D0);

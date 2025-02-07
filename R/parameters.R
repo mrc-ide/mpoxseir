@@ -479,7 +479,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
     index_gen_pop <- seq_len(nrow(age_bins))
-    seeding_infections <- initial_infections * w = RR_z[index_gen_pop]
+    seeding_infections <- initial_infections * 
+      RR_z[index_gen_pop] / sum(RR_z[index_gen_pop])
 
     seed_rate[index_gen_pop, idx_unvax] <- seeding_infections
 
@@ -562,6 +563,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     R0 = X0,
     D0 = X0,
     N0 = N0,
+    seed_rate = seed_rate,
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
