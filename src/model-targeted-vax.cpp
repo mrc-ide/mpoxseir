@@ -47,6 +47,8 @@
 // [[dust2::parameter(alpha_deaths_00_04, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(alpha_deaths_05_14, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(alpha_deaths_15_plus, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(rho_00_04, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(rho_00_14, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 class model_targeted_vax {
 public:
   model_targeted_vax() = delete;
@@ -182,6 +184,8 @@ public:
     real_type alpha_deaths_00_04;
     real_type alpha_deaths_05_14;
     real_type alpha_deaths_15_plus;
+    real_type rho_00_04;
+    real_type rho_00_14;
     std::vector<real_type> daily_doses_children_value;
     std::vector<real_type> daily_doses_children_time;
     std::vector<real_type> daily_doses_adults_value;
@@ -333,6 +337,8 @@ public:
     const real_type alpha_deaths_00_04 = dust2::r::read_real(parameters, "alpha_deaths_00_04");
     const real_type alpha_deaths_05_14 = dust2::r::read_real(parameters, "alpha_deaths_05_14");
     const real_type alpha_deaths_15_plus = dust2::r::read_real(parameters, "alpha_deaths_15_plus");
+    const real_type rho_00_04 = dust2::r::read_real(parameters, "rho_00_04");
+    const real_type rho_00_14 = dust2::r::read_real(parameters, "rho_00_14");
     dim.is_child.set({static_cast<size_t>(n_group)});
     std::vector<real_type> daily_doses_children_value(dim.daily_doses_children_value.size);
     dust2::r::read_real_array(parameters, dim.daily_doses_children_value, daily_doses_children_value.data(), "daily_doses_children_value", true);
@@ -593,7 +599,7 @@ public:
       {"cases_cumulative_by_age", std::vector<size_t>(dim.cases_cumulative_by_age.dim.begin(), dim.cases_cumulative_by_age.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, phi_00_04, phi_05_14, phi_15_plus, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, is_child, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
+    return shared_state{odin, dim, N_prioritisation_steps_children, N_prioritisation_steps_adults, beta_h, beta_s, beta_hcw, gamma_E, gamma_Ir, gamma_Id, n_vax, n_group, exp_noise, phi_00_04, phi_05_14, phi_15_plus, alpha_cases, alpha_cases_00_04, alpha_cases_05_14, alpha_cases_15_plus, alpha_deaths, alpha_deaths_00_04, alpha_deaths_05_14, alpha_deaths_15_plus, rho_00_04, rho_00_14, daily_doses_children_value, daily_doses_children_time, daily_doses_adults_value, daily_doses_adults_time, is_child, interpolate_daily_doses_children_t, interpolate_daily_doses_adults_t, prioritisation_strategy_children, prioritisation_strategy_adults, m_gen_pop, m_sex, S0, Ea0, Eb0, Ir0, Id0, R0, D0, beta_z, CFR, ve_T, ve_I, lambda_z};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> n_IrR(shared.dim.n_IrR.size);
@@ -712,6 +718,8 @@ public:
     shared.alpha_deaths_00_04 = dust2::r::read_real(parameters, "alpha_deaths_00_04", shared.alpha_deaths_00_04);
     shared.alpha_deaths_05_14 = dust2::r::read_real(parameters, "alpha_deaths_05_14", shared.alpha_deaths_05_14);
     shared.alpha_deaths_15_plus = dust2::r::read_real(parameters, "alpha_deaths_15_plus", shared.alpha_deaths_15_plus);
+    shared.rho_00_04 = dust2::r::read_real(parameters, "rho_00_04", shared.rho_00_04);
+    shared.rho_00_14 = dust2::r::read_real(parameters, "rho_00_14", shared.rho_00_14);
     dust2::r::read_real_array(parameters, shared.dim.daily_doses_children_value, shared.daily_doses_children_value.data(), "daily_doses_children_value", false);
     dust2::r::read_real_array(parameters, shared.dim.daily_doses_children_time, shared.daily_doses_children_time.data(), "daily_doses_children_time", false);
     dust2::r::read_real_array(parameters, shared.dim.daily_doses_adults_value, shared.daily_doses_adults_value.data(), "daily_doses_adults_value", false);
@@ -1638,10 +1646,10 @@ public:
       odin_ll += monty::density::binomial(data.cases_SW, data.cases_total, model_prop_SW, true);
     }
     if (!std::isnan(data.cases_00_14_binom) && !std::isnan(data.cases_00_04_binom)) {
-      odin_ll += monty::density::binomial(data.cases_00_04_binom, data.cases_00_14_binom, model_cases_00_04 / model_cases_00_14, true);
+      odin_ll += monty::density::beta_binomial_prob(data.cases_00_04_binom, data.cases_00_14_binom, model_cases_00_04 / model_cases_00_14, shared.rho_00_04, true);
     }
     if (!std::isnan(data.cases_binom) && !std::isnan(data.cases_00_14_binom)) {
-      odin_ll += monty::density::binomial(data.cases_00_14_binom, data.cases_binom, model_cases_00_14 / model_cases, true);
+      odin_ll += monty::density::beta_binomial_prob(data.cases_00_14_binom, data.cases_binom, model_cases_00_14 / model_cases, shared.rho_00_14, true);
     }
     return odin_ll;
   }
