@@ -1349,7 +1349,7 @@ public:
         internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]] = internal.n_EaEb[i - 1 + (j - 1) * shared.dim.n_EaEb.mult[1]] - internal.n_EbI[i - 1 + (j - 1) * shared.dim.n_EbI.mult[1]];
       }
     }
-    const real_type new_observed_cases_00_04 = monty::random::binomial<real_type>(rng_state, new_cases_inc_00_04, shared.phi_00_04);
+    const real_type new_observed_cases_00_04 = new_cases_inc_00_04 * shared.phi_00_04;
     for (size_t i = 1; i <= shared.dim.Eb.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Eb.dim[1]; ++j) {
         internal.new_Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] = Eb[i - 1 + (j - 1) * shared.dim.Eb.mult[1]] + internal.delta_Eb_n_vaccination[i - 1 + (j - 1) * shared.dim.delta_Eb_n_vaccination.mult[1]] + internal.delta_Eb[i - 1 + (j - 1) * shared.dim.delta_Eb.mult[1]];
@@ -1377,7 +1377,7 @@ public:
         internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]] = internal.n_EbId[i - 1 + (j - 1) * shared.dim.n_EbId.mult[1]] - internal.n_IdD[i - 1 + (j - 1) * shared.dim.n_IdD.mult[1]];
       }
     }
-    const real_type new_observed_cases_05_14 = monty::random::binomial<real_type>(rng_state, new_cases_inc_05_14, shared.phi_05_14);
+    const real_type new_observed_cases_05_14 = new_cases_inc_05_14 * shared.phi_05_14;
     for (size_t i = 1; i <= shared.dim.Id.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Id.dim[1]; ++j) {
         internal.new_Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] = Id[i - 1 + (j - 1) * shared.dim.Id.mult[1]] + internal.delta_Id[i - 1 + (j - 1) * shared.dim.delta_Id.mult[1]];
@@ -1395,7 +1395,7 @@ public:
         internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]] = internal.n_EbIr[i - 1 + (j - 1) * shared.dim.n_EbIr.mult[1]] - internal.n_IrR[i - 1 + (j - 1) * shared.dim.n_IrR.mult[1]];
       }
     }
-    const real_type new_observed_cases_15_plus = monty::random::binomial<real_type>(rng_state, new_cases_inc_15_plus, shared.phi_15_plus);
+    const real_type new_observed_cases_15_plus = new_cases_inc_15_plus * shared.phi_15_plus;
     for (size_t i = 1; i <= shared.dim.Ir.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.Ir.dim[1]; ++j) {
         internal.new_Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] = Ir[i - 1 + (j - 1) * shared.dim.Ir.mult[1]] + internal.delta_Ir[i - 1 + (j - 1) * shared.dim.delta_Ir.mult[1]];
