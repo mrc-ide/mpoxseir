@@ -954,9 +954,9 @@ initial(observed_cases) <- 0
 
 
 
-new_observed_cases_00_04   <- Binomial(new_cases_inc_00_04, phi_00_04)
-new_observed_cases_05_14   <- Binomial(new_cases_inc_05_14, phi_05_14)
-new_observed_cases_15_plus <- Binomial(new_cases_inc_15_plus, phi_15_plus)
+new_observed_cases_00_04   <- new_cases_inc_00_04 * phi_00_04
+new_observed_cases_05_14   <- new_cases_inc_05_14 * phi_05_14
+new_observed_cases_15_plus <- new_cases_inc_15_plus * phi_15_plus
 
 update(observed_cases_00_04)   <- new_observed_cases_00_04  
 update(observed_cases_05_14)   <- new_observed_cases_05_14  
