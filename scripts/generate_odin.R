@@ -5,4 +5,3 @@ if (packageVersion("odin2") < "0.3.17") {
 
 odin2::odin_package(here::here())
 devtools::load_all(here::here())
-
