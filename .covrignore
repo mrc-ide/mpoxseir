@@ -1,5 +1,7 @@
 R/cpp11.R
 R/dust.R
+R/run.R
+R/format_output.R
 src/model-targeted-vax.cpp
 src/cpp11.cpp
 inst/odin/support.hpp
