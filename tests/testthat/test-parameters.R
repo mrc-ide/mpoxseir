@@ -148,3 +148,10 @@ test_that("create_age_bins works", {
                "max_age is too small")
   
 })
+
+test_that("Can not seed too high", {
+  
+  expect_error(parameters_fixed("equateur", initial_infections = 1e10),
+               "population size and seeding infections is incompatible")
+  
+})
