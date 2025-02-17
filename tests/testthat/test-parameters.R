@@ -117,3 +117,16 @@ test_that("Overrides works", {
   )
   
 })
+
+test_that("use_ve_D works", {
+  
+  p1 <- parameters_fixed("equateur", initial_infections = 10, use_ve_D = FALSE)
+  p2 <- parameters_fixed("equateur", initial_infections = 10, use_ve_D = TRUE)
+  
+  idx <- get_compartment_indices()
+  
+  expect_equal(p1$CFR[, idx$vax$unvaccinated], p2$CFR[, idx$vax$unvaccinated])
+  expect_vector_lt(p2$CFR[, -idx$vax$unvaccinated],
+                   p1$CFR[, -idx$vax$unvaccinated])
+  
+})
