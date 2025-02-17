@@ -436,7 +436,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu",
                       "burundi","bujumbura","bujumbura_mairie"))) {
-    stop("region must be equateur, sudkivu, burundi, bujumbura or bujumbura-mairie")
+    stop("region must be equateur, sudkivu, burundi, bujumbura or bujumbura_mairie")
   }
 
   ## Initialising variable that other parameters depend on
@@ -483,8 +483,6 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
 
     Ea0[index_gen_pop, idx_unvax] <- seeding_infections
 
-  } else {
-    stop("something is wrong with the name of the region - change to sudkivu, equateur, burundi, bujumbura or bujumbura_mairie")
   }
   
   p_unvaccinated <- demographic_params$p_unvaccinated
