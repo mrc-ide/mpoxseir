@@ -130,3 +130,21 @@ test_that("use_ve_D works", {
                    p1$CFR[, -idx$vax$unvaccinated])
   
 })
+
+test_that("create_age_bins works", {
+  
+  start <- seq(0, 75, 5)
+  
+  age_bins <- create_age_bins(start = seq(0, 75, 5))
+  
+  expect_equal(age_bins$start, start)
+  expect_equal(age_bins$end, c(start[-1L] - 1, 100))
+  
+  expected_labels <- c(paste0(start[-length(start)], "-", start[-1L] - 1),
+                       paste0(start[length(start)], "+"))
+  expect_equal(age_bins$label, expected_labels)
+  
+  expect_error(create_age_bins(start = seq(0, 75, 5), max = 70),
+               "max_age is too small")
+  
+})
