@@ -96,3 +96,24 @@ test_that("total sex workers in Bujumbura as we expect", {
 })
 
 
+test_that("Overrides works", {
+  
+  expect_equal(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = list(gamma_E = 1 / 8))$gamma_E,
+    1 / 8
+  )
+  
+  expect_error(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = 1 / 8),
+    'overrides must be a list'
+  )
+  
+  expect_error(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = list(gamma_X = 1 / 8)),
+    'unknown parameter gamma_X'
+  )
+  
+})
