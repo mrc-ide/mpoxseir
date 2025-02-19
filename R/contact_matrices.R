@@ -4,21 +4,21 @@
 #' @param population Vector of populaion by age
 #'
 #' @return Processed set of mixing matrices
-matrix_set <- function(contact_matrix_set, population){
+matrix_set <- function(contact_matrix_set, population){ # nocov start
   contact <- lapply(contact_matrix_set, process_contact_matrix,
                     population = population)
   mixing <- lapply(contact, div_pop, population = population)
 
   aperm(array(unlist(mixing), dim = c(dim(mixing[[1]]), length(mixing))), c(3, 1, 2))
-}
+} # nocov end
 
-matrix_set_explicit <- function(contact_matrix_set, population){
+matrix_set_explicit <- function(contact_matrix_set, population){ # nocov start
   contact <- lapply(contact_matrix_set, process_contact_matrix_scaled_age,
                     population = population)
   mixing <- lapply(contact, div_pop, population = population)
 
   aperm(array(unlist(mixing), dim = c(dim(mixing[[1]]), length(mixing))), c(3, 1, 2))
-}
+} # nocov end
 
 #' Divide matrix by population
 #'
@@ -27,7 +27,7 @@ matrix_set_explicit <- function(contact_matrix_set, population){
 #'
 #' @return Matrix
 div_pop <- function(contact, population){
-  t(t(contact) / population)
+  t(t(contact) / population) # nocov
 }
 
 #' Process a contact matrix with an extra
@@ -37,7 +37,7 @@ div_pop <- function(contact, population){
 #'
 #' @return Processed matrix
 #'
-process_contact_matrix_scaled_age <- function(contact_matrix, population) {
+process_contact_matrix_scaled_age <- function(contact_matrix, population) { # nocov start
   # Convert Unbalanced Matrix of Per-Capita Rates to Total Number of Contacts
   # Between Diff Age Groups and Balance By Taking the Mean of i->j and j->i
 
@@ -64,7 +64,7 @@ process_contact_matrix_scaled_age <- function(contact_matrix, population) {
   # Adjusting to create input for model i.e. per capita rates divided by
   # population to give the number of contacts made on each individual
   return(processed_matrix)
-}
+} # nocov end
 
 
 #' Process a contact matrix

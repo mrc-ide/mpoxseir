@@ -1050,7 +1050,13 @@ cases_binom <- data()
 # Model cases  00-04, 15 plus, and total defined above
 model_cases_00_14 <- model_cases_00_04 + model_cases_05_14
 
-cases_00_04_binom ~ 
-  Binomial(cases_00_14_binom, model_cases_00_04 / model_cases_00_14)
-cases_00_14_binom ~ 
-  Binomial(cases_binom, model_cases_00_14 / model_cases)
+rho_00_04 <- parameter()
+rho_00_14 <- parameter()
+
+cases_00_04_binom ~ BetaBinomial(cases_00_14_binom, 
+                                 prob = model_cases_00_04 / model_cases_00_14,
+                                 rho = rho_00_04)
+cases_00_14_binom ~ BetaBinomial(cases_binom, 
+                                 prob  = model_cases_00_14 / model_cases, 
+                                 rho = rho_00_14)
+

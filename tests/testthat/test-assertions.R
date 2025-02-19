@@ -136,6 +136,21 @@ test_that("assert_single_int working correctly", {
 })
 
 #------------------------------------------------
+test_that("assert_neg working correctly", {
+  expect_true(assert_neg(-5))
+  expect_true(assert_neg(seq(-1, -5, -0.5)))
+  expect_true(assert_neg(seq(0, -5, -0.5), zero_allowed = TRUE))
+  
+  expect_error(assert_neg(NULL))
+  expect_error(assert_neg(5))
+  expect_error(assert_neg(seq(1, 5, 0.5)))
+  expect_error(assert_neg(seq(-0, -5, -0.5), zero_allowed = FALSE))
+  expect_error(assert_neg(seq(5, -5, -0.5), zero_allowed = TRUE))
+  expect_error(assert_neg("foo"))
+})
+
+
+#------------------------------------------------
 test_that("assert_pos working correctly", {
   expect_true(assert_pos(5))
   expect_true(assert_pos(seq(1, 5, 0.5)))

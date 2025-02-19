@@ -1,3 +1,7 @@
+# mpoxseir 0.2.16
+
+* Switched likelihood for cases by age to beta-binomial
+
 # mpoxseir 0.2.13
 
 * Add likelihood term for % cases by age
