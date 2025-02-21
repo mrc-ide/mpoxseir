@@ -96,3 +96,62 @@ test_that("total sex workers in Bujumbura as we expect", {
 })
 
 
+test_that("Overrides works", {
+  
+  expect_equal(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = list(gamma_E = 1 / 8))$gamma_E,
+    1 / 8
+  )
+  
+  expect_error(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = 1 / 8),
+    'overrides must be a list'
+  )
+  
+  expect_error(
+    parameters_fixed("equateur", initial_infections = 10,
+                     overrides = list(gamma_X = 1 / 8)),
+    'unknown parameter gamma_X'
+  )
+  
+})
+
+test_that("use_ve_D works", {
+  
+  p1 <- parameters_fixed("equateur", initial_infections = 10, use_ve_D = FALSE)
+  p2 <- parameters_fixed("equateur", initial_infections = 10, use_ve_D = TRUE)
+  
+  idx <- get_compartment_indices()
+  
+  expect_equal(p1$CFR[, idx$vax$unvaccinated], p2$CFR[, idx$vax$unvaccinated])
+  expect_vector_lt(p2$CFR[, -idx$vax$unvaccinated],
+                   p1$CFR[, -idx$vax$unvaccinated])
+  
+})
+
+test_that("create_age_bins works", {
+  
+  start <- seq(0, 75, 5)
+  
+  age_bins <- create_age_bins(start = seq(0, 75, 5))
+  
+  expect_equal(age_bins$start, start)
+  expect_equal(age_bins$end, c(start[-1L] - 1, 100))
+  
+  expected_labels <- c(paste0(start[-length(start)], "-", start[-1L] - 1),
+                       paste0(start[length(start)], "+"))
+  expect_equal(age_bins$label, expected_labels)
+  
+  expect_error(create_age_bins(start = seq(0, 75, 5), max = 70),
+               "max_age is too small")
+  
+})
+
+test_that("Can not seed too high", {
+  
+  expect_error(parameters_fixed("equateur", initial_infections = 1e10),
+               "population size and seeding infections is incompatible")
+  
+})
