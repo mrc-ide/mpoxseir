@@ -496,7 +496,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   S0 <- X0
   S0[, idx_unvax] <- round(N0 * p_unvaccinated)
   S0[, idx_historic_vax] <- N0 - S0[, idx_unvax]
-  if (any (S0 < 0)) {
+  if (any (S0 < seed_rate)) {
     stop("population size and seeding infections is incompatible")
   }
 
