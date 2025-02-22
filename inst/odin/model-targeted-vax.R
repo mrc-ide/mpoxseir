@@ -948,48 +948,78 @@ exp_noise <- parameter(1e+06)
 phi_00_04   <- parameter()
 phi_05_14   <- parameter()
 phi_15_plus <- parameter()
+phi_CSW_12_14 <- parameter()
+phi_CSW_15_17 <- parameter()
+phi_ASW <- parameter()
+phi_HCW <- parameter()
+phi_PBS <- parameter()
 
 ## observed cases
-initial(observed_cases_00_04)  <- 0
-initial(observed_cases_05_14)  <- 0
-initial(observed_cases_15_plus) <- 0
-initial(observed_cases) <- 0
+initial(observed_cases_inc_00_04, zero_every = 7)  <- 0
+initial(observed_cases_inc_05_14, zero_every = 7)  <- 0
+initial(observed_cases_inc_15_plus, zero_every = 7) <- 0
+initial(observed_cases_inc_CSW, zero_every = 7) <- 0
+initial(observed_cases_inc_ASW, zero_every = 7) <- 0
+initial(observed_cases_inc_SW, zero_every = 7) <- 0
+initial(observed_cases_inc_PBS, zero_every = 7) <- 0
+initial(observed_cases_inc_HCW, zero_every = 7) <- 0
+initial(observed_cases_inc, zero_every = 7) <- 0
 
+new_observed_cases_SW_12_14 <- Binomial(new_cases_SW_12_14, phi_CSW_12_14)
+new_observed_cases_SW_15_17 <- Binomial(new_cases_SW_15_17, phi_CSW_15_17)
+new_observed_cases_ASW <- Binomial(new_cases_ASW, phi_ASW)
+new_observed_cases_PBS <- Binomial(new_cases_PBS, phi_PBS)
+new_observed_cases_HCW <- Binomial(new_cases_HCW, phi_HCW)
 
+new_observed_cases_00_04 <- Binomial(new_cases_00_04, phi_00_04)
+new_observed_cases_05_14 <- Binomial(sum(n_SEa[2:3, ]), phi_05_14) +
+  new_observed_cases_SW_12_14
+new_observed_cases_15_plus <- Binomial(sum(n_SEa[4:16, ]), phi_15_plus) +
+  new_observed_cases_SW_15_17 + new_observed_cases_ASW +
+  new_observed_cases_PBS + new_observed_cases_HCW
 
-
-new_observed_cases_00_04   <- Binomial(new_cases_inc_00_04, phi_00_04)
-new_observed_cases_05_14   <- Binomial(new_cases_inc_05_14, phi_05_14)
-new_observed_cases_15_plus <- Binomial(new_cases_inc_15_plus, phi_15_plus)
-
-update(observed_cases_00_04)   <- new_observed_cases_00_04  
-update(observed_cases_05_14)   <- new_observed_cases_05_14  
-update(observed_cases_15_plus) <- new_observed_cases_15_plus
-update(observed_cases) <- new_observed_cases_00_04 + new_observed_cases_05_14 +
+update(observed_cases_inc_00_04)   <- observed_cases_inc_00_04 + 
+  new_observed_cases_00_04  
+update(observed_cases_inc_05_14)   <- observed_cases_inc_05_14 +
+  new_observed_cases_05_14  
+update(observed_cases_inc_15_plus) <- observed_cases_inc_15_plus +
   new_observed_cases_15_plus
+update(observed_cases_inc_CSW)   <- observed_cases_inc_CSW + 
+  new_observed_cases_SW_12_14 + new_observed_cases_SW_15_17
+update(observed_cases_inc_ASW)   <- observed_cases_inc_ASW + 
+  new_observed_cases_ASW
+update(observed_cases_inc_SW)   <- observed_cases_inc_SW + 
+  new_observed_cases_SW_12_14 + new_observed_cases_SW_15_17 +
+  new_observed_cases_ASW
+update(observed_cases_inc_PBS)   <- observed_cases_inc_PBS + 
+  new_observed_cases_PBS
+update(observed_cases_inc_HCW)   <- observed_cases_inc_HCW + 
+  new_observed_cases_HCW
+update(observed_cases_inc) <- observed_cases_inc + new_observed_cases_00_04 +
+  new_observed_cases_05_14 + new_observed_cases_15_plus
 
 # Aggregate
 alpha_cases <- parameter()
 cases <- data()
-model_cases <- observed_cases + Exponential(exp_noise)
+model_cases <- observed_cases_inc + Exponential(exp_noise)
 cases ~ NegativeBinomial(size = 1 / alpha_cases, mu = model_cases)
 
 # By-age
 alpha_cases_00_04 <- parameter()
 cases_00_04 <- data()
-model_cases_00_04 <- observed_cases_00_04 + Exponential(exp_noise)
+model_cases_00_04 <- observed_cases_inc_00_04 + Exponential(exp_noise)
 cases_00_04 ~
   NegativeBinomial(size = 1 / alpha_cases_00_04, mu = model_cases_00_04)
 
 alpha_cases_05_14 <- parameter()
 cases_05_14 <- data()
-model_cases_05_14 <- observed_cases_05_14 + Exponential(exp_noise)
+model_cases_05_14 <- observed_cases_inc_05_14 + Exponential(exp_noise)
 cases_05_14 ~ 
   NegativeBinomial(size = 1 / alpha_cases_05_14, mu = model_cases_05_14)
 
 alpha_cases_15_plus <- parameter()
 cases_15_plus <- data()
-model_cases_15_plus <- observed_cases_15_plus + Exponential(exp_noise)
+model_cases_15_plus <- observed_cases_inc_15_plus + Exponential(exp_noise)
 cases_15_plus ~ 
   NegativeBinomial(size = 1 / alpha_cases_15_plus, mu = model_cases_15_plus)
 
@@ -1036,14 +1066,16 @@ cfr_15_plus ~ Beta(deaths_cumulative_15_plus,
 cases_total <- data()
 
 cases_HCW <- data()
-model_cases_HCW <- cases_inc_HCW +  Exponential(exp_noise)
-model_cases_non_HCW <- cases_inc - cases_inc_HCW +  Exponential(exp_noise)
+model_cases_HCW <- observed_cases_inc_HCW + Exponential(exp_noise)
+model_cases_non_HCW <- observed_cases_inc - observed_cases_inc_HCW +
+  Exponential(exp_noise)
 model_prop_HCW <- model_cases_HCW / (model_cases_HCW + model_cases_non_HCW)
 cases_HCW ~ Binomial(cases_total, model_prop_HCW)
 
 cases_SW <- data()
-model_cases_SW <- cases_inc_SW +  Exponential(exp_noise)
-model_cases_non_SW <- cases_inc - cases_inc_SW +  Exponential(exp_noise)
+model_cases_SW <- observed_cases_inc_SW + Exponential(exp_noise)
+model_cases_non_SW <- observed_cases_inc - observed_cases_inc_SW +
+  Exponential(exp_noise)
 model_prop_SW <- model_cases_SW / (model_cases_SW + model_cases_non_SW)
 cases_SW ~ Binomial(cases_total, model_prop_SW)
 
