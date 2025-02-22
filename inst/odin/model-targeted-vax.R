@@ -951,15 +951,15 @@ phi_HCW <- parameter()
 phi_PBS <- parameter()
 
 ## observed cases
-initial(observed_cases_inc_00_04, zero_every = 1)  <- 0
-initial(observed_cases_inc_05_14, zero_every = 1)  <- 0
-initial(observed_cases_inc_15_plus, zero_every = 1) <- 0
-initial(observed_cases_inc_CSW, zero_every = 1) <- 0
-initial(observed_cases_inc_ASW, zero_every = 1) <- 0
-initial(observed_cases_inc_SW, zero_every = 1) <- 0
-initial(observed_cases_inc_PBS, zero_every = 1) <- 0
-initial(observed_cases_inc_HCW, zero_every = 1) <- 0
-initial(observed_cases_inc, zero_every = 1) <- 0
+initial(observed_cases_inc_00_04, zero_every = 7)  <- 0
+initial(observed_cases_inc_05_14, zero_every = 7)  <- 0
+initial(observed_cases_inc_15_plus, zero_every = 7) <- 0
+initial(observed_cases_inc_CSW, zero_every = 7) <- 0
+initial(observed_cases_inc_ASW, zero_every = 7) <- 0
+initial(observed_cases_inc_SW, zero_every = 7) <- 0
+initial(observed_cases_inc_PBS, zero_every = 7) <- 0
+initial(observed_cases_inc_HCW, zero_every = 7) <- 0
+initial(observed_cases_inc, zero_every = 7) <- 0
 
 new_observed_cases_SW_12_14 <- Binomial(new_cases_SW_12_14, phi_CSW_12_14)
 new_observed_cases_SW_15_17 <- Binomial(new_cases_SW_15_17, phi_CSW_15_17)
