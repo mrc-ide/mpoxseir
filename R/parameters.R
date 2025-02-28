@@ -466,22 +466,23 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
 
   ## Seed infections in the unvaccinated group in a region-specific manner
   X0 <- matrix(0, nrow = n_group, ncol = n_vax)
-  Ea0 <- X0
+  seed_rate <- X0
 
   
   if (region %in% c("sudkivu","burundi","bujumbura","bujumbura_mairie")) { # seeding in sex workers in Clade Ib affected areas
 
     ## Extract sex-worker index and put initial infections in this group (unvaccinated strata)
     index_asw <- get_compartment_indices()$group$ASW
-    Ea0[index_asw, idx_unvax] <- initial_infections
+    seed_rate[index_asw, idx_unvax] <- initial_infections
 
   } else if (region == "equateur") { # seeding in general pop in proportion to zoonotic risk in equateur
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
     index_gen_pop <- seq_len(nrow(age_bins))
-    seeding_infections <- assign_seeds(initial_infections, w = RR_z[index_gen_pop])
+    seeding_infections <- initial_infections * 
+      RR_z[index_gen_pop] / sum(RR_z[index_gen_pop])
 
-    Ea0[index_gen_pop, idx_unvax] <- seeding_infections
+    seed_rate[index_gen_pop, idx_unvax] <- seeding_infections
 
   }
   
@@ -495,8 +496,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   S0 <- X0
   S0[, idx_unvax] <- round(N0 * p_unvaccinated)
   S0[, idx_historic_vax] <- N0 - S0[, idx_unvax]
-  S0 <- S0 - Ea0
-  if (any (S0 < 0)) {
+  if (any (S0 < seed_rate)) {
     stop("population size and seeding infections is incompatible")
   }
 
@@ -554,13 +554,14 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     n_group = n_group,
     n_vax = n_vax,
     S0 = S0,
-    Ea0 = Ea0,
+    Ea0 = X0,
     Eb0 = X0,
     Ir0 = X0,
     Id0 = X0,
     R0 = X0,
     D0 = X0,
     N0 = N0,
+    seed_rate = seed_rate,
     R0_hh = 0.67, # Jezek 1988 SAR paper - will be fitted
     R0_sw_st = 1.3, # Will be fitted
     beta_z_max = 0.01, # Will be fitted
@@ -576,6 +577,11 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     phi_00_04 = 1,
     phi_05_14 = 1,
     phi_15_plus = 1,
+    phi_CSW_12_14 = 1,
+    phi_CSW_15_17 = 1,
+    phi_ASW = 1,
+    phi_PBS = 1,
+    phi_HCW = 1,
     rho_00_04 = 0.1,
     rho_00_14 = 0.1,
     RR_z = RR_z,

@@ -46,7 +46,7 @@ test_that("check cases and deaths are counted correctly", {
                y$deaths_cumulative_00_04 + y$deaths_cumulative_05_14 + 
                  y$deaths_cumulative_15_plus)
   
-  for (nm in grep("cases_inc", rownames(res), value = TRUE)) {
+  for (nm in grep("^cases_inc", rownames(res), value = TRUE)) {
     expect_equal(t(apply(res[nm, , ], 1, cumsum)),
                  res[gsub("inc", "cumulative", nm), , ])
   }
@@ -200,7 +200,7 @@ test_that("when beta_h = 0, beta_s = 0, beta_hcw = 0 there are only zoonotic inf
   pars$beta_hcw <- 0
   pars$beta_z[-pars$n_group] <- 0 # last group only for test purpose (i.e. HCW)
   n_init <- sum(pars$Ea0)
-  pars$Ea0[] <- 0
+  pars$seed_rate[] <- 0
 
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
@@ -225,7 +225,7 @@ test_that("when beta_h = 0, beta_z = 0, beta_hcw = 0 infections only from sexual
   pars$beta_z[] <- 0
   pars$beta_s <- 0.2
   pars$beta_hcw <- 0
-  pars$Ea0[] <- 0
+  pars$seed_rate[] <- 0
   pars$m_sex["CSW", "PBS"] <- pars$m_sex["PBS", "CSW"] <- 0.5
   pars$m_sex["ASW", "PBS"] <- pars$m_sex["PBS", "ASW"] <- 0.5
   
@@ -235,9 +235,8 @@ test_that("when beta_h = 0, beta_z = 0, beta_hcw = 0 infections only from sexual
   idx_kp <- unlist(idx_comp$group[c("CSW", "ASW", "PBS")])
   idx_unvax <- idx_comp$vax$unvaccinated
   
-  pars$Ea0[idx_kp, idx_unvax] <- pars$Ea0[idx_kp, idx_unvax] + 10
-  pars$S0[idx_kp, idx_unvax] <- pars$S0[idx_kp, idx_unvax] - pars$Ea0[idx_kp, idx_unvax]
-
+  pars$seed_rate[idx_kp, idx_unvax] <- pars$seed_rate[idx_kp, idx_unvax] + 10
+  
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)
   dust2::dust_system_set_state_initial(sys)
@@ -262,7 +261,7 @@ test_that("when beta_h = 0, beta_z = 0, beta_hcw = 0 infections only from sexual
   expect_equal(sum(y$Ea[seq_len(n_age), , , ]), 0)
 
   ## make sure population size continues behaving
-  expect_equal(sum(res["N_tot", , ] - sum(pars$N0) + 10), 0)
+  expect_equal(sum(res["N_tot", , ] - sum(pars$N0)), 0)
 
 })
 
@@ -962,14 +961,25 @@ test_that("observed cases is working", {
   res <- dust2::dust_system_simulate(sys, t)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
-  expect_equal(res["observed_cases", , ], res["cases_inc", , ])
-  expect_equal(res["observed_cases_00_04", , ], res["cases_inc_00_04", , ])
-  expect_equal(res["observed_cases_05_14", , ], res["cases_inc_05_14", , ])
-  expect_equal(res["observed_cases_15_plus", , ], res["cases_inc_15_plus", , ])
+  expect_equal(res["observed_cases_inc", , ], res["cases_inc", , ])
+  expect_equal(res["observed_cases_inc_00_04", , ], res["cases_inc_00_04", , ])
+  expect_equal(res["observed_cases_inc_05_14", , ], res["cases_inc_05_14", , ])
+  expect_equal(res["observed_cases_inc_15_plus", , ],
+               res["cases_inc_15_plus", , ])
+  expect_equal(res["observed_cases_inc_CSW", , ], res["cases_inc_CSW", , ])
+  expect_equal(res["observed_cases_inc_ASW", , ], res["cases_inc_ASW", , ])
+  expect_equal(res["observed_cases_inc_SW", , ], res["cases_inc_SW", , ])
+  expect_equal(res["observed_cases_inc_PBS", , ], res["cases_inc_PBS", , ])
+  expect_equal(res["observed_cases_inc_HCW", , ], res["cases_inc_HCW", , ])
   
   pars$phi_00_04 <- 0.5
   pars$phi_05_14 <- 0.3
   pars$phi_15_plus <- 0.1
+  pars$phi_ASW <- 0.05
+  pars$phi_CSW_12_14 <- 0.25
+  pars$phi_CSW_15_17 <- 0.15
+  pars$phi_PBS <- 0.2
+  pars$phi_HCW <- 0.4
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 1, seed = 1, dt = 1,
@@ -978,15 +988,42 @@ test_that("observed cases is working", {
   res <- dust2::dust_system_simulate(sys, t)
   rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
   
-  expect_equal(res["observed_cases_00_04", ],
+  ## Check keypops first
+  expect_equal(res["observed_cases_inc_CSW", ],
+               res["cases_inc_CSW", ] *
+                 (0.5 * pars$phi_CSW_12_14 + 0.5 * pars$phi_CSW_15_17))
+  expect_equal(res["observed_cases_inc_ASW", ],
+               res["cases_inc_ASW",  ] * pars$phi_ASW)
+  expect_equal(res["observed_cases_inc_SW", ],
+               res["observed_cases_inc_CSW",  ] +
+                 res["observed_cases_inc_ASW",  ])
+  expect_equal(res["observed_cases_inc_PBS", ],
+               res["cases_inc_PBS",  ] * pars$phi_PBS)
+  expect_equal(res["observed_cases_inc_HCW", ],
+               res["cases_inc_HCW",  ] * pars$phi_HCW)
+  expect_equal(res["observed_cases_inc_00_04", ],
                res["cases_inc_00_04",  ] * pars$phi_00_04)
-  expect_equal(res["observed_cases_05_14", ],
-               res["cases_inc_05_14",  ] * pars$phi_05_14)
-  expect_equal(res["observed_cases_15_plus", ],
-               res["cases_inc_15_plus",  ] * pars$phi_15_plus)
-  expect_equal(res["observed_cases_00_04", ] + res["observed_cases_05_14", ] +
-                 res["observed_cases_15_plus", ],
-               res["observed_cases", ])
+  
+  ## Check age bands (accounting for key pops)
+  cases_inc_05_14_gen_pop <- res["cases_inc_05_14", ] - 
+    0.5 * res["cases_inc_CSW", ]
+  expect_equal(res["observed_cases_inc_05_14", ],
+               cases_inc_05_14_gen_pop * pars$phi_05_14 + 
+                 res["cases_inc_CSW", ] * 0.5 * pars$phi_CSW_12_14)
+  cases_inc_15_plus_gen_pop <- res["cases_inc_15_plus", ] - 
+    0.5 * res["cases_inc_CSW", ] - res["cases_inc_ASW", ] -
+    res["cases_inc_PBS", ] - res["cases_inc_HCW", ]
+  expect_equal(res["observed_cases_inc_15_plus", ],
+               cases_inc_15_plus_gen_pop * pars$phi_15_plus +
+                 res["cases_inc_CSW", ] * 0.5 * pars$phi_CSW_15_17 +
+                 res["cases_inc_ASW", ] * pars$phi_ASW +
+                 res["cases_inc_PBS", ] * pars$phi_PBS +
+                 res["cases_inc_HCW", ] * pars$phi_HCW)
+  
+  expect_equal(res["observed_cases_inc_00_04", ] + 
+                 res["observed_cases_inc_05_14", ] +
+                 res["observed_cases_inc_15_plus", ],
+               res["observed_cases_inc", ])
 
 })
 

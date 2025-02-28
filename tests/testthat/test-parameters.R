@@ -8,17 +8,17 @@ test_that("Clade Ib seeding in (Adult)SW actually happens", {
   initial_infections <- 150
   
   pars_sudkivu <- parameters_fixed("sudkivu", initial_infections = initial_infections)
-  expect_equal(sum(pars_sudkivu$Ea0) , initial_infections)
-  expect_equal(sum(pars_sudkivu$Ea0[18,2]) , initial_infections) # check all are in unvaccinated ASW
+  expect_equal(sum(pars_sudkivu$seed_rate) , initial_infections)
+  expect_equal(sum(pars_sudkivu$seed_rate[18,2]) , initial_infections) # check all are in unvaccinated ASW
   
   pars_burundi <- parameters_fixed("burundi", initial_infections = initial_infections)
-  expect_equal(sum(pars_burundi$Ea0) , initial_infections)
-  expect_equal(sum(pars_burundi$Ea0[18,2]) , initial_infections) # check all are in unvaccinated ASW
+  expect_equal(sum(pars_burundi$seed_rate) , initial_infections)
+  expect_equal(sum(pars_burundi$seed_rate[18,2]) , initial_infections) # check all are in unvaccinated ASW
   
   
   pars_bujumbura <- parameters_fixed("bujumbura", initial_infections = initial_infections)
-  expect_equal(sum(pars_bujumbura$Ea0) , initial_infections)
-  expect_equal(sum(pars_bujumbura$Ea0[18,2]) , initial_infections) # check all are in unvaccinated ASW
+  expect_equal(sum(pars_bujumbura$seed_rate) , initial_infections)
+  expect_equal(sum(pars_bujumbura$seed_rate[18,2]) , initial_infections) # check all are in unvaccinated ASW
 })
 
 test_that("Mixing matrices are correct in Equateur", {
