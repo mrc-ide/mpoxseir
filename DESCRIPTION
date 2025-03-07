@@ -31,7 +31,7 @@ Imports:
 Config/testthat/edition: 3
 Remotes:
     mrc-ide/odin2,
-    mrc-ide/dust2@mrc-6225,
+    mrc-ide/dust2,
     mrc-ide/monty,
     mrc-ide/mcstate,
     mrc-ide/odin.dust,
