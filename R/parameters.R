@@ -62,7 +62,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   if (region == "equateur") {
     p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
-    p_SW <- 0.03 * 0.5 # WHO press release
+    p_SW <- 0.9 * 0.5 # WHO press release
   } else if (region == "burundi"){
     p_SW <- 0.028 * 0.5 # Laga et al
   } else if (region %in% c("bujumbura","bujumbura_mairie")){
