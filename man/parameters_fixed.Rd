@@ -7,9 +7,9 @@
 parameters_fixed(
   region,
   initial_infections,
-  p_SW = 0.01,
   use_ve_D = FALSE,
   mixing_matrix = "Zimbabwe",
+  p_SW = NULL,
   overrides = list()
 )
 }
@@ -19,15 +19,16 @@ parameters_fixed(
 
 \item{initial_infections}{The initial number of infections}
 
-\item{p_SW}{The proportion of SW-age groups that are sex workers. Note that
-e.g. a value of 0.01 means 1\% of all SW-age groups are sex workers and not
-just 1\% of women in those groups}
-
 \item{use_ve_D}{logical, indicating whether model should allow for vaccine
 efficacy against death (above and beyond protection against infection)}
 
 \item{mixing_matrix}{The mixing matrix must be either \code{"Zimbabwe"},
 \code{"synthetic_home"}, or \code{"synthetic_all"}}
+
+\item{p_SW}{The proportion of SW-age groups that are sex workers. Note that
+e.g. a value of 0.01 means 1\% of all SW-age groups are sex workers and not
+just 1\% of women in those groups. Default is NULL, in which case we use
+the default value for the region given in the package}
 
 \item{overrides}{A list, containing any parameters for which you want to
 override the default values}
