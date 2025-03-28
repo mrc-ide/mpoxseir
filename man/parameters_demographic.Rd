@@ -4,11 +4,15 @@
 \alias{parameters_demographic}
 \title{Get demographic parameters}
 \usage{
-parameters_demographic(region, mixing_matrix = "Zimbabwe")
+parameters_demographic(region, p_SW = 0.01, mixing_matrix = "Zimbabwe")
 }
 \arguments{
-\item{region}{The region for the parameters, must be either \code{"equateur"} or
-\code{"sudkivu"}}
+\item{region}{The region for the parameters, must be either \code{"equateur"},
+\code{"sudkivu"}, \code{"burundi"} or \code{"bujumbura"}}
+
+\item{p_SW}{The proportion of SW-age groups that are sex workers. Note that
+e.g. a value of 0.01 means 1\% of all SW-age groups are sex workers and not
+just 1\% of women in those groups}
 
 \item{mixing_matrix}{The mixing matrix must be either \code{"Zimbabwe"},
 \code{"synthetic_home"}, or \code{"synthetic_all"}}
