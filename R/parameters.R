@@ -7,6 +7,10 @@
 ##'   `"sudkivu"`, `"burundi"` or `"bujumbura"`
 ##' @param mixing_matrix The mixing matrix must be either `"Zimbabwe"`,
 ##'  `"synthetic_home"`, or `"synthetic_all"`
+##' @param p_SW The proportion of SW-age groups that are sex workers. Note that
+##'   e.g. a value of 0.01 means 1% of all SW-age groups are sex workers and not
+##'   just 1% of women in those groups. Default is NULL, in which case we use
+##'   the default value for the region given in the package
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
@@ -16,8 +20,8 @@
 ##' @importFrom squire get_mixing_matrix
 ##' 
 ##' @export
-parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
-  
+parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
+                                   p_SW = NULL) {
   age_bins <- get_age_bins()
   squire_age_bins <- create_age_bins(start = seq(0, 75, 5))
   group_bins <- get_group_bins()
@@ -60,14 +64,16 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe") {
   N_ASW <- N_age * w_ASW
   
   if (region == "equateur") {
-    p_SW <- 0.007 * 0.5 # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
+    p_SW <- p_SW %||% 0.007 * 0.5 
+    # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
-    p_SW <- 0.03 * 0.5 # WHO press release
+    p_SW <- p_SW %||% 0.03 * 0.5 # WHO press release
   } else if (region == "burundi"){
-    p_SW <- 0.028 * 0.5 # Laga et al
+    p_SW <- p_SW %||% 0.028 * 0.5 # Laga et al
   } else if (region %in% c("bujumbura","bujumbura_mairie")){
-   p_poss_SW  <-  sum(N_ASW + N_CSW)/ sum(N_age)
-   p_SW <- 3852 / (792503 * p_poss_SW)  ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
+    p_poss_SW  <-  sum(N_ASW + N_CSW)/ sum(N_age)
+    p_SW <- p_SW %||%  3852 / (792503 * p_poss_SW)
+    ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
   }
   
   N_CSW <- round(p_SW * N_CSW)
@@ -430,8 +436,9 @@ assign_seeds <- function(N, w) {
 ##' @export
 ##' 
 #' @export
-parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE, 
-                             mixing_matrix = "Zimbabwe", overrides = list()) {
+parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
+                             mixing_matrix = "Zimbabwe", p_SW = NULL,
+                             overrides = list()) {
 
   ## Checking region
   if (!(region %in% c("equateur", "sudkivu",
@@ -441,7 +448,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic(region = region,
-                                               mixing_matrix = mixing_matrix)
+                                               mixing_matrix = mixing_matrix,
+                                               p_SW = p_SW)
   age_bins <- get_age_bins()
   idx_compartment <- get_compartment_indices()
 
