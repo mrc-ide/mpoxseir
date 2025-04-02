@@ -64,17 +64,19 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   N_ASW <- N_age * w_ASW
   
   if (region == "equateur") {
-    p_SW <- p_SW %||% 0.007 * 0.5 
+    p_SW_default <- 0.007 * 0.5 
     # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
-    p_SW <- p_SW %||% 0.03 * 0.5 # WHO press release
+    p_SW_default <- 0.03 * 0.5 # WHO press release
   } else if (region == "burundi"){
-    p_SW <- p_SW %||% 0.028 * 0.5 # Laga et al
+    p_SW_default <- 0.028 * 0.5 # Laga et al
   } else if (region %in% c("bujumbura","bujumbura_mairie")){
     p_poss_SW  <-  sum(N_ASW + N_CSW)/ sum(N_age)
-    p_SW <- p_SW %||%  3852 / (792503 * p_poss_SW)
+    p_SW_default <- 3852 / (792503 * p_poss_SW)
     ## key pops report, taken as median of Bujumbura Mairie in Figure 7 
   }
+  
+  p_SW <- p_SW %||% p_SW_default
   
   N_CSW <- round(p_SW * N_CSW)
   N_ASW <- round(p_SW * N_ASW)
