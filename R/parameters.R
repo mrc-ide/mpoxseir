@@ -101,9 +101,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   
   ## HCW
   if(region %in% c("equateur","sudkivu")){
-    p_HCW <- 133809 / sum(N_age)
+    p_HCW <- 136606 / sum(N_age)
   } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
-    p_HCW <- 107721 / sum(N_age)
+    p_HCW <- 11911 / sum(N_age)
   }
    
    # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
