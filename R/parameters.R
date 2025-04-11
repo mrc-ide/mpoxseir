@@ -539,8 +539,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   
   CFR["ASW", ] <- colMeans(CFR[which(age_bins$start>=12&age_bins$end<=49),])
   CFR["CSW", ] <- CFR["ASW", ]
-  CFR["PBS", ] <- colMeans(CFR[which(age_bins$start>=20&age_bins$end<=49),])
-  CFR["HCW", ] <- CFR["35-39", ]
+  CFR["PBS", ] <- colMeans(CFR[which(age_bins$start>=18&age_bins$end<=49),])
+  CFR["HCW", ] <- colMeans(CFR[which(age_bins$start>=18&age_bins$end<=69),])
   
   ## vaccination default 
   
