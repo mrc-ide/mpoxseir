@@ -44,7 +44,7 @@ reference_pars_targeted_vax <- function(region = "equateur") {
                             ncol=pars$N_prioritisation_steps_adults,
                             byrow=FALSE)
   priority_adults[c(3:16,19:20),1] <- 0
-  priority_adults[c(3:16),2] <- 0
+  priority_adults[c(3:16,20),2] <- 0
   
   pars$prioritisation_strategy_adults <- priority_adults * 0.5
 
