@@ -10,6 +10,7 @@ parameters_fixed(
   use_ve_D = FALSE,
   mixing_matrix = "Zimbabwe",
   p_SW = NULL,
+  p_HCW = NULL,
   overrides = list()
 )
 }
@@ -29,6 +30,8 @@ efficacy against death (above and beyond protection against infection)}
 e.g. a value of 0.01 means 1\% of all SW-age groups are sex workers and not
 just 1\% of women in those groups. Default is NULL, in which case we use
 the default value for the region given in the package}
+
+\item{p_HCW}{The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which the default values for DRC and Burundi are used.}
 
 \item{overrides}{A list, containing any parameters for which you want to
 override the default values}
