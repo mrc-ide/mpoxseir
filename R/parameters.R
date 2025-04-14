@@ -11,6 +11,7 @@
 ##'   e.g. a value of 0.01 means 1% of all SW-age groups are sex workers and not
 ##'   just 1% of women in those groups. Default is NULL, in which case we use
 ##'   the default value for the region given in the package
+##' @param p_HCW The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which there is no HCW population. Estimated values for DRC and Burundi are included should these be needed. 
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
@@ -21,7 +22,8 @@
 ##' 
 ##' @export
 parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
-                                   p_SW = NULL) {
+                                   p_SW = NULL,
+                                   p_HCW = NULL) {
   age_bins <- get_age_bins()
   squire_age_bins <- create_age_bins(start = seq(0, 75, 5))
   group_bins <- get_group_bins()
@@ -98,14 +100,14 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
                                   group_bins["HCW", "end"])
   N_HCW <- N_age * w_HCW
   
-  
-  ## HCW
   if(region %in% c("equateur","sudkivu")){
-    p_HCW <- 136606 / sum(N_age)
-  } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
-    p_HCW <- 11911 / sum(N_age)
-  }
-   
+    p_HCW_default <- 136606 / sum(N_age)
+    } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
+    p_HCW_default <- 11911 / sum(N_age)
+    }
+  
+  p_HCW <- p_HCW %||% p_HCW_default
+
    # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
   N_HCW <- round(p_HCW * N_HCW)
   
@@ -440,6 +442,7 @@ assign_seeds <- function(N, w) {
 #' @export
 parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              mixing_matrix = "Zimbabwe", p_SW = NULL,
+                             p_HCW = NULL,
                              overrides = list()) {
 
   ## Checking region
@@ -451,7 +454,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic(region = region,
                                                mixing_matrix = mixing_matrix,
-                                               p_SW = p_SW)
+                                               p_SW = p_SW,
+                                               p_HCW = p_HCW)
   age_bins <- get_age_bins()
   idx_compartment <- get_compartment_indices()
 
