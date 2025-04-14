@@ -235,7 +235,7 @@ test_that("when beta_h = 0, beta_z = 0, beta_hcw = 0 infections only from sexual
   idx_kp <- unlist(idx_comp$group[c("CSW", "ASW", "PBS")])
   idx_unvax <- idx_comp$vax$unvaccinated
   
-  pars$seed_rate[idx_kp, idx_unvax] <- pars$seed_rate[idx_kp, idx_unvax] + 10
+  pars$seed_rate[idx_kp, idx_unvax] <- pars$seed_rate[idx_kp, idx_unvax] + 15
   
   sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
                                    n_particles = 3, seed = 1, dt = 1)

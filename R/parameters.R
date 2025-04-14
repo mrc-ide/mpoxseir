@@ -534,11 +534,13 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     # use same CFR for all vaccinated regardless of efficacy
     CFR[, -idx_unvax] <- CFR_historic_vax
   }
-
-  CFR["CSW", ] <- CFR["15-19", ]
-  CFR["ASW", ] <- CFR["20-24", ]
-  CFR["PBS", ] <- CFR["35-39", ]
-  CFR["HCW", ] <- CFR["35-39", ]
+  
+  group_bins <- get_group_bins()
+  
+  CFR["ASW", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="CSW")]&age_bins$end<=group_bins$end[which(group_bins$label=="ASW")]),])
+  CFR["CSW", ] <- CFR["ASW", ]
+  CFR["PBS", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="PBS")]&age_bins$end<=group_bins$end[which(group_bins$label=="PBS")]),])
+  CFR["HCW", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="HCW")]&age_bins$end<=group_bins$end[which(group_bins$label=="HCW")]),])
   
   ## vaccination default 
   
