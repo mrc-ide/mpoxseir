@@ -177,3 +177,41 @@ test_that("Can change proportion of SW population", {
   test_p_SW("burundi", 0.028 * 0.5)
   
 })
+
+
+test_that("Can change proportion of HCW population", {
+  
+  test_p_HCW <- function(region) {
+    ## Just use default
+    p1 <- parameters_fixed(region, initial_infections = 10)
+    
+    if (region %in% c("equateur","sudkivu")){
+      p_HCW_default <- 136606 / 89561404
+    } else if(region %in% c("burundi", "bujumbura", "bujumbura_mairie")){
+      p_HCW_default <- 11911 / 11890781
+    } 
+    
+    
+    ## Specify default (should be same as above)
+    p2 <- parameters_fixed(region, initial_infections = 10, 
+                           p_HCW = p_HCW_default)
+    
+    expect_equal(p1$N0, p2$N0)
+    
+    ## Should be different
+    p3 <- parameters_fixed(region, initial_infections = 10,
+                           p_HCW = 0.5 * p_HCW_default)
+    expect_false(all(p3$N0 == p1$N0))
+    
+    ## Should have zero HCWs
+    p4 <- parameters_fixed(region, initial_infections = 10,
+                           p_HCW = 0)
+    expect_true(p4$N0["HCW"] == 0)
+  }
+  
+  test_p_HCW("equateur")
+  test_p_HCW("sudkivu")
+  test_p_HCW("burundi")
+  
+})
+
