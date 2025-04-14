@@ -11,7 +11,7 @@
 ##'   e.g. a value of 0.01 means 1% of all SW-age groups are sex workers and not
 ##'   just 1% of women in those groups. Default is NULL, in which case we use
 ##'   the default value for the region given in the package
-##' @param p_HCW The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which there is no HCW population. Estimated values for DRC and Burundi are included should these be needed. 
+##' @param p_HCW The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which the default values for DRC and Burundi are used.
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
