@@ -261,7 +261,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
   m <- M / N
-  m[is.na(m)] <- 0 # correct for any zero population denominators (e.g. HCW)
+  # correct for any zero population denominators (e.g. HCW)
+  m[N == 0, ] <- m[, N == 0] <- 0
+  
 
 
   ## set up sexual contact matrix for parameterisation in transform function
