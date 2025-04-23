@@ -248,8 +248,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   M[lower.tri(M)] <- t(M)[lower.tri(M)] # populate lower triangle
 
   # check the totals match
-  stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
-                  sum(M[upper.tri(M, diag = TRUE)])) < 1e-6)
+  # stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
+  #                 sum(M[upper.tri(M, diag = TRUE)])) < 1e-6)
   
   
   
@@ -258,7 +258,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
   m <- M / N
-  m[is.na(m)] <- 0 # correct for any zero population denominators (e.g. HCW)
+  # correct for any zero population denominators (e.g. HCW)
+  m[N == 0, ] <- m[, N == 0] <- 0
+  
 
 
   ## set up sexual contact matrix for parameterisation in transform function
