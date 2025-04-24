@@ -52,16 +52,6 @@ dim(prioritisation_strategy_children) <-
 prioritisation_strategy_adults <- parameter()
 dim(prioritisation_strategy_adults) <- c(n_group, N_prioritisation_steps_adults)
 
-## what is the maximum number of people who can be vaccinated within each group according to hesitancy levels - we will use this to ensure we don't breach this level
-max_vax[] <- ceiling((
-  prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
-    prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-  ) * sum(N[i, ])) 
-dim(max_vax) <- n_group
-
-vax_hes_remaining[] <- (max_vax[i] - sum(N[i,3:4]))
-dim(vax_hes_remaining) <- n_group
-
 ## vaccination targets: for each group, what is the level of coverage we want to
 ## see before we move onto the next set of groups to target?
 ## here, j=1,...,n_vax corresponds to the coverage wanted in j, so for j=0
@@ -203,6 +193,20 @@ dim(adults_dose1_denom) <- c(n_group)
 adults_dose2_denom[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3]) * give_dose2_adults[i]
 dim(adults_dose2_denom) <- c(n_group)
 
+## what is the maximum number of people who can be vaccinated within each group according to hesitancy levels - we will use this to ensure we don't breach this level
+# max_vax[] <- ceiling((
+#   prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
+#     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
+# ) * sum(N[i, ])) 
+# dim(max_vax) <- n_group
+
+max_vax_remaining[] <- (ceiling((
+  prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
+    prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
+) * sum(N[i, ]))  - sum(N[i,3:4]))
+dim(max_vax_remaining) <- n_group
+
+
 ## decide how many will go to each different state 
 
 ## children 1st doses
@@ -214,12 +218,12 @@ dim(children_dose1_prob) <- n_group
 children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
     Binomial(
       min(
-        daily_doses_children_t[2],vax_hes_remaining[1]),
+        daily_doses_children_t[2],max_vax_remaining[1]),
       children_dose1_prob[1])
 children_dose1_group[2:n_group] <- if (sum(children_dose1_prob[i:n_group]) == 0) 0 else
   Binomial(
     min(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]),
-        vax_hes_remaining[i]), 
+        max_vax_remaining[i]), 
            children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
 dim(children_dose1_group) <- n_group
 
