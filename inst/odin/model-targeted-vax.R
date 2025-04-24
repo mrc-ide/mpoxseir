@@ -217,7 +217,9 @@ children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
         daily_doses_children_t[2],vax_hes_remaining[1]),
       children_dose1_prob[1])
 children_dose1_group[2:n_group] <- if (sum(children_dose1_prob[i:n_group]) == 0) 0 else
-  Binomial(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]), 
+  Binomial(
+    min(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]),
+        vax_hes_remaining[i]), 
            children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
 dim(children_dose1_group) <- n_group
 
