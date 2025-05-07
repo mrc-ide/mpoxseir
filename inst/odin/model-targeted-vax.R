@@ -78,7 +78,7 @@ target_met_children_t[] <- 0
 target_met_children_t[] <-
   ((sum(N[i, 3:4]) * is_child[i]) >
      prioritisation_strategy_children[
-       i, prioritisation_step_1st_dose_children] * sum(N[i, ]))
+       i, prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
 
 ## adults
 ## keep this as a vector because it means the columns match (E.g. 3 and 3, 4 and 4)
@@ -91,14 +91,14 @@ target_met_adults_t[, ] <- 0
 target_met_adults_t[, 3] <-
   ((sum(N[i, 3:4]) * (1 - is_child[i])) > ## getting stuck in a loop here because this is >= not > but also can't give out any more vaccines as max_vax is at 0
      prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
-     sum(N[i, ]))
+     sum(N[i, 2:4]))
 
 
 ## 2nd doses
 target_met_adults_t[, 4] <-
   ((sum(N[i, 4]) * (1 - is_child[i])) >
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
-     sum(N[i, ]))
+     sum(N[i, 2:4]))
 
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
@@ -206,7 +206,7 @@ dim(adults_dose2_denom) <- c(n_group)
 max_vax_remaining[] <- (
   ceiling((prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-    ) * sum(N[i, ]))  - sum(N[i,3:4]))
+    ) * sum(N[i, 2:4]))  - sum(N[i,3:4])) + 1
 dim(max_vax_remaining) <- n_group
 
 ## decide how many will go to each different state 
