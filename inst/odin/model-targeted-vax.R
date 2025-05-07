@@ -7,6 +7,8 @@
 ## j = 3: 1 dose
 ## j = 4: 2 doses
 
+browser(phase = "update")
+
 ## Emergency use of the MVA-BN has not been granted for children (u18s) in DRC
 ## and so we split vaccination into two components depending on age
 ## below are indicators for children vs adult groups
@@ -87,7 +89,7 @@ dim(target_met_adults_t) <- c(n_group, n_vax)
 ## for this in the 1st dose target
 target_met_adults_t[, ] <- 0
 target_met_adults_t[, 3] <-
-  ((sum(N[i, 3:4]) * (1 - is_child[i])) >
+  ((sum(N[i, 3:4]) * (1 - is_child[i])) > ## getting stuck in a loop here because this is >= not > but also can't give out any more vaccines as max_vax is at 0
      prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
      sum(N[i, ]))
 
@@ -124,11 +126,16 @@ prioritisation_step_1st_dose_children_proposal <-
     prioritisation_step_1st_dose_children + 1 else
       prioritisation_step_1st_dose_children
 
+# essentially the min function but it can't deal with this in an update step
 update(prioritisation_step_1st_dose_children) <-
   if (prioritisation_step_1st_dose_children_proposal >
       N_prioritisation_steps_children)
     N_prioritisation_steps_children else
       prioritisation_step_1st_dose_children_proposal
+
+
+#update(prioritisation_step_1st_dose_children_current) <- prioritisation_step_1st_dose_children
+#initial(prioritisation_step_1st_dose_children_current) <- 1
 
 
 ## adults
@@ -176,6 +183,7 @@ give_dose1_children[] <-
 dim(give_dose1_adults) <- c(n_group)
 give_dose1_adults[] <- 
   (1 - is_child[i]) * coverage_target_1st_dose_adults[i] * (1 - target_met_adults_t[i, 3])
+
 dim(give_dose2_adults) <- c(n_group)
 give_dose2_adults[] <- 
   (1 - is_child[i]) * coverage_target_2nd_dose_adults[i] * (1 - target_met_adults_t[i, 4])
@@ -194,18 +202,12 @@ adults_dose2_denom[] <- (S[i, 3] + Ea[i, 3] + Eb[i, 3] + R[i, 3]) * give_dose2_a
 dim(adults_dose2_denom) <- c(n_group)
 
 ## what is the maximum number of people who can be vaccinated within each group according to hesitancy levels - we will use this to ensure we don't breach this level
-# max_vax[] <- ceiling((
-#   prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
-#     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-# ) * sum(N[i, ])) 
-# dim(max_vax) <- n_group
-
-max_vax_remaining[] <- (ceiling((
-  prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
+## only applicable to 1st doses as 2nd doses can only be given if have had a 1st dose
+max_vax_remaining[] <- (
+  ceiling((prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-) * sum(N[i, ]))  - sum(N[i,3:4]))
+    ) * sum(N[i, ]))  - sum(N[i,3:4]))
 dim(max_vax_remaining) <- n_group
-
 
 ## decide how many will go to each different state 
 
@@ -216,15 +218,17 @@ children_dose1_prob[] <- if (sum(children_dose1_denom) == 0) 0 else
 dim(children_dose1_prob) <- n_group
 
 children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
-    Binomial(
-      min(
-        daily_doses_children_t[2],max_vax_remaining[1]),
-      children_dose1_prob[1])
+    min(
+      Binomial(daily_doses_children_t[2],children_dose1_prob[1]),
+      max_vax_remaining[1]
+      )
 children_dose1_group[2:n_group] <- if (sum(children_dose1_prob[i:n_group]) == 0) 0 else
-  Binomial(
-    min(daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]),
-        max_vax_remaining[i]), 
-           children_dose1_prob[i] / sum(children_dose1_prob[i:n_group]))
+  min(
+    Binomial(
+      daily_doses_children_t[2] - sum(children_dose1_group[1:(i - 1)]),
+      children_dose1_prob[i] / sum(children_dose1_prob[i:n_group])),
+    max_vax_remaining[i]
+  )
 dim(children_dose1_group) <- n_group
 
 ### then we need to do another for within each state now that we have the value going to the state  
@@ -265,12 +269,34 @@ adults_dose1_prob[] <- if (sum(adults_dose1_denom) == 0) 0 else
   adults_dose1_denom[i] / sum(adults_dose1_denom)
 dim(adults_dose1_prob) <- n_group
 
+# split into a proposal & update
+# proposal is number of vaccines we have to allocate independent of the hesitancy parameter
+# adults_dose1_group_proposal[1] <- if (sum(adults_dose1_denom) == 0) 0 else
+#   Binomial(daily_doses_adults_t[2],adults_dose1_prob[1])
+# adults_dose1_group_proposal[2:n_group] <- if (sum(adults_dose1_prob[i:n_group]) == 0) 0 else
+#   Binomial(daily_doses_adults_t[2] - sum(adults_dose1_group_proposal[1:(i - 1)]),
+#            adults_dose1_prob[i] / sum(adults_dose1_prob[i:n_group]))
+# dim(adults_dose1_group) <- n_group
+# # and now we actually update doses accounting for max_vax_remaining 
+# adults_dose1_group[] <- if(adults_dose1_group_proposal[i] > max_vax_remaining[i]) max_vax_remaining[i] else adults_dose1_group_proposal[i]
+# dim(adults_dose1_group_proposal) <- n_group
+
+
 adults_dose1_group[1] <- if (sum(adults_dose1_denom) == 0) 0 else
-  Binomial(daily_doses_adults_t[2], adults_dose1_prob[1])
+  min(
+    Binomial(daily_doses_adults_t[2],adults_dose1_prob[1]),
+    max_vax_remaining[1]
+  )
 adults_dose1_group[2:n_group] <- if (sum(adults_dose1_prob[i:n_group]) == 0) 0 else
-  Binomial(daily_doses_adults_t[2] - sum(adults_dose1_group[1:(i - 1)]), 
-           adults_dose1_prob[i] / sum(adults_dose1_prob[i:n_group]))
+  min(
+    Binomial(
+      daily_doses_adults_t[2] - sum(adults_dose1_group[1:(i - 1)]),
+      adults_dose1_prob[i] / sum(adults_dose1_prob[i:n_group])),
+    max_vax_remaining[i]
+  )
 dim(adults_dose1_group) <- n_group
+
+
 
 ### then we need to do another for within each state now that we have the value going to the state  
 
@@ -311,9 +337,10 @@ adults_dose2_prob[] <- if (sum(adults_dose2_denom) == 0) 0 else
 dim(adults_dose2_prob) <- n_group
 
 adults_dose2_group[1] <- if (sum(adults_dose2_denom) == 0) 0 else
-  Binomial(daily_doses_adults_t[3], adults_dose2_prob[1])
+  Binomial(daily_doses_adults_t[3],adults_dose2_prob[1])
 adults_dose2_group[2:n_group] <- if (sum(adults_dose2_prob[i:n_group]) == 0) 0 else
-  Binomial(daily_doses_adults_t[3] - sum(adults_dose2_group[1:(i - 1)]), 
+  Binomial(
+    daily_doses_adults_t[3] - sum(adults_dose2_group[1:(i - 1)]), 
            adults_dose2_prob[i] / sum(adults_dose2_prob[i:n_group]))
 dim(adults_dose2_group) <- n_group
 
@@ -412,6 +439,7 @@ update(vax_2nddose_given_Eb) <- sum(n_vaccination_t_Eb[, 3])
 update(vax_2nddose_given_R) <- sum(n_vaccination_t_R[, 3])
 
 ## end of vaccination section
+#browser(phase = "update")
 
 
 ## Core equations for transitions between compartments:
@@ -1114,4 +1142,5 @@ cases_00_04_binom ~ BetaBinomial(cases_00_14_binom,
 cases_00_14_binom ~ BetaBinomial(cases_binom, 
                                  prob  = model_cases_00_14 / model_cases, 
                                  rho = rho_00_14)
+
 
