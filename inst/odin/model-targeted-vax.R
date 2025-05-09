@@ -7,8 +7,6 @@
 ## j = 3: 1 dose
 ## j = 4: 2 doses
 
-browser(phase = "update")
-
 ## Emergency use of the MVA-BN has not been granted for children (u18s) in DRC
 ## and so we split vaccination into two components depending on age
 ## below are indicators for children vs adult groups
@@ -89,16 +87,16 @@ dim(target_met_adults_t) <- c(n_group, n_vax)
 ## for this in the 1st dose target
 target_met_adults_t[, ] <- 0
 target_met_adults_t[, 3] <-
-  ((sum(N[i, 3:4]) * (1 - is_child[i])) > ## getting stuck in a loop here because this is >= not > but also can't give out any more vaccines as max_vax is at 0
+  ((sum(N[i, 3:4]) * (1 - is_child[i])) > 
      prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
      sum(N[i, 2:4]))
 
 
 ## 2nd doses
 target_met_adults_t[, 4] <-
-  ((sum(N[i, 4]) * (1 - is_child[i])) >
+  ((A[i, 4] * (1 - is_child[i])) >
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
-     sum(N[i, 2:4]))
+     sum(A[i, 2:4])) ## only want to account for those alive - dead will never get a second dose but they are being counted in the target and so we get stuck due to new strict criteria for doses
 
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
@@ -206,7 +204,7 @@ dim(adults_dose2_denom) <- c(n_group)
 max_vax_remaining[] <- (
   ceiling((prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-    ) * sum(N[i, 2:4]))  - sum(N[i,3:4])) + 1
+    ) * sum(N[i, 2:4]))  - sum(N[i,3:4])) + 1 # plus one is needed so don't get stuck in a sitch where a > a in the targets
 dim(max_vax_remaining) <- n_group
 
 ## decide how many will go to each different state 
@@ -439,8 +437,6 @@ update(vax_2nddose_given_Eb) <- sum(n_vaccination_t_Eb[, 3])
 update(vax_2nddose_given_R) <- sum(n_vaccination_t_R[, 3])
 
 ## end of vaccination section
-#browser(phase = "update")
-
 
 ## Core equations for transitions between compartments:
 # by age groups and vaccination class
@@ -461,6 +457,7 @@ update(Id[, ]) <- new_Id[i, j]
 update(R[, ]) <- new_R[i, j]
 update(D[, ]) <- new_D[i, j]
 
+
 ## Additional outputs
 new_E[, ] <- new_Ea[i, j] + new_Eb[i, j]
 new_I[, ] <- new_Ir[i, j] + new_Id[i, j]
@@ -470,6 +467,11 @@ new_N[, ] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
 update(E[, ]) <- new_E[i, j] 
 update(I[, ]) <- new_I[i, j]
 update(N[, ]) <- new_N[i, j]
+
+# count who is alive for vaccination target purposes
+new_A[,] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
+  new_Id[i, j] + new_R[i, j]
+update(A[,]) <- new_A[i,j]
 
 # cumulative cases by transmission route
 update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
@@ -752,10 +754,13 @@ initial(Id[, ]) <- Id0[i, j]
 initial(R[, ]) <- R0[i, j]
 initial(D[, ]) <- D0[i, j]
 
+
 initial(E[, ]) <- Ea0[i, j] + Eb0[i, j] + seed[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
+initial(A[,]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
+  R0[i, j]
 initial(cases_inc, zero_every = 7) <- 0
 initial(deaths_inc, zero_every = 7) <- 0
 initial(cases_cumulative) <- 0
@@ -899,6 +904,7 @@ n_group <- parameter()
 ## multi-dimensional arrays
 dim(N, new_N) <- c(n_group, n_vax)
 dim(S, new_S) <- c(n_group, n_vax)
+dim(A, new_A) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
 dim(n_SEa) <- c(n_group, n_vax)
