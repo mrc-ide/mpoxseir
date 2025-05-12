@@ -78,6 +78,10 @@ target_met_children_t[] <-
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
 
+new_coverage_target_1st_dose_children[] <- ceiling(
+  prioritisation_strategy_children[i, new_prioritisation_step_1st_dose_children])
+dim(new_coverage_target_1st_dose_children) <- c(n_group)
+
 ## adults
 ## keep this as a vector because it means the columns match (E.g. 3 and 3, 4 and 4)
 dim(target_met_adults_t) <- c(n_group, n_vax)
@@ -118,23 +122,21 @@ coverage_target_2nd_dose_adults[] <- ceiling(
 dim(coverage_target_2nd_dose_adults) <- c(n_group)
 
 ## children
-prioritisation_step_1st_dose_children_proposal <-
-  if (sum(target_met_children_t[]) ==
-      sum(coverage_target_1st_dose_children[]))
-    prioritisation_step_1st_dose_children + 1 else
-      prioritisation_step_1st_dose_children
+new_prioritisation_step_1st_dose_children <-
+  if (sum(target_met_children_t[]) == sum(coverage_target_1st_dose_children[]))
+    min(prioritisation_step_1st_dose_children + 1,
+        N_prioritisation_steps_children) else
+          prioritisation_step_1st_dose_children
 
-# essentially the min function but it can't deal with this in an update step
 update(prioritisation_step_1st_dose_children) <-
-  if (prioritisation_step_1st_dose_children_proposal >
-      N_prioritisation_steps_children)
-    N_prioritisation_steps_children else
-      prioritisation_step_1st_dose_children_proposal
+  new_prioritisation_step_1st_dose_children
 
-
-#update(prioritisation_step_1st_dose_children_current) <- prioritisation_step_1st_dose_children
-#initial(prioritisation_step_1st_dose_children_current) <- 1
-
+new_target_met_children_t[] <- 0
+new_target_met_children_t[] <-
+  ((sum(N[i, 3:4]) * is_child[i]) >
+     prioritisation_strategy_children[
+       i, new_prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
+dim(new_target_met_children_t) <- c(n_group)
 
 ## adults
 prioritisation_step_1st_dose_adults_proposal <-
@@ -176,7 +178,7 @@ initial(prioritisation_step_2nd_dose_adults) <- 1
 
 dim(give_dose1_children) <- c(n_group)
 give_dose1_children[] <- 
-  is_child[i] * coverage_target_1st_dose_children[i] * (1 - target_met_children_t[i])
+  is_child[i] * new_coverage_target_1st_dose_children[i] * (1 - new_target_met_children_t[i])
 
 dim(give_dose1_adults) <- c(n_group)
 give_dose1_adults[] <- 
