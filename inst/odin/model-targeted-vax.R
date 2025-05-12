@@ -93,10 +93,13 @@ target_met_adults_t[, 3] <-
 
 
 ## 2nd doses
-target_met_adults_t[, 4] <-
-  ((A[i, 4] * (1 - is_child[i])) >
+## those who died having only 1 dose are counted as having 2 doses for
+## target purposes
+target_met_adults_t[, 4] <- if (coverage_target_2nd_dose_adults[i] == 0) 0 else
+  (((N[i, 4] + D[i, 3]) * (1 - is_child[i])) >
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
-     sum(A[i, 2:4])) ## only want to account for those alive - dead will never get a second dose but they are being counted in the target and so we get stuck due to new strict criteria for doses
+     sum(N[i, 2:4])) 
+
 
 ## prioritisation step proposal to account for the fact that this would update
 ## every single time step if we vaccinate quickly enough (unlikely but would
@@ -468,10 +471,6 @@ update(E[, ]) <- new_E[i, j]
 update(I[, ]) <- new_I[i, j]
 update(N[, ]) <- new_N[i, j]
 
-# count who is alive for vaccination target purposes
-new_A[,] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
-  new_Id[i, j] + new_R[i, j]
-update(A[,]) <- new_A[i,j]
 
 # cumulative cases by transmission route
 update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
@@ -759,8 +758,7 @@ initial(E[, ]) <- Ea0[i, j] + Eb0[i, j] + seed[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
-initial(A[,]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
-  R0[i, j]
+
 initial(cases_inc, zero_every = 7) <- 0
 initial(deaths_inc, zero_every = 7) <- 0
 initial(cases_cumulative) <- 0
@@ -904,7 +902,6 @@ n_group <- parameter()
 ## multi-dimensional arrays
 dim(N, new_N) <- c(n_group, n_vax)
 dim(S, new_S) <- c(n_group, n_vax)
-dim(A, new_A) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
 dim(n_SEa) <- c(n_group, n_vax)
