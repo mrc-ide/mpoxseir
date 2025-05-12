@@ -73,8 +73,8 @@ dim(target_met_children_t) <- c(n_group)
 ## for this in the 1st dose target - this now isn't strictly relevant for
 ## children but leaving it in in case we do expand this to 2 doses in future
 target_met_children_t[] <- 0
-target_met_children_t[] <-
-  ((sum(N[i, 3:4]) * is_child[i]) >
+target_met_children_t[] <- if (coverage_target_1st_dose_children[i] == 0) 0 else
+  ((sum(N[i, 3:4]) * is_child[i]) >=
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
 
@@ -86,8 +86,8 @@ dim(target_met_adults_t) <- c(n_group, n_vax)
 ## if you have a 2nd dose this implies you also have had a 1st dose so account
 ## for this in the 1st dose target
 target_met_adults_t[, ] <- 0
-target_met_adults_t[, 3] <-
-  ((sum(N[i, 3:4]) * (1 - is_child[i])) > 
+target_met_adults_t[, 3] <- if (coverage_target_1st_dose_adults[i] == 0) 0 else
+  ((sum(N[i, 3:4]) * (1 - is_child[i])) >= 
      prioritisation_strategy_adults[i, prioritisation_step_1st_dose_adults] *
      sum(N[i, 2:4]))
 
@@ -96,7 +96,7 @@ target_met_adults_t[, 3] <-
 ## those who died having only 1 dose are counted as having 2 doses for
 ## target purposes
 target_met_adults_t[, 4] <- if (coverage_target_2nd_dose_adults[i] == 0) 0 else
-  (((N[i, 4] + D[i, 3]) * (1 - is_child[i])) >
+  (((N[i, 4] + D[i, 3]) * (1 - is_child[i])) >=
      prioritisation_strategy_adults[i, prioritisation_step_2nd_dose_adults] *
      sum(N[i, 2:4])) 
 
@@ -207,7 +207,7 @@ dim(adults_dose2_denom) <- c(n_group)
 max_vax_remaining[] <- (
   ceiling((prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
     prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-    ) * sum(N[i, 2:4]))  - sum(N[i,3:4])) + 1 # plus one is needed so don't get stuck in a sitch where a > a in the targets
+    ) * sum(N[i, 2:4]))  - sum(N[i,3:4]))
 dim(max_vax_remaining) <- n_group
 
 ## decide how many will go to each different state 
