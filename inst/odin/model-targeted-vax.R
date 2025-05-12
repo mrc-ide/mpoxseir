@@ -78,10 +78,6 @@ target_met_children_t[] <-
      prioritisation_strategy_children[
        i, prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
 
-new_coverage_target_1st_dose_children[] <- ceiling(
-  prioritisation_strategy_children[i, new_prioritisation_step_1st_dose_children])
-dim(new_coverage_target_1st_dose_children) <- c(n_group)
-
 ## adults
 ## keep this as a vector because it means the columns match (E.g. 3 and 3, 4 and 4)
 dim(target_met_adults_t) <- c(n_group, n_vax)
@@ -137,6 +133,11 @@ new_target_met_children_t[] <-
      prioritisation_strategy_children[
        i, new_prioritisation_step_1st_dose_children] * sum(N[i, 2:4]))
 dim(new_target_met_children_t) <- c(n_group)
+
+new_coverage_target_1st_dose_children[] <- ceiling(
+  prioritisation_strategy_children[i, new_prioritisation_step_1st_dose_children])
+dim(new_coverage_target_1st_dose_children) <- c(n_group)
+
 
 ## adults
 prioritisation_step_1st_dose_adults_proposal <-
