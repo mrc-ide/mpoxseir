@@ -614,6 +614,7 @@ test_that("vaccination of children still occurs if adult vaccination is turned o
   
   # expect 1st doses given
   expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  expect_true(all(apply(res["total_vax_1stdose", , 1:10], 1, diff) > 0))
   
   # expect no 2nd doses given
   expect_true(all(res["total_vax_2nddose",,max(t)]==0))
@@ -634,8 +635,6 @@ test_that("vaccination of children still occurs if adult vaccination is turned o
 test_that("vaccination of adults still occurs if child vaccination is turned off", {
   
   pars <- reference_pars_targeted_vax()
-  # adult doses
-  expect_true(any(pars$daily_doses_adults_value > 0))
   # no children doses
   pars$daily_doses_children_value[, ] <- 0
   
@@ -649,9 +648,11 @@ test_that("vaccination of adults still occurs if child vaccination is turned off
   
   # expect 1st doses given
   expect_true(all(res["total_vax_1stdose",,max(t)]>0))
+  expect_true(all(apply(res["total_vax_1stdose", , 1:11], 1, diff) > 0))
   
   # expect 2nd doses given
   expect_true(all(res["total_vax_2nddose",,max(t)]>0))
+  expect_true(all(apply(res["total_vax_2nddose", , 12:15], 1, diff) > 0))
   
   # check that the doses aren't in the child groups
   idx_children <- ceiling(pars$is_child)*seq(1:(pars$n_group*pars$n_vax))
