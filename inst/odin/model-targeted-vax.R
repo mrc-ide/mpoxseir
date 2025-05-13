@@ -280,8 +280,6 @@ adults_dose1_group[2:n_group] <- if (sum(adults_dose1_prob[i:n_group]) == 0) 0 e
   )
 dim(adults_dose1_group) <- n_group
 
-
-
 ### then we need to do another for within each state now that we have the value going to the state  
 
 ## S
