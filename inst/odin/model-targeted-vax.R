@@ -135,10 +135,6 @@ update(prioritisation_step_1st_dose_children) <-
       prioritisation_step_1st_dose_children_proposal
 
 
-#update(prioritisation_step_1st_dose_children_current) <- prioritisation_step_1st_dose_children
-#initial(prioritisation_step_1st_dose_children_current) <- 1
-
-
 ## adults
 prioritisation_step_1st_dose_adults_proposal <-
   if (sum(target_met_adults_t[, 3]) == sum(coverage_target_1st_dose_adults[]))
@@ -269,19 +265,6 @@ n_vaccination_t_R_children[] <-
 adults_dose1_prob[] <- if (sum(adults_dose1_denom) == 0) 0 else
   adults_dose1_denom[i] / sum(adults_dose1_denom)
 dim(adults_dose1_prob) <- n_group
-
-# split into a proposal & update
-# proposal is number of vaccines we have to allocate independent of the hesitancy parameter
-# adults_dose1_group_proposal[1] <- if (sum(adults_dose1_denom) == 0) 0 else
-#   Binomial(daily_doses_adults_t[2],adults_dose1_prob[1])
-# adults_dose1_group_proposal[2:n_group] <- if (sum(adults_dose1_prob[i:n_group]) == 0) 0 else
-#   Binomial(daily_doses_adults_t[2] - sum(adults_dose1_group_proposal[1:(i - 1)]),
-#            adults_dose1_prob[i] / sum(adults_dose1_prob[i:n_group]))
-# dim(adults_dose1_group) <- n_group
-# # and now we actually update doses accounting for max_vax_remaining 
-# adults_dose1_group[] <- if(adults_dose1_group_proposal[i] > max_vax_remaining[i]) max_vax_remaining[i] else adults_dose1_group_proposal[i]
-# dim(adults_dose1_group_proposal) <- n_group
-
 
 adults_dose1_group[1] <- if (sum(adults_dose1_denom) == 0) 0 else
   min(
