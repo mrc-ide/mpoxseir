@@ -460,7 +460,6 @@ update(Id[, ]) <- new_Id[i, j]
 update(R[, ]) <- new_R[i, j]
 update(D[, ]) <- new_D[i, j]
 
-
 ## Additional outputs
 new_E[, ] <- new_Ea[i, j] + new_Eb[i, j]
 new_I[, ] <- new_Ir[i, j] + new_Id[i, j]
@@ -470,7 +469,6 @@ new_N[, ] <- new_S[i, j] + new_Ea[i, j] + new_Eb[i, j] + new_Ir[i, j] +
 update(E[, ]) <- new_E[i, j] 
 update(I[, ]) <- new_I[i, j]
 update(N[, ]) <- new_N[i, j]
-
 
 # cumulative cases by transmission route
 update(cases_cumulative_hh)  <- cases_cumulative_hh + sum(n_SEa_hh[, ])
@@ -753,12 +751,10 @@ initial(Id[, ]) <- Id0[i, j]
 initial(R[, ]) <- R0[i, j]
 initial(D[, ]) <- D0[i, j]
 
-
 initial(E[, ]) <- Ea0[i, j] + Eb0[i, j] + seed[i, j]
 initial(I[, ]) <- Ir0[i, j] + Id0[i, j]
 initial(N[, ]) <- S0[i, j] + Ea0[i, j] + Eb0[i, j] + Ir0[i, j] + Id0[i, j] +
   R0[i, j] + D0[i, j]
-
 initial(cases_inc, zero_every = 7) <- 0
 initial(deaths_inc, zero_every = 7) <- 0
 initial(cases_cumulative) <- 0
@@ -1145,5 +1141,4 @@ cases_00_04_binom ~ BetaBinomial(cases_00_14_binom,
 cases_00_14_binom ~ BetaBinomial(cases_binom, 
                                  prob  = model_cases_00_14 / model_cases, 
                                  rho = rho_00_14)
-
 
