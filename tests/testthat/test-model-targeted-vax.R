@@ -670,7 +670,8 @@ test_that("children vax targets are being reached as we expect before prioritisa
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 20
+  pars$daily_doses_adults_value[, ] <- 0 
   
   # confirm 2 child prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_children)==2)
