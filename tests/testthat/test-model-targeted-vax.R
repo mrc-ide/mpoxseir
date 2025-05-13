@@ -686,8 +686,11 @@ test_that("children vax targets are being reached as we expect before prioritisa
   ## for the test to work we need to have moved to prioritisation step 2
   expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]==2))
   
+  # no days with 0 doses as we move between prioritisation steps
+  expect_true(all(apply(res["total_vax_1stdose", , 1:10], 1, diff) > 0))
+  
   # when do children move to the next step
-  time_2nd_step_children <- which(res["prioritisation_step_1st_dose_children",1,]==2)[1]
+  time_2nd_step_children <- which(res["prioritisation_step_1st_dose_children",1,]==2)[1] + 1
   
   ## moving from step 1 to step 2
   for(g in (1:pars$n_group)){

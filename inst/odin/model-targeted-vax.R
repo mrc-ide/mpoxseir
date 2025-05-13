@@ -121,8 +121,15 @@ coverage_target_2nd_dose_adults[] <- ceiling(
 dim(coverage_target_2nd_dose_adults) <- c(n_group)
 
 ## children
+new_target_met_children_t[] <- 
+  if (coverage_target_1st_dose_children[i] == 0) 0 else
+    ((sum(new_N[i, 3:4]) * is_child[i]) >=
+       prioritisation_strategy_children[
+         i, prioritisation_step_1st_dose_children] * sum(new_N[i, 2:4]))
+dim(new_target_met_children_t) <- c(n_group)
+
 prioritisation_step_1st_dose_children_proposal <-
-  if (sum(target_met_children_t[]) ==
+  if (sum(new_target_met_children_t[]) ==
       sum(coverage_target_1st_dose_children[]))
     prioritisation_step_1st_dose_children + 1 else
       prioritisation_step_1st_dose_children
