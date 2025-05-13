@@ -200,10 +200,10 @@ dim(adults_dose2_denom) <- c(n_group)
 
 ## what is the maximum number of people who can be vaccinated within each group according to hesitancy levels - we will use this to ensure we don't breach this level
 ## only applicable to 1st doses as 2nd doses can only be given if have had a 1st dose
-max_vax_remaining[] <- (
+max_vax_remaining[] <-
   ceiling((prioritisation_strategy_children[i,N_prioritisation_steps_children] + 
-    prioritisation_strategy_adults[i,N_prioritisation_steps_adults]
-    ) * sum(N[i, 2:4]))  - sum(N[i,3:4]))
+             prioritisation_strategy_adults[i,N_prioritisation_steps_adults]) * 
+            sum(N[i, 2:4]))  - sum(N[i,3:4])
 dim(max_vax_remaining) <- n_group
 
 ## decide how many will go to each different state 
