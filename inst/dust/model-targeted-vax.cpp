@@ -1089,7 +1089,7 @@ public:
       internal.coverage_target_2nd_dose_adults[i - 1] = monty::math::ceil(shared.prioritisation_strategy_adults[i - 1 + (prioritisation_step_2nd_dose_adults - 1) * shared.dim.prioritisation_strategy_adults.mult[1]]);
     }
     for (size_t i = 1; i <= shared.dim.max_vax_remaining.size; ++i) {
-      internal.max_vax_remaining[i - 1] = (monty::math::ceil((shared.prioritisation_strategy_children[i - 1 + (shared.N_prioritisation_steps_children - 1) * shared.dim.prioritisation_strategy_children.mult[1]] + shared.prioritisation_strategy_adults[i - 1 + (shared.N_prioritisation_steps_adults - 1) * shared.dim.prioritisation_strategy_adults.mult[1]]) * dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {1, 3})) - dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {2, 3}));
+      internal.max_vax_remaining[i - 1] = monty::math::ceil((shared.prioritisation_strategy_children[i - 1 + (shared.N_prioritisation_steps_children - 1) * shared.dim.prioritisation_strategy_children.mult[1]] + shared.prioritisation_strategy_adults[i - 1 + (shared.N_prioritisation_steps_adults - 1) * shared.dim.prioritisation_strategy_adults.mult[1]]) * dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {1, 3})) - dust2::array::sum<real_type>(N, shared.dim.N, {i - 1, i - 1}, {2, 3});
     }
     const real_type new_deaths_00_04 = dust2::array::sum<real_type>(internal.n_IdD.data(), shared.dim.n_IdD, {0, 0}, {0, shared.dim.n_IdD.dim[1] - 1});
     const real_type new_deaths_SW_12_14 = monty::random::binomial<real_type>(rng_state, dust2::array::sum<real_type>(internal.n_IdD.data(), shared.dim.n_IdD, {16, 16}, {0, shared.dim.n_IdD.dim[1] - 1}), static_cast<real_type>(0.5));

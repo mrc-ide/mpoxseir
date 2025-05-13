@@ -670,7 +670,7 @@ test_that("children vax targets are being reached as we expect before prioritisa
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_children_value <- pars$daily_doses_children_value * 20
+  pars$daily_doses_children_value <- pars$daily_doses_children_value * 100
   pars$daily_doses_adults_value[, ] <- 0 
   
   # confirm 2 child prioritisation steps
@@ -687,26 +687,38 @@ test_that("children vax targets are being reached as we expect before prioritisa
   ## for the test to work we need to have moved to prioritisation step 2
   expect_true(any(res["prioritisation_step_1st_dose_children",,max(t)]==2))
   
-  # no days with 0 doses as we move between prioritisation steps
-  expect_true(all(apply(res["total_vax_1stdose", , 1:10], 1, diff) > 0))
-  
-  # when do children move to the next step
-  time_2nd_step_children <- which(res["prioritisation_step_1st_dose_children",1,]==2)[1] + 1
-  
-  ## moving from step 1 to step 2
-  for(g in (1:pars$n_group)){
+  for (i in 1:3) { ## loop over particles
     
-    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
-    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+    # when do children move to the next step
+    ## +2 because: +1 for the first day on step 2, and +1 becomes it comes into
+    ## effect the following day
+    time_2nd_step_children <-
+      sum(res["prioritisation_step_1st_dose_children", i, ] < 2) + 2
     
-    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])!=0)){
-      # preceding time step expect target to be met
-      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_children-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_children-1)])>=pars$prioritisation_strategy_children[g,1]))
-      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
-      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_children[g,1]))
+    # Check we do not have days with zero doses between 
+    daily_doses_given <- c(0, diff(res["total_vax_1stdose", i, ]))
+    ## Doses given the day before we switch step
+    expect_true(daily_doses_given[time_2nd_step_children - 1] > 0)
+    ## Doses given on first day of new step
+    expect_true(daily_doses_given[time_2nd_step_children] > 0)
+    
+    ## moving from step 1 to step 2
+    for(g in (1:pars$n_group)){
       
+      group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+      group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+      
+      if(sum(res[paste0("N",group_idx), i, (time_2nd_step_children-1)])!=0){
+        # preceding time step expect target to be met
+        expect_true(sum(res[paste0("N",group_idx_vax), i, (time_2nd_step_children-1)])/sum(res[paste0("N",group_idx), i, (time_2nd_step_children-1)])>=pars$prioritisation_strategy_children[g,1])
+        # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+        expect_true(sum(res[paste0("N",group_idx_vax), i ,1])/sum(res[paste0("N",group_idx), i, 1])<=pars$prioritisation_strategy_children[g,1])
+
+      }
     }
+    
   }
+  
   
   })
 
@@ -716,8 +728,9 @@ test_that("adult vax 1st dose targets are being reached as we expect before prio
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10000
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 20
   pars$daily_doses_adults_time[2:3] <- pars$daily_doses_adults_time[2:3] *2
+  pars$daily_doses_children_value[, ] <- 0
   #pars$prioritisation_strategy_adults[20,] <- 0
 
   # confirm 3 adult prioritisation steps
@@ -735,41 +748,58 @@ test_that("adult vax 1st dose targets are being reached as we expect before prio
   ## for the test to work we need to have moved to at least prioritisation step 3
   expect_true(any(res["prioritisation_step_1st_dose_adults",,max(t)]==3))
   
-  # when do adult 1st doses move from step 1 to step 2
-  time_2nd_step_adults <- which(res["prioritisation_step_1st_dose_adults",1,]==2)[1]
-  # when do adult 1st doses move from step 2 to step 3
-  time_3rd_step_adults <- which(res["prioritisation_step_1st_dose_adults",1,]==3)[1]
-  
-  
-  ## moving from step 1 to step 2
-  for(g in 1:pars$n_group){
+  for (i in 1:3) { ## loop over particles
     
-    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
-    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+    # when do 1st dose adults move to the next step
+    ## move to step 2
+    ## +2 because: +1 for the first day on step 2, and +1 becomes it comes into
+    ## effect the following day
+    time_2nd_step_adults <-
+      sum(res["prioritisation_step_1st_dose_adults", i, ] < 2) + 2
+    ## move to step 3
+    time_3rd_step_adults <-
+      sum(res["prioritisation_step_1st_dose_adults", i, ] < 3) + 2
     
-    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
-      expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
-      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
-      expect_true(all(colSums(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
+    # Check we do not have days with zero doses between 
+    daily_doses_given <- c(0, diff(res["total_vax_1stdose", i, ]))
+    ## Doses given the day before we switch step
+    expect_true(daily_doses_given[time_2nd_step_adults - 1] > 0)
+    expect_true(daily_doses_given[time_3rd_step_adults - 1] > 0)
+    ## Doses given on first day of new step
+    expect_true(daily_doses_given[time_2nd_step_adults] > 0)
+    expect_true(daily_doses_given[time_3rd_step_adults] > 0)
+    
+    ## moving from step 1 to step 2
+    for(g in 1:pars$n_group){
       
+      group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+      group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+      
+      if(sum(res[paste0("N",group_idx), i, (time_2nd_step_adults-1)])!=0){
+        expect_true(sum(res[paste0("N",group_idx_vax), i, (time_2nd_step_adults-1)])/sum(res[paste0("N",group_idx), i, (time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1])
+        # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+        expect_true(sum(res[paste0("N",group_idx_vax), i, 1])/sum(res[paste0("N",group_idx), i, 1])<=pars$prioritisation_strategy_adults[g,1])
+        
+        
+      }
       
     }
     
-  }
+    # moving from step 2 to step 3
+    for(g in 1:pars$n_group){
+      
+      group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+      group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
+      
+      if(all(colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])!=0)){
+        # preceding time step expect target to be met
+        expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_3rd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,2]))
+        # if the first part of the test passes then there isn't a need to reassess the first time step here
+        
+      }
+      
+    }
   
-  # moving from step 2 to step 3
-  for(g in 1:pars$n_group){
-
-    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
-    group_idx_vax <- group_idx[which(group_idx>(2*pars$n_group))]
-
-    if(all(colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])!=0)){
-    # preceding time step expect target to be met
-    expect_true(all(colSums(res[paste0("N",group_idx_vax),,(time_3rd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,2]))
-      # if the first part of the test passes then there isn't a need to reassess the first time step here
-
-  }
-
   }
   
   
@@ -781,13 +811,14 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
   pars <- reference_pars_targeted_vax()
   
   # give lots of vaccines to push through quickly
-  pars$gamma_Ir <- pars$gamma_Ir*4
-  pars$gamma_Id <- pars$gamma_Id*4
-  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 1000
+  pars$gamma_Ir <- pars$gamma_Ir*10
+  pars$gamma_Id <- pars$gamma_Id*10
+  pars$daily_doses_adults_value <- pars$daily_doses_adults_value * 10
+  pars$daily_doses_children_value[, ] <- 0
   # and lower the target to make more achievable 
   pars$prioritisation_strategy_adults <- pars$prioritisation_strategy_adults/4
   pars$prioritisation_strategy_adults[20,] <- 0
-  pars$daily_doses_adults_time[length(pars$daily_doses_adults_time)] <- 100
+  pars$daily_doses_adults_time[length(pars$daily_doses_adults_time)] <- 50
   
   # confirm 2 adult prioritisation steps
   expect_true(ncol(pars$prioritisation_strategy_adult)==3)
@@ -803,38 +834,58 @@ test_that("adult vax 2nd dose targets are being reached as we expect before prio
   ## for the test to work we need to have moved to at least prioritisation step 2
   expect_true(any(res["prioritisation_step_2nd_dose_adults",,max(t)]==3))
   
-  # when do adult 2nd doses go to the next step
-  time_2nd_step_adults <- which(res["prioritisation_step_2nd_dose_adults",1,]==2)[1]
-  time_3rd_step_adults <- which(res["prioritisation_step_2nd_dose_adults",1,]==3)[1]
   
+  for (i in 1:3) { ## loop over particles
+    
+    # when do 2nd dose adults move to the next step
+    ## move to step 2
+    ## +2 because: +1 for the first day on step 2, and +1 becomes it comes into
+    ## effect the following day
+    time_2nd_step_adults <-
+      sum(res["prioritisation_step_2nd_dose_adults", i, ] < 2) + 2
+    ## move to step 3
+    time_3rd_step_adults <-
+      sum(res["prioritisation_step_2nd_dose_adults", i, ] < 3) + 2
+    
+    # Check we do not have days with zero doses between 
+    daily_doses_given <- c(0, diff(res["total_vax_2nddose", i, ]))
+    ## Doses given the day before we switch step
+    expect_true(daily_doses_given[time_2nd_step_adults - 1] > 0)
+    expect_true(daily_doses_given[time_3rd_step_adults - 1] > 0)
+    ## Doses given on first day of new step
+    expect_true(daily_doses_given[time_2nd_step_adults] > 0)
+    expect_true(daily_doses_given[time_3rd_step_adults] > 0)
   
-  ## moving from step 1 to step 2
-  for(g in 1:pars$n_group){
-    
-    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
-    group_idx_vax <- group_idx[which(group_idx>(3*pars$n_group))]
-    
-    if(all(colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])!=0)){
-      expect_true(all(sum(res[paste0("N",group_idx_vax),,(time_2nd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
-      # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
-      expect_true(all(sum(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,1]))
-    }
-    
-  }
-  
-  # moving from step 2 to step 3
-  for(g in 1:pars$n_group){
-    
-    group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
-    group_idx_vax <- group_idx[which(group_idx>(3*pars$n_group))]
-
+    ## moving from step 1 to step 2
+    for(g in 1:pars$n_group){
       
-      if(all(colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])!=0)){
-        expect_true(all(sum(res[paste0("N",group_idx_vax),,(time_3rd_step_adults-1)])/colSums(res[paste0("N",group_idx),,(time_3rd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1]))
+      group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+      group_idx_vax <- group_idx[which(group_idx>(3*pars$n_group))]
+      
+      if(sum(res[paste0("N",group_idx), i, (time_2nd_step_adults-1)])!=0){
+        expect_true(sum(res[paste0("N",group_idx_vax), i, (time_2nd_step_adults-1)])/sum(res[paste0("N",group_idx), i, (time_2nd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1])
         # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
-        expect_true(all(sum(res[paste0("N",group_idx_vax),,1])/colSums(res[paste0("N",group_idx),,1])<=pars$prioritisation_strategy_adults[g,2]))
+        expect_true(sum(res[paste0("N",group_idx_vax), i, 1])/sum(res[paste0("N",group_idx), i, 1])<=pars$prioritisation_strategy_adults[g,1])
       }
       
+    }
+    
+    # moving from step 2 to step 3
+    for(g in 1:pars$n_group){
+      
+      group_idx <- seq(from = g, to = pars$n_group*pars$n_vax, by = pars$n_group)
+      group_idx_vax <- group_idx[which(group_idx>(3*pars$n_group))]
+      
+      
+      if(sum(res[paste0("N",group_idx), i, (time_3rd_step_adults-1)])!=0){
+        expect_true(sum(res[paste0("N",group_idx_vax), i, (time_3rd_step_adults-1)])/sum(res[paste0("N",group_idx), i, (time_3rd_step_adults-1)])>=pars$prioritisation_strategy_adults[g,1])
+        # different targets aren't all met at once so difficult to make this generic, so instead just check that the target wasn't met in the first time step
+        expect_true(sum(res[paste0("N",group_idx_vax), i, 1])/sum(res[paste0("N",group_idx), i, 1])<=pars$prioritisation_strategy_adults[g,2])
+      }
+      
+    }
+
+  
   }
   
 })
