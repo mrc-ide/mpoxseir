@@ -134,12 +134,9 @@ prioritisation_step_1st_dose_children_proposal <-
     prioritisation_step_1st_dose_children + 1 else
       prioritisation_step_1st_dose_children
 
-# essentially the min function but it can't deal with this in an update step
 update(prioritisation_step_1st_dose_children) <-
-  if (prioritisation_step_1st_dose_children_proposal >
+  min(prioritisation_step_1st_dose_children_proposal,
       N_prioritisation_steps_children)
-    N_prioritisation_steps_children else
-      prioritisation_step_1st_dose_children_proposal
 
 
 ## adults
@@ -163,10 +160,8 @@ prioritisation_step_1st_dose_adults_proposal <-
       prioritisation_step_1st_dose_adults
 
 update(prioritisation_step_1st_dose_adults) <-
-  if (prioritisation_step_1st_dose_adults_proposal >
+  min(prioritisation_step_1st_dose_adults_proposal,
       N_prioritisation_steps_adults)
-    N_prioritisation_steps_adults else
-      prioritisation_step_1st_dose_adults_proposal
 
 prioritisation_step_2nd_dose_adults_proposal <-
   if (sum(new_target_met_adults_t[, 4]) ==
@@ -175,10 +170,8 @@ prioritisation_step_2nd_dose_adults_proposal <-
       prioritisation_step_2nd_dose_adults
 
 update(prioritisation_step_2nd_dose_adults) <-
-  if (prioritisation_step_2nd_dose_adults_proposal >
+  min(prioritisation_step_2nd_dose_adults_proposal,
       N_prioritisation_steps_adults)
-    N_prioritisation_steps_adults else
-      prioritisation_step_2nd_dose_adults_proposal
 
 
 #prioritisation_step <- parameter()
