@@ -1226,7 +1226,6 @@ test_that("daily doses given does not exceed capacity", {
     daily_doses_given <- c(0, diff(y$dose1_cumulative_15_plus[i, ]))
     expect_true(all(daily_doses_given<=max(pars$daily_doses_adults_value)))
   }
-
   
 })
 
