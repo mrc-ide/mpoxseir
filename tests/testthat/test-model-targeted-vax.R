@@ -1199,3 +1199,34 @@ test_that("observed cases is working", {
 
 })
 
+
+test_that("daily doses given does not exceed capacity", {
+  
+  pars <- reference_pars_targeted_vax()
+  
+  sys <- dust2::dust_system_create(model_targeted_vax(), pars, time = 1,
+                                   n_particles = 3, seed = 1, dt = 1)
+  dust2::dust_system_set_state_initial(sys)
+  
+  t <- seq(1, 21)
+  res <- dust2::dust_system_simulate(sys, t)
+  y <- dust2::dust_unpack_state(sys, res)
+  rownames(res) <- names(unlist(dust2::dust_unpack_index(sys)))
+  
+  idx <- get_compartment_indices()
+  
+  # 0 - 4 year olds
+  for(i in 1:nrow(y$dose1_cumulative_00_04)){
+    daily_doses_given <- c(0, diff(y$dose1_cumulative_00_04[i, ]))
+    expect_true(all(daily_doses_given<=max(pars$daily_doses_children_value)))
+  }
+  
+  # 15+
+  for(i in 1:nrow(y$dose1_cumulative_15_plus)){
+    daily_doses_given <- c(0, diff(y$dose1_cumulative_15_plus[i, ]))
+    expect_true(all(daily_doses_given<=max(pars$daily_doses_adults_value)))
+  }
+  
+})
+
+
