@@ -296,9 +296,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
     #total_contacts_sex = M_sex,
     n_vax = idx_compartment$dim$vax,
     p_unvaccinated = p_unvaccinated,
-    province_pop = province_pop,
-    region = region,
-    mixing_matrix = mixing_matrix
+    province_pop = province_pop
   )
 }
 
