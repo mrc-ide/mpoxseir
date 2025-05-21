@@ -4,7 +4,12 @@
 \alias{parameters_demographic}
 \title{Get demographic parameters}
 \usage{
-parameters_demographic(region, mixing_matrix = "Zimbabwe", p_SW = NULL)
+parameters_demographic(
+  region,
+  mixing_matrix = "Zimbabwe",
+  p_SW = NULL,
+  p_HCW = NULL
+)
 }
 \arguments{
 \item{region}{The region for the parameters, must be either \code{"equateur"},
@@ -17,6 +22,8 @@ parameters_demographic(region, mixing_matrix = "Zimbabwe", p_SW = NULL)
 e.g. a value of 0.01 means 1\% of all SW-age groups are sex workers and not
 just 1\% of women in those groups. Default is NULL, in which case we use
 the default value for the region given in the package}
+
+\item{p_HCW}{The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which the default values for DRC and Burundi are used.}
 }
 \value{
 A list containing all the demographic parameters

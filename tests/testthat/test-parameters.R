@@ -177,3 +177,28 @@ test_that("Can change proportion of SW population", {
   test_p_SW("burundi", 0.028 * 0.5)
   
 })
+
+
+test_that("Can change proportion of HCW population", {
+  
+  test_p_HCW <- function(region, p_HCW_default) {
+    ## Just use default
+    p1 <- parameters_fixed(region, initial_infections = 10)
+    ## Specify default (should be same as above)
+    p2 <- parameters_fixed(region, initial_infections = 10,
+                           p_HCW = p_HCW_default)
+    
+    expect_equal(p1$N0, p2$N0)
+    
+    ## Should be different
+    p3 <- parameters_fixed(region, initial_infections = 10, p_HCW = 0.1 * 0.5)
+    expect_false(all(p3$N0 == p1$N0))
+  }
+  
+  test_p_HCW("equateur", 0.001525278)
+  test_p_HCW("sudkivu", 0.001525278)
+  test_p_HCW("burundi", 0.0010017)
+  
+})
+
+

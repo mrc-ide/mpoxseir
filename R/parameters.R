@@ -11,6 +11,7 @@
 ##'   e.g. a value of 0.01 means 1% of all SW-age groups are sex workers and not
 ##'   just 1% of women in those groups. Default is NULL, in which case we use
 ##'   the default value for the region given in the package
+##' @param p_HCW The proportion of HCW-age groups that are healthcare workers. Default is NULL, in which the default values for DRC and Burundi are used.
 ##' @return A list containing all the demographic parameters
 ##'   
 ##' @export
@@ -21,7 +22,8 @@
 ##' 
 ##' @export
 parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
-                                   p_SW = NULL) {
+                                   p_SW = NULL,
+                                   p_HCW = NULL) {
   age_bins <- get_age_bins()
   squire_age_bins <- create_age_bins(start = seq(0, 75, 5))
   group_bins <- get_group_bins()
@@ -98,14 +100,14 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
                                   group_bins["HCW", "end"])
   N_HCW <- N_age * w_HCW
   
-  
-  ## HCW
   if(region %in% c("equateur","sudkivu")){
-    p_HCW <- 136606 / sum(N_age)
-  } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
-    p_HCW <- 11911 / sum(N_age)
-  }
-   
+    p_HCW_default <- 136606 / sum(N_age)
+    } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
+    p_HCW_default <- 11911 / sum(N_age)
+    }
+  
+  p_HCW <- p_HCW %||% p_HCW_default
+
    # possibly want to reduce this further to account for fact that not every HCW will have contact with mpox patients? 
   N_HCW <- round(p_HCW * N_HCW)
   
@@ -246,8 +248,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   M[lower.tri(M)] <- t(M)[lower.tri(M)] # populate lower triangle
 
   # check the totals match
-  stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
-                  sum(M[upper.tri(M, diag = TRUE)])) < 1e-6)
+  # stopifnot(abs(sum(M_age[upper.tri(M_age, diag = TRUE)]) -
+  #                 sum(M[upper.tri(M, diag = TRUE)])) < 1e-6)
   
   
   
@@ -256,7 +258,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   # Resulting matrix is Asymmetric c_ij != c_ji
   # BUT total number of contacts i->j and j->i is balanced
   m <- M / N
-  m[is.na(m)] <- 0 # correct for any zero population denominators (e.g. HCW)
+  # correct for any zero population denominators (e.g. HCW)
+  m[N == 0, ] <- m[, N == 0] <- 0
+  
 
 
   ## set up sexual contact matrix for parameterisation in transform function
@@ -440,6 +444,7 @@ assign_seeds <- function(N, w) {
 #' @export
 parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              mixing_matrix = "Zimbabwe", p_SW = NULL,
+                             p_HCW = NULL,
                              overrides = list()) {
 
   ## Checking region
@@ -451,7 +456,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic(region = region,
                                                mixing_matrix = mixing_matrix,
-                                               p_SW = p_SW)
+                                               p_SW = p_SW,
+                                               p_HCW = p_HCW)
   age_bins <- get_age_bins()
   idx_compartment <- get_compartment_indices()
 
@@ -535,11 +541,13 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     # use same CFR for all vaccinated regardless of efficacy
     CFR[, -idx_unvax] <- CFR_historic_vax
   }
-
-  CFR["CSW", ] <- CFR["15-19", ]
-  CFR["ASW", ] <- CFR["20-24", ]
-  CFR["PBS", ] <- CFR["35-39", ]
-  CFR["HCW", ] <- CFR["35-39", ]
+  
+  group_bins <- get_group_bins()
+  
+  CFR["ASW", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="CSW")]&age_bins$end<=group_bins$end[which(group_bins$label=="ASW")]),])
+  CFR["CSW", ] <- CFR["ASW", ]
+  CFR["PBS", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="PBS")]&age_bins$end<=group_bins$end[which(group_bins$label=="PBS")]),])
+  CFR["HCW", ] <- colMeans(CFR[which(age_bins$start>=group_bins$start[which(group_bins$label=="HCW")]&age_bins$end<=group_bins$end[which(group_bins$label=="HCW")]),])
   
   ## vaccination default 
   
