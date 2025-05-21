@@ -473,7 +473,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   
   N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
-  ## ages:  0-4, 5-9, 10-11, 11-12, 15+
+  ## ages:  0-4, 5-9, 10-11, 12-14, 15+
   RR_z <- c(0.977, 1, 0.444, 0.444, rep(0.078, n_group - 4)) # Jezek 1988 zoonotic + Jezek 1987
   
 
