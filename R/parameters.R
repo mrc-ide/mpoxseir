@@ -296,7 +296,9 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
     #total_contacts_sex = M_sex,
     n_vax = idx_compartment$dim$vax,
     p_unvaccinated = p_unvaccinated,
-    province_pop = province_pop
+    province_pop = province_pop,
+    region = region,
+    mixing_matrix = mixing_matrix
   )
 }
 
@@ -471,7 +473,8 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   
   N <- demographic_params$province_pop[[region]]
   N0 <- round(N * demographic_params$N0 / sum(demographic_params$N0)) # total number in each age-group
-  RR_z <- c(0.977, 1, 0.444, rep(0.078, n_group - 3)) # Jezek 1988 zoonotic + Jezek 1987
+  ## ages:  0-4, 5-9, 10-11, 11-12, 15+
+  RR_z <- c(0.977, 1, 0.444, 0.444, rep(0.078, n_group - 4)) # Jezek 1988 zoonotic + Jezek 1987
   
 
   ## Seed infections in the unvaccinated group in a region-specific manner
