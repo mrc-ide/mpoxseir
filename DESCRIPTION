@@ -1,6 +1,6 @@
 Package: mpoxseir
 Title: Stochastic compartmental model of mpox transmission
-Version: 0.2.27
+Version: 0.2.28
 Authors@R: c(person("Lilith", "Whittles", role = c("aut", "cre"),
                     email = "l.whittles@imperial.ac.uk"),
              person("Ruth", "McCabe", role = c("aut")),
