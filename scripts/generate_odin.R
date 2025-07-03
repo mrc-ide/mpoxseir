@@ -6,5 +6,6 @@ if (packageVersion("dust2") < "0.3.22") {
   stop("Please upgrade dust2 to at least 0.3.22")
 }
 
-odin2::odin_package(here::here())
+#odin2::odin_package(here::here())
+odin2::odin_package(here::here(), check_bounds = "disabled")
 devtools::load_all(here::here())
