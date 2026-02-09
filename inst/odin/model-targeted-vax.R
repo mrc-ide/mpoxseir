@@ -447,13 +447,21 @@ update(vax_2nddose_given_R) <- sum(n_vaccination_t_R[, 3])
 ## Core equations for transitions between compartments:
 # by age groups and vaccination class
 # after vaccination has taken place
-new_S[, ] <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
-new_Ea[, ] <- Ea[i, j] + delta_Ea_n_vaccination[i, j] + delta_Ea[i, j]
-new_Eb[, ] <- Eb[i, j] + delta_Eb_n_vaccination[i, j] + delta_Eb[i, j]
-new_Ir[, ] <- Ir[i, j] + delta_Ir[i, j]
-new_Id[, ] <- Id[i, j] + delta_Id[i, j]
-new_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
-new_D[, ] <- D[i, j] + delta_D[i, j]
+pre_birthdeath_S[, ] <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
+pre_birthdeath_Ea[, ] <- Ea[i, j] + delta_Ea_n_vaccination[i, j] + delta_Ea[i, j]
+pre_birthdeath_Eb[, ] <- Eb[i, j] + delta_Eb_n_vaccination[i, j] + delta_Eb[i, j]
+pre_birthdeath_Ir[, ] <- Ir[i, j] + delta_Ir[i, j]
+pre_birthdeath_Id[, ] <- Id[i, j] + delta_Id[i, j]
+pre_birthdeath_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
+pre_birthdeath_D[, ] <- D[i, j] + delta_D[i, j]
+
+new_S[, ] <- pre_birthdeath_S[i,j] + pre_birthdeath_S[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j]) + N*birthrate
+new_Ea[, ] <- pre_birthdeath_Ea[i,j] + pre_birthdeath_Ea[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+new_Eb[, ] <- pre_birthdeath_Eb[i,j] + pre_birthdeath_Eb[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+new_Ir[, ] <- pre_birthdeath_Ir[i,j] + pre_birthdeath_Ir[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+new_Id[, ] <- pre_birthdeath_Id[i,j] + pre_birthdeath_Id[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+new_R[, ] <- pre_birthdeath_R[i,j] + pre_birthdeath_R[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+new_S[, ] <- pre_birthdeath_S[i,j] + pre_birthdeath_S[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
 
 update(S[, ]) <- new_S[i, j]
 update(Ea[, ]) <- new_Ea[i, j]

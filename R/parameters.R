@@ -4,7 +4,7 @@
 ##' @title Get demographic parameters
 ##' 
 ##' @param region The region for the parameters, must be either `"equateur"`, 
-##'   `"sudkivu"`, `"lotumbe"`, `"bikoro"`, `"burundi"` or `"bujumbura"`
+##'   `"sudkivu"`, `"lotumbe"`, `"bikoro"`, `"mbandaka_region"`, `"basankusu"`, `"bolenge"`, `"bolomba"`, `"djombo"`, `"iboko"` `"burundi"` or `"bujumbura"`
 ##' @param mixing_matrix The mixing matrix must be either `"Zimbabwe"`,
 ##'  `"synthetic_home"`, or `"synthetic_all"`
 ##' @param p_SW The proportion of SW-age groups that are sex workers. Note that
@@ -30,7 +30,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   row.names(group_bins) <- group_bins$label
   
   ## Set up population denominators
-  if(region %in% c("equateur","sudkivu","lotumbe","bikoro")){
+  if(region %in% c("equateur","sudkivu","lotumbe","bikoro","bolenge","bolomba","djombo","iboko","mbandaka_region","basankusu")){
   country <- "Democratic Republic of Congo"
   } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
     country <- "Burundi"
@@ -65,7 +65,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
                                    group_bins["ASW", "end"])
   N_ASW <- N_age * w_ASW
   
-  if (region %in% c("equateur", "lotumbe","bikoro")) {
+  if (region %in% c("equateur", "lotumbe","bikoro","bolenge","bolomba","djombo","iboko","mbandaka_region","basankusu")) {
     p_SW_default <- 0.007 * 0.5 
     # 0.7% women (50%) 15-49 Laga et al - assume this holds down to age 12
   } else if (region == "sudkivu"){
@@ -100,7 +100,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
                                   group_bins["HCW", "end"])
   N_HCW <- N_age * w_HCW
   
-  if(region %in% c("equateur","sudkivu","lotumbe","bikoro")){
+  if(region %in% c("equateur","sudkivu","lotumbe","bikoro","bolenge","bolomba","djombo","iboko","mbandaka_region","basankusu")){
     p_HCW_default <- 136606 / sum(N_age)
     } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
     p_HCW_default <- 11911 / sum(N_age)
@@ -273,13 +273,19 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
                       "bujumbura" = 1095302,## Annuaire statisitique 2022 (from Olivier, in folder in Teams) - Bujumbura Mairie + Isare
                       "bujumbura_mairie" = 792503, ## purely for testing purposes
                       "lotumbe" = 89544,
-                      "bikoro" = 160624) ## from cutting out of a Worldpop tif of population in 2024 using WHO admin boundaries
+                      "bikoro" = 160624,
+                      "bolenge" = 73202,
+                      "bolomba" = 165750,
+                      "djombo" = 70075,
+                      "iboko" = 107823,
+                      "mbandaka_region" = 424243,
+                      "basankusu" = 194657) ## from cutting out of a Worldpop tif of population in 2024 using WHO admin boundaries
 
   # proportion of susceptibles estimated to be unvaccinated (historically)
   # In Burundi, no-one born after 1970 thought to be historically (smallpox) vaccinated (source: Ruth's email from Jean-Claude)
   # At time of writing (2025), this corresponds to over 55s
   p_unvaccinated <- setNames(rep(0, n_group), nms_group)
-  if (region %in% c("equateur", "sudkivu","lotumbe","bikoro")) {
+  if (region %in% c("equateur", "sudkivu","lotumbe","bikoro", "bolenge", "bolomba", "djombo", "iboko", "mbandaka_region", "basankusu")) {
     p_unvaccinated[which(age_bins$end < 40)] <- 1
     p_unvaccinated[which(age_bins$start >= 40)] <-
       c(0.54, 0.29, 0.29, 0.23, 0.21, 0.21, 0.21, 0.21)
@@ -450,9 +456,9 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                              overrides = list()) {
 
   ## Checking region
-  if (!(region %in% c("equateur", "sudkivu", "lotumbe", "bikoro",
-                      "burundi","bujumbura","bujumbura_mairie"))) {
-    stop("region must be equateur, lotumbe, bikoro, sudkivu, burundi, bujumbura or bujumbura_mairie")
+  if (!(region %in% c("equateur", "sudkivu", "lotumbe", "bikoro", "bolenge", "bolomba", "djombo", "iboko", "mbandaka_region",
+                      "basankusu","burundi","bujumbura","bujumbura_mairie"))) {
+    stop("region must be equateur, lotumbe, bikoro, bolenge, bolomba, djombo, iboko, mbandaka_region, basankusu, sudkivu, burundi, bujumbura or bujumbura_mairie")
   }
 
   ## Initialising variable that other parameters depend on
@@ -494,7 +500,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     index_asw <- get_compartment_indices()$group$ASW
     seed_rate[index_asw, idx_unvax] <- initial_infections
 
-  } else if (region %in% c("equateur","lotumbe", "bikoro")) { # seeding in general pop in proportion to zoonotic risk in equateur
+  } else if (region %in% c("equateur","lotumbe", "bikoro", "bolenge", "bolomba", "djombo", "iboko", "mbandaka_region", "basankusu")) { # seeding in general pop in proportion to zoonotic risk in equateur
 
     ## Extract gen-pop index and put initial infections in this group (unvaccinated strata) in proportion to zoonotic risk
     index_gen_pop <- seq_len(nrow(age_bins))
