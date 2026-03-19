@@ -1,7 +1,23 @@
 
+get_wpp_data <- function() {
+
+  # utils::data("mx1dt", package = "wpp2024")
+  # utils::data("misc1dt", package = "wpp2024")
+  # utils::data("miscproj1dt", package = "wpp2024")
+  mx1dt <- readRDS(system.file("extdata", "mx1dt.rds", package = "mpoxseir"))
+  misc1dt <- readRDS(system.file("extdata", "misc1dt.rds", package = "mpoxseir"))
+  miscproj1dt <- readRDS(system.file("extdata", "miscproj1dt.rds", package = "mpoxseir"))
+  
+  list(
+    mx1dt = mx1dt,
+    misc1dt = misc1dt,
+    miscproj1dt = miscproj1dt
+  )
+}
+
 get_death_rates_specific <- function(country, year_to_get, minage, maxage, deaths_df_all) {
-  deaths_df <- deaths_df_all %>% filter(name == country) %>%
-    filter(year == year_to_get) %>% filter(age >= minage) %>% filter(age <= maxage)
+  deaths_df <- deaths_df_all |> dplyr::filter(name == country) |>
+    dplyr::filter(year == year_to_get) |> dplyr::filter(age >= minage) |> dplyr::filter(age <= maxage)
   
   return(mean(deaths_df$mxB))
 }
@@ -430,16 +446,20 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   p_unvaccinated[nms_kp] <- 1 # assume no prior vaccination in KPs
   
   # Now for demographic dynamic parameters. Rates are per year. Corrected in odin code to per week
-  data(mx1dt, package = "wpp2024")
+  dem_dyn_raw_data <- get_wpp_data()
+  mx1dt <- dem_dyn_raw_data$mx1dt
+  #data(mx1dt, package = "wpp2024")
   deaths_df_all <- mx1dt
   rm(mx1dt)
   deathrates <- get_death_rates_across_demographics_and_years(ifelse(country == "Democratic Republic of Congo", "Democratic Republic of the Congo", "Burundi"), deaths_df_all = deaths_df_all)
 
-  data(misc1dt, package  = "wpp2024")
-  data(miscproj1dt, package = "wpp2024")
+  misc1dt <- dem_dyn_raw_data$misc1dt
+  miscproj1dt <- dem_dyn_raw_data$miscproj1dt
+  #data(misc1dt, package  = "wpp2024")
+  #data(miscproj1dt, package = "wpp2024")
   
-  misc_drc <- misc1dt %>% filter(name == "Democratic Republic of the Congo") %>% filter(year >= 2022)
-  misc_proj_drc <- miscproj1dt %>% filter(name == "Democratic Republic of the Congo")
+  misc_drc <- misc1dt |> dplyr::filter(name == "Democratic Republic of the Congo") |> dplyr::filter(year >= 2022)
+  misc_proj_drc <- miscproj1dt |> dplyr::filter(name == "Democratic Republic of the Congo")
   birthrates = c(misc_drc$cbr, misc_proj_drc$cbr) / 1000
   
   rm(misc1dt)
@@ -460,7 +480,7 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
     p_unvaccinated = p_unvaccinated,
     province_pop = province_pop,
     deathrates = deathrates,
-    birthrates = birthrates,
+    birthrates = birthrates#,
     #ageout_prop = ageout_prop
   )
 }

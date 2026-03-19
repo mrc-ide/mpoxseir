@@ -457,7 +457,7 @@ pre_birthdeath_D[, ] <- D[i, j] + delta_D[i, j]
 
 # Now account for births and deaths
 birth_death_year_entry <- floor(time / 52.14286) + 2 # I think each timestep is per week but CHECK THIS!!!
-deathrate[] <- all_deathrates[ , birth_death_year_entry] / 52.14286 # rates obtained are per year. We want per unit time (I think week) so divide by 365/7
+deathrate[] <- all_deathrates[i , birth_death_year_entry] / 52.14286 # rates obtained are per year. We want per unit time (I think week) so divide by 365/7
 dim(deathrate) <- 20
 birthrate <- all_birthrates[birth_death_year_entry] / 52.14286
 
@@ -917,18 +917,18 @@ n_group <- parameter()
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
 dim(N, new_N) <- c(n_group, n_vax)
-dim(S, new_S) <- c(n_group, n_vax)
+dim(S, new_S, pre_birthdeath_S) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
 dim(n_SEa) <- c(n_group, n_vax)
 
-dim(Ea, new_Ea) <- c(n_group, n_vax)
+dim(Ea, new_Ea, pre_birthdeath_Ea) <- c(n_group, n_vax)
 dim(Ea0) <- c(n_group, n_vax)
 dim(Eb0) <- c(n_group, n_vax)
 dim(delta_Ea) <- c(n_group, n_vax)
 dim(n_EaEb) <- c(n_group, n_vax)
 
-dim(Eb, new_Eb) <- c(n_group, n_vax)
+dim(Eb, new_Eb, pre_birthdeath_Eb) <- c(n_group, n_vax)
 dim(delta_Eb) <- c(n_group, n_vax)
 dim(n_EbI) <- c(n_group, n_vax)
 
@@ -937,21 +937,21 @@ dim(n_EbIr) <- c(n_group, n_vax)
 dim(E, new_E) <- c(n_group, n_vax)
 
 dim(Ir0) <- c(n_group, n_vax)
-dim(Ir, new_Ir) <- c(n_group, n_vax)
+dim(Ir, new_Ir, pre_birthdeath_Ir) <- c(n_group, n_vax)
 dim(delta_Ir) <- c(n_group, n_vax)
 dim(n_IrR) <- c(n_group, n_vax)
 
 dim(Id0) <- c(n_group, n_vax)
-dim(Id, new_Id) <- c(n_group, n_vax)
+dim(Id, new_Id, pre_birthdeath_Id) <- c(n_group, n_vax)
 dim(delta_Id) <- c(n_group, n_vax)
 dim(n_IdD) <- c(n_group, n_vax)
 dim(I, new_I) <- c(n_group, n_vax)
 
-dim(R, new_R) <- c(n_group, n_vax)
+dim(R, new_R, pre_birthdeath_R) <- c(n_group, n_vax)
 dim(R0) <- c(n_group, n_vax)
 dim(delta_R) <- c(n_group, n_vax)
 
-dim(D, new_D) <- c(n_group, n_vax)
+dim(D, new_D, pre_birthdeath_D) <- c(n_group, n_vax)
 dim(D0) <- c(n_group, n_vax)
 dim(delta_D) <- c(n_group, n_vax)
 
@@ -1164,10 +1164,12 @@ cases_00_14_binom ~ BetaBinomial(cases_binom,
 
 
 # Demographic dynamic parameters
-ageout_prop <- parameter(c(0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0000000000, 0.0023972603, 0.0007102993, 0.0007102993, 0.0004261796))
+#ageout_prop <- parameter(c(0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0000000000, 0.0023972603, 0.0007102993, 0.0007102993, 0.0004261796))
+ageout_prop <- parameter()
 dim(ageout_prop) <- 20
 all_deathrates <- parameter()
 dim(all_deathrates) <- c(20, 79)
 all_birthrates <- parameter()
 dim(all_birthrates) <- 79
+prop_SW <- parameter()
 
