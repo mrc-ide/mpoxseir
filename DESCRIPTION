@@ -27,7 +27,8 @@ Imports:
     squire,
     dplyr,
     tidyr,
-    plyr
+    plyr,
+    wpp2024
 Config/testthat/edition: 3
 Remotes:
     mrc-ide/odin2,
