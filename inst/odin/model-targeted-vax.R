@@ -455,13 +455,19 @@ pre_birthdeath_Id[, ] <- Id[i, j] + delta_Id[i, j]
 pre_birthdeath_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
 pre_birthdeath_D[, ] <- D[i, j] + delta_D[i, j]
 
-new_S[, ] <- pre_birthdeath_S[i,j] + pre_birthdeath_S[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j]) + N*birthrate
-new_Ea[, ] <- pre_birthdeath_Ea[i,j] + pre_birthdeath_Ea[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
-new_Eb[, ] <- pre_birthdeath_Eb[i,j] + pre_birthdeath_Eb[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
-new_Ir[, ] <- pre_birthdeath_Ir[i,j] + pre_birthdeath_Ir[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
-new_Id[, ] <- pre_birthdeath_Id[i,j] + pre_birthdeath_Id[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
-new_R[, ] <- pre_birthdeath_R[i,j] + pre_birthdeath_R[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
-new_S[, ] <- pre_birthdeath_S[i,j] + pre_birthdeath_S[i,j]*(agein[i,j] - deathrate[i] - ageout[i,j])
+# Now account for births and deaths
+birth_death_year_entry <- floor(time / 52.14286) + 2 # I think each timestep is per week but CHECK THIS!!!
+deathrate[] <- all_deathrates[ , birth_death_year_entry] / 52.14286 # rates obtained are per year. We want per unit time (I think week) so divide by 365/7
+dim(deathrate) <- 20
+birthrate <- all_birthrates[birth_death_year_entry] / 52.14286
+
+new_S[, ] <- pre_birthdeath_S[i,j] - pre_birthdeath_S[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_S[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_S[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_S[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_S[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_S[i-1,j]*ageout_prop[i-1]) + (if (j == 2) sum(N)*birthrate else 0)
+new_Ea[, ] <- pre_birthdeath_Ea[i,j] - pre_birthdeath_Ea[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Ea[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Ea[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Ea[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Ea[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Ea[i-1,j]*ageout_prop[i-1])
+new_Eb[, ] <- pre_birthdeath_Eb[i,j] - pre_birthdeath_Eb[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Eb[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Eb[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Eb[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Eb[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Eb[i-1,j]*ageout_prop[i-1])
+new_Ir[, ] <- pre_birthdeath_Ir[i,j] - pre_birthdeath_Ir[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Ir[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Ir[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Ir[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Ir[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Ir[i-1,j]*ageout_prop[i-1])
+new_Id[, ] <- pre_birthdeath_Id[i,j] - pre_birthdeath_Id[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Id[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Id[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Id[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Id[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Id[i-1,j]*ageout_prop[i-1])
+new_R[, ] <- pre_birthdeath_R[i,j] - pre_birthdeath_R[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_R[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_R[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_R[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_R[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_R[i-1,j]*ageout_prop[i-1])
+new_D[, ] <- pre_birthdeath_D[i,j] # the dead do not age
 
 update(S[, ]) <- new_S[i, j]
 update(Ea[, ]) <- new_Ea[i, j]
@@ -1155,4 +1161,13 @@ cases_00_04_binom ~ BetaBinomial(cases_00_14_binom,
 cases_00_14_binom ~ BetaBinomial(cases_binom, 
                                  prob  = model_cases_00_14 / model_cases, 
                                  rho = rho_00_14)
+
+
+# Demographic dynamic parameters
+ageout_prop <- parameter(c(0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0038356164, 0.0000000000, 0.0023972603, 0.0007102993, 0.0007102993, 0.0004261796))
+dim(ageout_prop) <- 20
+all_deathrates <- parameter()
+dim(all_deathrates) <- c(20, 79)
+all_birthrates <- parameter()
+dim(all_birthrates) <- 79
 
