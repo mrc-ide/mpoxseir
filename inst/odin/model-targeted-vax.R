@@ -236,6 +236,10 @@ children_dose1_prob[] <- if (sum(children_dose1_denom) == 0) 0 else
   children_dose1_denom[i] / sum(children_dose1_denom)
 dim(children_dose1_prob) <- n_group
 
+#print("children_dose1_prob[1]: {children_dose1_prob[1]}", when = children_dose1_prob[1] < 0)
+#min_child_dose1_prob <- min(children_dose1_prob)
+print("min_child_dose1_prob: {min(children_dose1_prob)}", when = min(children_dose1_prob) < 0)
+
 children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
     min(
       Binomial(daily_doses_children_t[2],children_dose1_prob[1]),
@@ -253,6 +257,8 @@ dim(children_dose1_group) <- n_group
 ### then we need to do another for within each state now that we have the value going to the state  
 
 ## S
+#print("S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]): {S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2])}", when = S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) < 0)
+#print("S[i, 2]: {S[i, 2]}", when = S[i,2]<0)
 n_vaccination_t_S_children[] <-
   if (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2] == 0) 0 else
     min(Binomial(children_dose1_group[i], 
@@ -287,6 +293,8 @@ n_vaccination_t_R_children[] <-
 adults_dose1_prob[] <- if (sum(adults_dose1_denom) == 0) 0 else
   adults_dose1_denom[i] / sum(adults_dose1_denom)
 dim(adults_dose1_prob) <- n_group
+
+print("adults_dose1_prob[]: {min(adults_dose1_prob)}", when = min(adults_dose1_prob) < 0)
 
 adults_dose1_group[1] <- if (sum(adults_dose1_denom) == 0) 0 else
   min(
@@ -339,6 +347,8 @@ n_vaccination_t_R_adults[] <-
 adults_dose2_prob[] <- if (sum(adults_dose2_denom) == 0) 0 else
   adults_dose2_denom[i] / sum(adults_dose2_denom)
 dim(adults_dose2_prob) <- n_group
+
+print("adults_dose2_prob[]: {min(adults_dose2_prob)}", when = min(adults_dose2_prob) < 0)
 
 adults_dose2_group[1] <- if (sum(adults_dose2_denom) == 0) 0 else
   Binomial(daily_doses_adults_t[3],adults_dose2_prob[1])
@@ -456,18 +466,73 @@ pre_birthdeath_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
 pre_birthdeath_D[, ] <- D[i, j] + delta_D[i, j]
 
 # Now account for births and deaths
-birth_death_year_entry <- floor(time / 52.14286) + 2 # I think each timestep is per week but CHECK THIS!!!
-deathrate[] <- all_deathrates[i , birth_death_year_entry] / 52.14286 # rates obtained are per year. We want per unit time (I think week) so divide by 365/7
-dim(deathrate) <- 20
-birthrate <- all_birthrates[birth_death_year_entry] / 52.14286
+birth_death_year_entry <- floor(time / 365) + 2 # I think each timestep is per day but CHECK THIS!!!
+death_rate[] <- all_deathrates[i , birth_death_year_entry]
 
-new_S[, ] <- pre_birthdeath_S[i,j] - pre_birthdeath_S[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_S[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_S[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_S[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_S[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_S[i-1,j]*ageout_prop[i-1]) + (if (j == 2) sum(N)*birthrate else 0)
-new_Ea[, ] <- pre_birthdeath_Ea[i,j] - pre_birthdeath_Ea[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Ea[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Ea[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Ea[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Ea[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Ea[i-1,j]*ageout_prop[i-1])
-new_Eb[, ] <- pre_birthdeath_Eb[i,j] - pre_birthdeath_Eb[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Eb[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Eb[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Eb[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Eb[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Eb[i-1,j]*ageout_prop[i-1])
-new_Ir[, ] <- pre_birthdeath_Ir[i,j] - pre_birthdeath_Ir[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Ir[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Ir[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Ir[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Ir[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Ir[i-1,j]*ageout_prop[i-1])
-new_Id[, ] <- pre_birthdeath_Id[i,j] - pre_birthdeath_Id[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_Id[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_Id[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_Id[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_Id[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_Id[i-1,j]*ageout_prop[i-1])
-new_R[, ] <- pre_birthdeath_R[i,j] - pre_birthdeath_R[i,j]*(deathrate[i] + ageout_prop[i]) + (if (i==1) 0 else if (i == 17) pre_birthdeath_R[2,j]*ageout_prop[2]*prop_SW else if (i == 3) pre_birthdeath_R[2,j]*ageout_prop[2]*(1 - prop_SW) else if (i==19) pre_birthdeath_R[4,j]*ageout_prop[4]*0.11*0.5 else if (i == 20) 0 else if (i == 5) pre_birthdeath_R[4,j]*ageout_prop[4]*(1 - 0.11*0.5) else pre_birthdeath_R[i-1,j]*ageout_prop[i-1])
+birthrate <- all_birthrates[birth_death_year_entry]
+
+ageout_S[,] <- Binomial(pre_birthdeath_S[i,j], ageout_prop[i])
+background_deaths_S[,] <- Binomial(pre_birthdeath_S[i,j] - ageout_S[i,j], death_rate[i])
+CSW_progressions_S[] <- Binomial(ageout_S[2,i], prop_SW)
+PBS_progressions_S[] <- Binomial(ageout_S[4,i], prop_PBS)
+agein_S[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_S[j] else if (i == 3) ageout_S[2,j] - CSW_progressions_S[j] else if (i==19) PBS_progressions_S[j] else if (i == 20) 0 else if (i == 5) ageout_S[4,j] - PBS_progressions_S[j] else if (i == 14) ageout_S[13,j] + ageout_S[20,j] else if (i == 11) ageout_S[10,j] + ageout_S[18,j] + ageout_S[19,j] else ageout_S[i-1,j]
+print("ageing misalignment S:{sum(agein_S)} {sum(ageout_S)}", when = sum(agein_S) - sum(ageout_S) != 0)
+
+ageout_Ea[,] <- Binomial(pre_birthdeath_Ea[i,j], ageout_prop[i])
+background_deaths_Ea[,] <- Binomial(pre_birthdeath_Ea[i,j] - ageout_Ea[i,j], death_rate[i])
+CSW_progressions_Ea[] <- Binomial(ageout_Ea[2,i], prop_SW)
+PBS_progressions_Ea[] <- Binomial(ageout_Ea[4,i], prop_PBS)
+agein_Ea[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Ea[j] else if (i == 3) ageout_Ea[2,j] - CSW_progressions_Ea[j] else if (i==19) PBS_progressions_Ea[j] else if (i == 20) 0 else if (i == 5) ageout_Ea[4,j] - PBS_progressions_Ea[j] else if (i == 14) ageout_Ea[13,j] + ageout_Ea[20,j] else if (i == 11) ageout_Ea[10,j] + ageout_Ea[18,j] + ageout_Ea[19,j] else ageout_Ea[i-1,j]
+print("ageing misalignment Ea:{sum(agein_Ea)} {sum(ageout_Ea)}", when = sum(agein_Ea) - sum(ageout_Ea) != 0)
+
+ageout_Eb[,] <- Binomial(pre_birthdeath_Eb[i,j], ageout_prop[i])
+background_deaths_Eb[,] <- Binomial(pre_birthdeath_Eb[i,j] - ageout_Eb[i,j], death_rate[i])
+CSW_progressions_Eb[] <- Binomial(ageout_Eb[2,i], prop_SW)
+PBS_progressions_Eb[] <- Binomial(ageout_Eb[4,i], prop_PBS)
+agein_Eb[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Eb[j] else if (i == 3) ageout_Eb[2,j] - CSW_progressions_Eb[j] else if (i==19) PBS_progressions_Eb[j] else if (i == 20) 0 else if (i == 5) ageout_Eb[4,j] - PBS_progressions_Eb[j] else if (i == 14) ageout_Eb[13,j] + ageout_Eb[20,j] else if (i == 11) ageout_Eb[10,j] + ageout_Eb[18,j] + ageout_Eb[19,j] else ageout_Eb[i-1,j]
+print("ageing misalignment Eb:{sum(agein_Eb)} {sum(ageout_Eb)}", when = sum(agein_Eb) - sum(ageout_Eb) != 0)
+
+ageout_Ir[,] <- Binomial(pre_birthdeath_Ir[i,j], ageout_prop[i])
+background_deaths_Ir[,] <- Binomial(pre_birthdeath_Ir[i,j] - ageout_Ir[i,j], death_rate[i])
+CSW_progressions_Ir[] <- Binomial(ageout_Ir[2,i], prop_SW)
+PBS_progressions_Ir[] <- Binomial(ageout_Ir[4,i], prop_PBS)
+agein_Ir[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Ir[j] else if (i == 3) ageout_Ir[2,j] - CSW_progressions_Ir[j] else if (i==19) PBS_progressions_Ir[j] else if (i == 20) 0 else if (i == 5) ageout_Ir[4,j] - PBS_progressions_Ir[j] else if (i == 14) ageout_Ir[13,j] + ageout_Ir[20,j] else if (i == 11) ageout_Ir[10,j] + ageout_Ir[18,j] + ageout_Ir[19,j] else ageout_Ir[i-1,j]
+print("ageing misalignment Ir:{sum(agein_Ir)} {sum(ageout_Ir)}", when = sum(agein_Ir) - sum(ageout_Ir) != 0)
+
+ageout_Id[,] <- Binomial(pre_birthdeath_Id[i,j], ageout_prop[i])
+background_deaths_Id[,] <- Binomial(pre_birthdeath_Id[i,j] - ageout_Id[i,j], death_rate[i])
+CSW_progressions_Id[] <- Binomial(ageout_Id[2,i], prop_SW)
+PBS_progressions_Id[] <- Binomial(ageout_Id[4,i], prop_PBS)
+agein_Id[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Id[j] else if (i == 3) ageout_Id[2,j] - CSW_progressions_Id[j] else if (i==19) PBS_progressions_Id[j] else if (i == 20) 0 else if (i == 5) ageout_Id[4,j] - PBS_progressions_Id[j] else if (i == 14) ageout_Id[13,j] + ageout_Id[20,j] else if (i == 11) ageout_Id[10,j] + ageout_Id[18,j] + ageout_Id[19,j] else ageout_Id[i-1,j]
+print("ageing misalignment Id:{sum(agein_Id)} {sum(ageout_Id)}", when = sum(agein_Id) - sum(ageout_Id) != 0)
+
+ageout_R[,] <- Binomial(pre_birthdeath_R[i,j], ageout_prop[i])
+background_deaths_R[,] <- Binomial(pre_birthdeath_R[i,j] - ageout_R[i,j], death_rate[i])
+CSW_progressions_R[] <- Binomial(ageout_R[2,i], prop_SW)
+PBS_progressions_R[] <- Binomial(ageout_R[4,i], prop_PBS)
+agein_R[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_R[j] else if (i == 3) ageout_R[2,j] - CSW_progressions_R[j] else if (i==19) PBS_progressions_R[j] else if (i == 20) 0 else if (i == 5) ageout_R[4,j] - PBS_progressions_R[j] else if (i == 14) ageout_R[13,j] + ageout_R[20,j] else if (i == 11) ageout_R[10,j] + ageout_R[18,j] + ageout_R[19,j] else ageout_R[i-1,j]
+print("ageing misalignment R:{sum(agein_R)} {sum(ageout_R)}", when = sum(agein_R) - sum(ageout_R) != 0)
+
+births <- Poisson(sum(N)*birthrate)
+
+print("births: {births}")
+
+
+new_S[, ] <- pre_birthdeath_S[i,j] - ageout_S[i,j] - background_deaths_S[i,j] + agein_S[i,j] + (if (i == 1 && j == 2) births else 0)
+new_Ea[, ] <- pre_birthdeath_Ea[i,j] - ageout_Ea[i,j] - background_deaths_Ea[i,j] + agein_Ea[i,j]
+new_Eb[, ] <- pre_birthdeath_Eb[i,j] - ageout_Eb[i,j] - background_deaths_Eb[i,j] + agein_Eb[i,j]
+new_Ir[, ] <- pre_birthdeath_Ir[i,j] - ageout_Ir[i,j] - background_deaths_Ir[i,j] + agein_Ir[i,j]
+new_Id[, ] <- pre_birthdeath_Id[i,j] - ageout_Id[i,j] - background_deaths_Id[i,j] + agein_Id[i,j]
+new_R[, ] <- pre_birthdeath_R[i,j] - ageout_R[i,j] - background_deaths_R[i,j] + agein_R[i,j]
 new_D[, ] <- pre_birthdeath_D[i,j] # the dead do not age
+# print(min(new_S))
+# print(min(new_Ea))
+# print(min(new_Eb))
+# print(min(new_Ir))
+# print(min(new_Id))
+# print(min(new_R))
+# print(min(new_D))
+#browser(phase = "update", when = min(new_S) < 0 || min(new_Ea) < 0 || min(new_Eb) < 0 || min(new_Ir) < 0 || min(new_Id) < 0 || min(new_R) < 0 || min(new_S) < 0 )
 
 update(S[, ]) <- new_S[i, j]
 update(Ea[, ]) <- new_Ea[i, j]
@@ -476,6 +541,14 @@ update(Ir[, ]) <- new_Ir[i, j]
 update(Id[, ]) <- new_Id[i, j]
 update(R[, ]) <- new_R[i, j]
 update(D[, ]) <- new_D[i, j]
+
+print("S: {min(S)}", when = min(S) < 0)
+print("Ea: {min(Ea)}", when = min(Ea) < 0)
+print("Eb: {min(Eb)}", when = min(Eb) < 0)
+print("Ir: {min(Ir)}", when = min(Ir) < 0)
+print("Id: {min(Id)}", when = min(Id) < 0)
+print("R: {min(R)}", when = min(R) < 0)
+print("D: {min(D)}", when = min(D) < 0)
 
 ## Additional outputs
 new_E[, ] <- new_Ea[i, j] + new_Eb[i, j]
@@ -680,18 +753,6 @@ update(dose2_cumulative_PBS) <- dose2_cumulative_PBS + new_dose2_PBS
 update(dose2_cumulative_HCW) <- dose2_cumulative_HCW + new_dose2_HCW
 
 
-## Individual probabilities of transition:
-# S to E - age dependent
-p_SE[, ] <- 1 - exp(-lambda[i, j] * dt)
-# progression through latent period (2 subcompartments)
-p_EE <- 1 - exp(-gamma_E * 2 * dt)
-# progression to infection
-p_EI <- 1 - exp(-gamma_E * 2 * dt)
-# progression through infectious period to recovery
-p_IrR <- 1 - exp(-gamma_Ir * dt)
-# progression through infectious period to death
-p_IdD <- 1 - exp(-gamma_Id * dt)
-
 # Compute the force of infection
 
 #  Mixing Matrix
@@ -712,24 +773,45 @@ s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 t_start <- parameter()
 
 lambda_hh[, ] <- if (time > t_start) beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j]) else 0
+print("lambda_hh: {max(lambda_hh)}")
 lambda_s[, ] <- if (time > t_start) beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j]) else 0
+print("lambda_s: {max(lambda_s)}")
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
 lambda_hc[, ] <- 
   if (i == 20 && time > t_start) beta_hcw * sum(I_infectious) / sum(N) * (1 - ve_I[i, j]) else 0
+print("lambda_hc: {max(lambda_hc)}")
 lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
+print("lambda_z: {max(lambda_z)}")
 
 
 lambda[, ] <- lambda_z[i,j] + lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j]
 
+## Individual probabilities of transition:
+# S to E - age dependent
+p_SE[, ] <- if (lambda[i,j]>0) 1 - exp(-lambda[i, j] * dt) else 0 ## CHECK THIS LATER. IS IT EVER NEGATIVE?
+# progression through latent period (2 subcompartments)
+p_EE <- 1 - exp(-gamma_E * 2 * dt)
+# progression to infection
+p_EI <- 1 - exp(-gamma_E * 2 * dt)
+# progression through infectious period to recovery
+p_IrR <- 1 - exp(-gamma_Ir * dt)
+# progression through infectious period to death
+p_IdD <- 1 - exp(-gamma_Id * dt)
+
 
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
+print("min(p_SE): {min(p_SE)}", when = min(p_SE) < 0)
 n_SEa[, ] <- Binomial(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
 
 p_hh[, ]  <- if (lambda[i, j] > 0) lambda_hh[i, j] / lambda[i, j] else 0
 p_s[, ]   <- if (lambda[i, j] > 0) lambda_s[i, j] / lambda[i, j] else 0
 p_hc[, ] <- if (lambda[i, j] > 0) lambda_hc[i, j] / lambda[i, j] else 0
+
+print("min(p_hh): {min(p_hh)}", when = min(p_hh) < 0)
+print("min(p_s): {min(p_s)}", when = min(p_s) < 0)
+print("min(p_hc): {min(p_hc)}", when = min(p_hc) < 0)
 
 ## Split n_SEa by transmission route
 n_SEa_hh[, ] <- Binomial(n_SEa[i, j], p_hh[i, j])
@@ -1171,5 +1253,38 @@ all_deathrates <- parameter()
 dim(all_deathrates) <- c(20, 79)
 all_birthrates <- parameter()
 dim(all_birthrates) <- 79
+dim(death_rate) <- 20
+
 prop_SW <- parameter()
+prop_PBS <- parameter(0.11*0.5)
+
+dim(ageout_S, agein_S) <- c(20,4)
+dim(background_deaths_S) <- c(20,4)
+dim(CSW_progressions_S) <- 4
+dim(PBS_progressions_S) <- 4
+
+dim(ageout_Ea,agein_Ea) <- c(20,4)
+dim(background_deaths_Ea) <- c(20,4)
+dim(CSW_progressions_Ea) <- 4
+dim(PBS_progressions_Ea) <- 4
+
+dim(ageout_Eb,agein_Eb) <- c(20,4)
+dim(background_deaths_Eb) <- c(20,4)
+dim(CSW_progressions_Eb) <- 4
+dim(PBS_progressions_Eb) <- 4
+
+dim(ageout_Ir,agein_Ir) <- c(20,4)
+dim(background_deaths_Ir) <- c(20,4)
+dim(CSW_progressions_Ir) <- 4
+dim(PBS_progressions_Ir) <- 4
+
+dim(ageout_Id,agein_Id) <- c(20,4)
+dim(background_deaths_Id) <- c(20,4)
+dim(CSW_progressions_Id) <- 4
+dim(PBS_progressions_Id) <- 4
+
+dim(ageout_R,agein_R) <- c(20,4)
+dim(background_deaths_R) <- c(20,4)
+dim(CSW_progressions_R) <- 4
+dim(PBS_progressions_R) <- 4
 

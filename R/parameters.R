@@ -446,27 +446,27 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
   p_unvaccinated[nms_kp] <- 1 # assume no prior vaccination in KPs
   
   # Now for demographic dynamic parameters. Rates are per year. Corrected in odin code to per week
-  dem_dyn_raw_data <- get_wpp_data()
-  mx1dt <- dem_dyn_raw_data$mx1dt
-  #data(mx1dt, package = "wpp2024")
-  deaths_df_all <- mx1dt
-  rm(mx1dt)
-  deathrates <- get_death_rates_across_demographics_and_years(ifelse(country == "Democratic Republic of Congo", "Democratic Republic of the Congo", "Burundi"), deaths_df_all = deaths_df_all)
-
-  misc1dt <- dem_dyn_raw_data$misc1dt
-  miscproj1dt <- dem_dyn_raw_data$miscproj1dt
-  #data(misc1dt, package  = "wpp2024")
-  #data(miscproj1dt, package = "wpp2024")
-  
-  misc_drc <- misc1dt |> dplyr::filter(name == "Democratic Republic of the Congo") |> dplyr::filter(year >= 2022)
-  misc_proj_drc <- miscproj1dt |> dplyr::filter(name == "Democratic Republic of the Congo")
-  birthrates = c(misc_drc$cbr, misc_proj_drc$cbr) / 1000
-  
-  rm(misc1dt)
-  rm(miscproj1dt)
-  
-  #ageout_prop <- c(rep(0.2, 15) , 0 , 1/8, 1/27, 1/27, 1/45) / (365/7) # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
-  
+  # dem_dyn_raw_data <- get_wpp_data()
+  # mx1dt <- dem_dyn_raw_data$mx1dt
+  # #data(mx1dt, package = "wpp2024")
+  # deaths_df_all <- mx1dt
+  # rm(mx1dt)
+  # deathrates <- get_death_rates_across_demographics_and_years(ifelse(country == "Democratic Republic of Congo", "Democratic Republic of the Congo", "Burundi"), deaths_df_all = deaths_df_all)
+  # 
+  # misc1dt <- dem_dyn_raw_data$misc1dt
+  # miscproj1dt <- dem_dyn_raw_data$miscproj1dt
+  # #data(misc1dt, package  = "wpp2024")
+  # #data(miscproj1dt, package = "wpp2024")
+  # 
+  # misc_drc <- misc1dt |> dplyr::filter(name == "Democratic Republic of the Congo") |> dplyr::filter(year >= 2022)
+  # misc_proj_drc <- miscproj1dt |> dplyr::filter(name == "Democratic Republic of the Congo")
+  # birthrates = c(misc_drc$cbr, misc_proj_drc$cbr) / 1000
+  # 
+  # rm(misc1dt)
+  # rm(miscproj1dt)
+  # 
+  # ageout_prop <- c(rep(0.2, 15) , 0 , 1/8, 1/27, 1/27, 1/45) / (365/7) # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
+  # 
   list(
     n_group = n_group,
     N0 = N,
@@ -478,10 +478,10 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
     #total_contacts_sex = M_sex,
     n_vax = idx_compartment$dim$vax,
     p_unvaccinated = p_unvaccinated,
-    province_pop = province_pop,
-    deathrates = deathrates,
-    birthrates = birthrates#,
-    #ageout_prop = ageout_prop
+    province_pop = province_pop#,
+    # deathrates = deathrates,
+    # birthrates = birthrates,
+    # ageout_prop = ageout_prop
   )
 }
 
@@ -633,6 +633,12 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                       "basankusu","burundi","bujumbura","bujumbura_mairie"))) {
     stop("region must be equateur, lotumbe, bikoro, bolenge, bolomba, djombo, iboko, mbandaka_region, basankusu, sudkivu, burundi, bujumbura or bujumbura_mairie")
   }
+  
+  if(region %in% c("equateur","sudkivu","lotumbe","bikoro","bolenge","bolomba","djombo","iboko","mbandaka_region","basankusu")){
+    country <- "Democratic Republic of Congo"
+  } else if(region %in% c("burundi","bujumbura","bujumbura_mairie")){
+    country <- "Burundi"
+  }
 
   ## Initialising variable that other parameters depend on
   demographic_params <- parameters_demographic(region = region,
@@ -749,6 +755,30 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
                                              nrow = n_group,
                                              ncol = N_prioritisation_steps_adults)
   
+  # Now for demographic dynamic parameters. Rates are per year. Corrected in odin code to per week
+  dem_dyn_raw_data <- get_wpp_data()
+  mx1dt <- dem_dyn_raw_data$mx1dt
+  #data(mx1dt, package = "wpp2024")
+  deaths_df_all <- mx1dt
+  rm(mx1dt)
+  deathrates_per_year <- get_death_rates_across_demographics_and_years(ifelse(country == "Democratic Republic of Congo", "Democratic Republic of the Congo", "Burundi"), deaths_df_all = deaths_df_all)
+  deathrates_per_day <- deathrates_per_year / 365
+  
+  misc1dt <- dem_dyn_raw_data$misc1dt
+  miscproj1dt <- dem_dyn_raw_data$miscproj1dt
+  #data(misc1dt, package  = "wpp2024")
+  #data(miscproj1dt, package = "wpp2024")
+  
+  misc_drc <- misc1dt |> dplyr::filter(name == "Democratic Republic of the Congo") |> dplyr::filter(year >= 2022)
+  misc_proj_drc <- miscproj1dt |> dplyr::filter(name == "Democratic Republic of the Congo")
+  birthrates_per_day = c(misc_drc$cbr, misc_proj_drc$cbr) / (1000 * 365)
+  
+  rm(misc1dt)
+  rm(miscproj1dt)
+  
+  ageout_prop <- c(rep(0.2, 15) , 0 , 1/8, 1/30, 1/30, 1/45) / 365 # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
+  
+  
   params_list = list(
     region = region,
     n_group = n_group,
@@ -802,8 +832,9 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
     daily_doses_adults_value = matrix(0, nrow = n_vax, ncol = 1),
     daily_doses_adults_time = 1,
     is_child = group_bins$children,
-    all_deathrates = demographic_params$deathrates,
-    all_birthrates = demographic_params$birthrates)
+    all_deathrates = deathrates_per_day,
+    all_birthrates = birthrates_per_day,
+    ageout_prop = ageout_prop)
 
   # Ensure overridden parameters are passed as a list
   if (!is.list(overrides)) {
