@@ -15,134 +15,44 @@ get_wpp_data <- function() {
   )
 }
 
-get_death_rates_specific <- function(country, year_to_get, minage, maxage, deaths_df_all) {
-  deaths_df <- deaths_df_all |> dplyr::filter(name == country) |>
-    dplyr::filter(year == year_to_get) |> dplyr::filter(age >= minage) |> dplyr::filter(age <= maxage)
-  
-  return(mean(deaths_df$mxB))
-}
-
-get_death_rates_across_demographics <- function(country, year_to_get, deaths_df_all) {
-  #[1: 0-4,    2: 5-9,    3: 10-14,  4: 15-19,  5: 20-24,  6: 25-29,
-  #  7: 30-34,  8: 35-39,  9: 40-44, 10: 45-49, 11: 50-54, 12: 55-59,
-  # 13: 60-64, 14: 65-69, 15: 70-74, 16: 75+,   17: CSW,   18: ASW,
-  # 19: PBS,   20: HCW]
-  
-  output_vec <- vector(mode = "numeric", length = 20)
-  output_vec[1] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 0,
-                                            maxage = 4,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[2] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 5,
-                                            maxage = 9,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[3] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 10,
-                                            maxage = 14,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[4] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 15,
-                                            maxage = 19,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[5] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 20,
-                                            maxage = 24,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[6] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 25,
-                                            maxage = 29,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[7] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 30,
-                                            maxage = 34,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[8] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 35,
-                                            maxage = 39,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[9] <- get_death_rates_specific(country = country,
-                                            year_to_get = year_to_get,
-                                            minage = 40,
-                                            maxage = 44,
-                                            deaths_df_all = deaths_df_all)
-  output_vec[10] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 45,
-                                             maxage = 49,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[11] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 50,
-                                             maxage = 54,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[12] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 55,
-                                             maxage = 59,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[13] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 60,
-                                             maxage = 64,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[14] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 65,
-                                             maxage = 69,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[15] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 70,
-                                             maxage = 74,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[16] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 75,
-                                             maxage = 82,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[17] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 12,
-                                             maxage = 17,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[18] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 18,
-                                             maxage = 44,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[19] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 18,
-                                             maxage = 44,
-                                             deaths_df_all = deaths_df_all)
-  output_vec[20] <- get_death_rates_specific(country = country,
-                                             year_to_get = year_to_get,
-                                             minage = 20,
-                                             maxage = 64,
-                                             deaths_df_all = deaths_df_all)
-  
-  output_vec
-}
 
 get_death_rates_across_demographics_and_years <- function(country, deaths_df_all) {
-  output_array <- matrix(nrow = 20, ncol = 79)
   
-  for (year in 2022:2100) {
-    output_array[ , year - 2021] <- get_death_rates_across_demographics(country = country,
-                                                                        year_to_get = year,
-                                                                        deaths_df_all = deaths_df_all)
+  df <- deaths_df_all |>
+    dplyr::filter(name == country, year >= 2022, year <= 2100)
+  
+  years <- 2022:2100
+  result <- matrix(NA, nrow = 20, ncol = length(years))
+  
+  for (i in seq_along(years)) {
+    yr <- years[i]
+    d <- df |> dplyr::filter(year == yr)
+    
+    result[, i] <- c(
+      mean(d$mxB[d$age >= 0  & d$age <= 4]),
+      mean(d$mxB[d$age >= 5  & d$age <= 11]),
+      mean(d$mxB[d$age >= 12 & d$age <= 14]),
+      mean(d$mxB[d$age >= 15 & d$age <= 19]),
+      mean(d$mxB[d$age >= 20 & d$age <= 24]),
+      mean(d$mxB[d$age >= 25 & d$age <= 29]),
+      mean(d$mxB[d$age >= 30 & d$age <= 34]),
+      mean(d$mxB[d$age >= 35 & d$age <= 39]),
+      mean(d$mxB[d$age >= 40 & d$age <= 44]),
+      mean(d$mxB[d$age >= 45 & d$age <= 49]),
+      mean(d$mxB[d$age >= 50 & d$age <= 54]),
+      mean(d$mxB[d$age >= 55 & d$age <= 59]),
+      mean(d$mxB[d$age >= 60 & d$age <= 64]),
+      mean(d$mxB[d$age >= 65 & d$age <= 69]),
+      mean(d$mxB[d$age >= 70 & d$age <= 74]),
+      mean(d$mxB[d$age >= 75 & d$age <= 82]),
+      mean(d$mxB[d$age >= 12 & d$age <= 17]),
+      mean(d$mxB[d$age >= 18 & d$age <= 44]),
+      mean(d$mxB[d$age >= 18 & d$age <= 44]),
+      mean(d$mxB[d$age >= 20 & d$age <= 64])
+    )
   }
   
-  output_array
+  result
 }
 
 
@@ -478,7 +388,8 @@ parameters_demographic <- function(region, mixing_matrix = "Zimbabwe",
     #total_contacts_sex = M_sex,
     n_vax = idx_compartment$dim$vax,
     p_unvaccinated = p_unvaccinated,
-    province_pop = province_pop#,
+    province_pop = province_pop,
+    prop_SW = p_SW
     # deathrates = deathrates,
     # birthrates = birthrates,
     # ageout_prop = ageout_prop
@@ -776,7 +687,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   rm(misc1dt)
   rm(miscproj1dt)
   
-  ageout_prop <- c(rep(0.2, 15) , 0 , 1/8, 1/30, 1/30, 1/45) / 365 # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
+  ageout_prop <- c(1/5, 1.7, 1.3, rep(0.2, 12) , 0 , 1/8, 1/30, 1/30, 1/45) / 365 # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
   
   
   params_list = list(

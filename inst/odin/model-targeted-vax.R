@@ -515,7 +515,7 @@ print("ageing misalignment R:{sum(agein_R)} {sum(ageout_R)}", when = sum(agein_R
 
 births <- Poisson(sum(N)*birthrate)
 
-print("births: {births}")
+#print("births: {births}")
 
 
 new_S[, ] <- pre_birthdeath_S[i,j] - ageout_S[i,j] - background_deaths_S[i,j] + agein_S[i,j] + (if (i == 1 && j == 2) births else 0)
@@ -773,16 +773,16 @@ s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 t_start <- parameter()
 
 lambda_hh[, ] <- if (time > t_start) beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j]) else 0
-print("lambda_hh: {max(lambda_hh)}")
+#print("lambda_hh: {max(lambda_hh)}")
 lambda_s[, ] <- if (time > t_start) beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j]) else 0
-print("lambda_s: {max(lambda_s)}")
+#print("lambda_s: {max(lambda_s)}")
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
 lambda_hc[, ] <- 
   if (i == 20 && time > t_start) beta_hcw * sum(I_infectious) / sum(N) * (1 - ve_I[i, j]) else 0
-print("lambda_hc: {max(lambda_hc)}")
+#print("lambda_hc: {max(lambda_hc)}")
 lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
-print("lambda_z: {max(lambda_z)}")
+#print("lambda_z: {max(lambda_z)}")
 
 
 lambda[, ] <- lambda_z[i,j] + lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j]

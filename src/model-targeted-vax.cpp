@@ -2013,7 +2013,6 @@ public:
     if (dust2::array::sum<real_type>(internal.agein_R.data(), shared.dim.ageout_R) - dust2::array::sum<real_type>(internal.ageout_R.data(), shared.dim.ageout_R) != 0) {
       Rprintf("[%f] ageing misalignment R:%f %f\n", time, dust2::array::sum<real_type>(internal.agein_R.data(), shared.dim.ageout_R), dust2::array::sum<real_type>(internal.ageout_R.data(), shared.dim.ageout_R));
     }
-    Rprintf("[%f] births: %f\n", time, births);
     if (dust2::array::min<real_type>(S, shared.dim.S) < 0) {
       Rprintf("[%f] S: %f\n", time, dust2::array::min<real_type>(S, shared.dim.S));
     }
@@ -2035,10 +2034,6 @@ public:
     if (dust2::array::min<real_type>(D, shared.dim.D) < 0) {
       Rprintf("[%f] D: %f\n", time, dust2::array::min<real_type>(D, shared.dim.D));
     }
-    Rprintf("[%f] lambda_hh: %f\n", time, dust2::array::max<real_type>(internal.lambda_hh.data(), shared.dim.lambda_hh));
-    Rprintf("[%f] lambda_s: %f\n", time, dust2::array::max<real_type>(internal.lambda_s.data(), shared.dim.lambda_s));
-    Rprintf("[%f] lambda_hc: %f\n", time, dust2::array::max<real_type>(internal.lambda_hc.data(), shared.dim.lambda_hc));
-    Rprintf("[%f] lambda_z: %f\n", time, dust2::array::max<real_type>(shared.lambda_z.data(), shared.dim.lambda_z));
     if (dust2::array::min<real_type>(internal.p_SE.data(), shared.dim.p_SE) < 0) {
       Rprintf("[%f] min(p_SE): %f\n", time, dust2::array::min<real_type>(internal.p_SE.data(), shared.dim.p_SE));
     }
