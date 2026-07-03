@@ -239,6 +239,7 @@ dim(children_dose1_prob) <- n_group
 #print("children_dose1_prob[1]: {children_dose1_prob[1]}", when = children_dose1_prob[1] < 0)
 #min_child_dose1_prob <- min(children_dose1_prob)
 print("min_child_dose1_prob: {min(children_dose1_prob)}", when = min(children_dose1_prob) < 0)
+print("daily_doses_children_t[2]: {daily_doses_children_t[2] - sum(children_dose1_group[1:(n_group - 1)])}", when = daily_doses_children_t[2] - sum(children_dose1_group[1:(n_group - 1)]) < 0)
 
 children_dose1_group[1] <- if (sum(children_dose1_denom) == 0) 0 else
     min(
@@ -258,7 +259,6 @@ dim(children_dose1_group) <- n_group
 
 ## S
 #print("S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]): {S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2])}", when = S[i, 2] / (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2]) < 0)
-#print("S[i, 2]: {S[i, 2]}", when = S[i,2]<0)
 n_vaccination_t_S_children[] <-
   if (S[i, 2] + Ea[i, 2] + Eb[i, 2] + R[i, 2] == 0) 0 else
     min(Binomial(children_dose1_group[i], 
@@ -295,6 +295,7 @@ adults_dose1_prob[] <- if (sum(adults_dose1_denom) == 0) 0 else
 dim(adults_dose1_prob) <- n_group
 
 print("adults_dose1_prob[]: {min(adults_dose1_prob)}", when = min(adults_dose1_prob) < 0)
+print("daily_doses_adults_t[2]: {daily_doses_adults_t[2]}", when = daily_doses_adults_t[2] < 0)
 
 adults_dose1_group[1] <- if (sum(adults_dose1_denom) == 0) 0 else
   min(
@@ -349,6 +350,7 @@ adults_dose2_prob[] <- if (sum(adults_dose2_denom) == 0) 0 else
 dim(adults_dose2_prob) <- n_group
 
 print("adults_dose2_prob[]: {min(adults_dose2_prob)}", when = min(adults_dose2_prob) < 0)
+print("daily_doses_adults_t[3]: {daily_doses_adults_t[3]}", when = daily_doses_adults_t[3] < 0)
 
 adults_dose2_group[1] <- if (sum(adults_dose2_denom) == 0) 0 else
   Binomial(daily_doses_adults_t[3],adults_dose2_prob[1])
@@ -361,6 +363,7 @@ dim(adults_dose2_group) <- n_group
 ### then we need to do another for within each state now that we have the value going to the state  
 
 ## S
+print("min(adults_dose2_group): {min(adults_dose2_group)}", when = min(adults_dose2_group) < 0)
 n_vaccination_t_S[, ] <- 0
 n_vaccination_t_S[, 2] <-
   n_vaccination_t_S_children[i] + n_vaccination_t_S_adults[i]
@@ -457,7 +460,7 @@ update(vax_2nddose_given_R) <- sum(n_vaccination_t_R[, 3])
 ## Core equations for transitions between compartments:
 # by age groups and vaccination class
 # after vaccination has taken place
-pre_birthdeath_S[, ] <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
+pre_birthdeath_waning_S[, ] <- S[i, j] + delta_S_n_vaccination[i, j] - n_SEa[i, j]
 pre_birthdeath_Ea[, ] <- Ea[i, j] + delta_Ea_n_vaccination[i, j] + delta_Ea[i, j]
 pre_birthdeath_Eb[, ] <- Eb[i, j] + delta_Eb_n_vaccination[i, j] + delta_Eb[i, j]
 pre_birthdeath_Ir[, ] <- Ir[i, j] + delta_Ir[i, j]
@@ -465,12 +468,17 @@ pre_birthdeath_Id[, ] <- Id[i, j] + delta_Id[i, j]
 pre_birthdeath_R[, ] <- R[i, j] + delta_R_n_vaccination[i, j] + delta_R[i, j]
 pre_birthdeath_D[, ] <- D[i, j] + delta_D[i, j]
 
+# Now account for vaccine waning
+waning_S[,] <- if (j == 1) 0 else if (j == 2) 0 else Binomial(pre_birthdeath_waning_S[i,j], wane_rate)
+pre_birthdeath_S[, ] <- pre_birthdeath_waning_S[i,j] - waning_S[i,j] + (if (j == 2) (waning_S[i, 3] + waning_S[i, 4]) else 0)
+
 # Now account for births and deaths
 birth_death_year_entry <- floor(time / 365) + 2 # I think each timestep is per day but CHECK THIS!!!
 death_rate[] <- all_deathrates[i , birth_death_year_entry]
 
 birthrate <- all_birthrates[birth_death_year_entry]
 
+print("pre_birthdeath_S: {min(pre_birthdeath_S)}", when = min(pre_birthdeath_S) < 0)
 ageout_S[,] <- Binomial(pre_birthdeath_S[i,j], ageout_prop[i])
 background_deaths_S[,] <- Binomial(pre_birthdeath_S[i,j] - ageout_S[i,j], death_rate[i])
 CSW_progressions_S[] <- Binomial(ageout_S[2,i], prop_SW)
@@ -478,6 +486,7 @@ PBS_progressions_S[] <- Binomial(ageout_S[4,i], prop_PBS)
 agein_S[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_S[j] else if (i == 3) ageout_S[2,j] - CSW_progressions_S[j] else if (i==19) PBS_progressions_S[j] else if (i == 20) 0 else if (i == 5) ageout_S[4,j] - PBS_progressions_S[j] else if (i == 14) ageout_S[13,j] + ageout_S[20,j] else if (i == 11) ageout_S[10,j] + ageout_S[18,j] + ageout_S[19,j] else ageout_S[i-1,j]
 print("ageing misalignment S:{sum(agein_S)} {sum(ageout_S)}", when = sum(agein_S) - sum(ageout_S) != 0)
 
+print("pre_birthdeath_Ea: {min(pre_birthdeath_Ea)}", when = min(pre_birthdeath_Ea) < 0)
 ageout_Ea[,] <- Binomial(pre_birthdeath_Ea[i,j], ageout_prop[i])
 background_deaths_Ea[,] <- Binomial(pre_birthdeath_Ea[i,j] - ageout_Ea[i,j], death_rate[i])
 CSW_progressions_Ea[] <- Binomial(ageout_Ea[2,i], prop_SW)
@@ -485,6 +494,7 @@ PBS_progressions_Ea[] <- Binomial(ageout_Ea[4,i], prop_PBS)
 agein_Ea[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Ea[j] else if (i == 3) ageout_Ea[2,j] - CSW_progressions_Ea[j] else if (i==19) PBS_progressions_Ea[j] else if (i == 20) 0 else if (i == 5) ageout_Ea[4,j] - PBS_progressions_Ea[j] else if (i == 14) ageout_Ea[13,j] + ageout_Ea[20,j] else if (i == 11) ageout_Ea[10,j] + ageout_Ea[18,j] + ageout_Ea[19,j] else ageout_Ea[i-1,j]
 print("ageing misalignment Ea:{sum(agein_Ea)} {sum(ageout_Ea)}", when = sum(agein_Ea) - sum(ageout_Ea) != 0)
 
+print("pre_birthdeath_Eb: {min(pre_birthdeath_Eb)}", when = min(pre_birthdeath_Eb) < 0)
 ageout_Eb[,] <- Binomial(pre_birthdeath_Eb[i,j], ageout_prop[i])
 background_deaths_Eb[,] <- Binomial(pre_birthdeath_Eb[i,j] - ageout_Eb[i,j], death_rate[i])
 CSW_progressions_Eb[] <- Binomial(ageout_Eb[2,i], prop_SW)
@@ -492,6 +502,7 @@ PBS_progressions_Eb[] <- Binomial(ageout_Eb[4,i], prop_PBS)
 agein_Eb[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Eb[j] else if (i == 3) ageout_Eb[2,j] - CSW_progressions_Eb[j] else if (i==19) PBS_progressions_Eb[j] else if (i == 20) 0 else if (i == 5) ageout_Eb[4,j] - PBS_progressions_Eb[j] else if (i == 14) ageout_Eb[13,j] + ageout_Eb[20,j] else if (i == 11) ageout_Eb[10,j] + ageout_Eb[18,j] + ageout_Eb[19,j] else ageout_Eb[i-1,j]
 print("ageing misalignment Eb:{sum(agein_Eb)} {sum(ageout_Eb)}", when = sum(agein_Eb) - sum(ageout_Eb) != 0)
 
+print("pre_birthdeath_Ir: {min(pre_birthdeath_Ir)}", when = min(pre_birthdeath_Ir) < 0)
 ageout_Ir[,] <- Binomial(pre_birthdeath_Ir[i,j], ageout_prop[i])
 background_deaths_Ir[,] <- Binomial(pre_birthdeath_Ir[i,j] - ageout_Ir[i,j], death_rate[i])
 CSW_progressions_Ir[] <- Binomial(ageout_Ir[2,i], prop_SW)
@@ -499,6 +510,7 @@ PBS_progressions_Ir[] <- Binomial(ageout_Ir[4,i], prop_PBS)
 agein_Ir[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Ir[j] else if (i == 3) ageout_Ir[2,j] - CSW_progressions_Ir[j] else if (i==19) PBS_progressions_Ir[j] else if (i == 20) 0 else if (i == 5) ageout_Ir[4,j] - PBS_progressions_Ir[j] else if (i == 14) ageout_Ir[13,j] + ageout_Ir[20,j] else if (i == 11) ageout_Ir[10,j] + ageout_Ir[18,j] + ageout_Ir[19,j] else ageout_Ir[i-1,j]
 print("ageing misalignment Ir:{sum(agein_Ir)} {sum(ageout_Ir)}", when = sum(agein_Ir) - sum(ageout_Ir) != 0)
 
+print("pre_birthdeath_Id: {min(pre_birthdeath_Id)}", when = min(pre_birthdeath_Id) < 0)
 ageout_Id[,] <- Binomial(pre_birthdeath_Id[i,j], ageout_prop[i])
 background_deaths_Id[,] <- Binomial(pre_birthdeath_Id[i,j] - ageout_Id[i,j], death_rate[i])
 CSW_progressions_Id[] <- Binomial(ageout_Id[2,i], prop_SW)
@@ -506,6 +518,7 @@ PBS_progressions_Id[] <- Binomial(ageout_Id[4,i], prop_PBS)
 agein_Id[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_Id[j] else if (i == 3) ageout_Id[2,j] - CSW_progressions_Id[j] else if (i==19) PBS_progressions_Id[j] else if (i == 20) 0 else if (i == 5) ageout_Id[4,j] - PBS_progressions_Id[j] else if (i == 14) ageout_Id[13,j] + ageout_Id[20,j] else if (i == 11) ageout_Id[10,j] + ageout_Id[18,j] + ageout_Id[19,j] else ageout_Id[i-1,j]
 print("ageing misalignment Id:{sum(agein_Id)} {sum(ageout_Id)}", when = sum(agein_Id) - sum(ageout_Id) != 0)
 
+print("pre_birthdeath_R: {min(pre_birthdeath_R)}", when = min(pre_birthdeath_R) < 0)
 ageout_R[,] <- Binomial(pre_birthdeath_R[i,j], ageout_prop[i])
 background_deaths_R[,] <- Binomial(pre_birthdeath_R[i,j] - ageout_R[i,j], death_rate[i])
 CSW_progressions_R[] <- Binomial(ageout_R[2,i], prop_SW)
@@ -514,11 +527,13 @@ agein_R[,] <- if (i==1) 0 else if (i == 17) CSW_progressions_R[j] else if (i == 
 print("ageing misalignment R:{sum(agein_R)} {sum(ageout_R)}", when = sum(agein_R) - sum(ageout_R) != 0)
 
 births <- Poisson(sum(N)*birthrate)
+births_vaxxed <- Binomial(births, proportion_births_vaxxed)
+births_unvaxxed <- Binomial(births, (1 - proportion_births_vaxxed))
 
 #print("births: {births}")
 
 
-new_S[, ] <- pre_birthdeath_S[i,j] - ageout_S[i,j] - background_deaths_S[i,j] + agein_S[i,j] + (if (i == 1 && j == 2) births else 0)
+new_S[, ] <- pre_birthdeath_S[i,j] - ageout_S[i,j] - background_deaths_S[i,j] + agein_S[i,j] + (if (i == 1 && j == 2) births_unvaxxed else (if (i == 1 && j == 4) births_vaxxed else 0))
 new_Ea[, ] <- pre_birthdeath_Ea[i,j] - ageout_Ea[i,j] - background_deaths_Ea[i,j] + agein_Ea[i,j]
 new_Eb[, ] <- pre_birthdeath_Eb[i,j] - ageout_Eb[i,j] - background_deaths_Eb[i,j] + agein_Eb[i,j]
 new_Ir[, ] <- pre_birthdeath_Ir[i,j] - ageout_Ir[i,j] - background_deaths_Ir[i,j] + agein_Ir[i,j]
@@ -576,6 +591,7 @@ update(cases_cumulative_hc) <- cases_cumulative_hc + sum(n_SEa_hc[, ])
 # X_05_14 includes 50% CSW (ages 12-14)
 # X_15_plus includes all 50% CSW (ages 15-17), and all ASW, PBS, HCW
 
+print("n_SEa: {min(n_SEa)}", when = min(n_SEa) < 0)
 new_cases_00_04 <- sum(n_SEa[1, ])
 new_cases_SW_12_14 <- Binomial(sum(n_SEa[17, ]), 0.5)
 new_cases_SW_15_17 <- sum(n_SEa[17, ]) - new_cases_SW_12_14
@@ -686,8 +702,8 @@ update(total_vax_2nddose) <- total_vax_2nddose + sum(n_vaccination_t_S[, 3]) +
 n_vaccination_t[, ] <- n_vaccination_t_S[i, j] + n_vaccination_t_Ea[i, j] +
   n_vaccination_t_Eb[i, j] + n_vaccination_t_R[i, j]
 
-new_dose1 <- sum(n_vaccination_t[, 2])
-new_dose1_00_04 <- n_vaccination_t[1, 2]
+new_dose1 <- sum(n_vaccination_t[, 2]) + births_vaxxed
+new_dose1_00_04 <- n_vaccination_t[1, 2] + births_vaxxed
 new_dose1_SW_12_14 <- round(n_vaccination_t[17, 2] * 0.5)
 new_dose1_SW_15_17 <- n_vaccination_t[17, 2] - new_dose1_SW_12_14
 new_dose1_05_14 <- sum(n_vaccination_t[2:3, 2]) + new_dose1_SW_12_14
@@ -709,8 +725,8 @@ update(dose1_inc_ASW) <- dose1_inc_ASW + new_dose1_ASW
 update(dose1_inc_PBS) <- dose1_inc_PBS + new_dose1_PBS
 update(dose1_inc_HCW) <- dose1_inc_HCW + new_dose1_HCW
 
-new_dose2 <- sum(n_vaccination_t[, 3])
-new_dose2_00_04 <- n_vaccination_t[1, 3]
+new_dose2 <- sum(n_vaccination_t[, 3]) + births_vaxxed
+new_dose2_00_04 <- n_vaccination_t[1, 3] + births_vaxxed
 new_dose2_SW_12_14 <- round(n_vaccination_t[17, 3] * 0.5)
 new_dose2_SW_15_17 <- n_vaccination_t[17, 3] - new_dose2_SW_12_14
 new_dose2_05_14 <- sum(n_vaccination_t[2:3, 3]) + new_dose2_SW_12_14
@@ -773,16 +789,16 @@ s_ij_sex[, ] <- m_sex[i, j] * prop_infectious[j]
 t_start <- parameter()
 
 lambda_hh[, ] <- if (time > t_start) beta_h * sum(s_ij_gen_pop[i, ]) * (1 - ve_I[i, j]) else 0
-#print("lambda_hh: {max(lambda_hh)}")
+print("lambda_hh: {min(lambda_hh)}", when = min(lambda) < 0)
 lambda_s[, ] <- if (time > t_start) beta_s * sum(s_ij_sex[i, ]) * (1 - ve_I[i, j]) else 0
-#print("lambda_s: {max(lambda_s)}")
+print("lambda_s: {min(lambda_s)}", when = min(lambda_s) < 0)
 # additional foi in HCW only (i = 20) homogeneous from infected as assumed equally
 # likely to attend hospital
 lambda_hc[, ] <- 
   if (i == 20 && time > t_start) beta_hcw * sum(I_infectious) / sum(N) * (1 - ve_I[i, j]) else 0
-#print("lambda_hc: {max(lambda_hc)}")
+print("lambda_hc: {min(lambda_hc)}", when = min(lambda_hc) < 0)
 lambda_z[, ] <- beta_z[i] * (1 - ve_I[i, j])
-#print("lambda_z: {max(lambda_z)}")
+print("lambda_z: {min(lambda_z)}", when = min(lambda_z) < 0)
 
 
 lambda[, ] <- lambda_z[i,j] + lambda_hh[i, j] + lambda_s[i, j] + lambda_hc[i, j]
@@ -803,6 +819,13 @@ p_IdD <- 1 - exp(-gamma_Id * dt)
 ## Draws from binomial distributions for numbers changing between compartments
 # accounting for vaccination:
 print("min(p_SE): {min(p_SE)}", when = min(p_SE) < 0)
+print("S: {min(S)}", when = min(S) < 0)
+print("Ea: {min(Ea)}", when = min(Ea) < 0)
+print("Eb: {min(Eb)}", when = min(Eb) < 0)
+print("Ir: {min(Ir)}", when = min(Ir) < 0)
+print("Id: {min(Id)}", when = min(Id) < 0)
+print("R: {min(R)}", when = min(R) < 0)
+print("D: {min(D)}", when = min(D) < 0)
 n_SEa[, ] <- Binomial(S[i, j] + delta_S_n_vaccination[i, j], p_SE[i, j])
 
 p_hh[, ]  <- if (lambda[i, j] > 0) lambda_hh[i, j] / lambda[i, j] else 0
@@ -999,7 +1022,7 @@ n_group <- parameter()
 ## Dimensions of the different "vectors" here vectors stand for
 ## multi-dimensional arrays
 dim(N, new_N) <- c(n_group, n_vax)
-dim(S, new_S, pre_birthdeath_S) <- c(n_group, n_vax)
+dim(S, new_S, pre_birthdeath_S, pre_birthdeath_waning_S) <- c(n_group, n_vax)
 dim(S0) <- c(n_group, n_vax)
 dim(p_SE) <- c(n_group, n_vax)
 dim(n_SEa) <- c(n_group, n_vax)
@@ -1063,6 +1086,8 @@ dim(ve_T) <- c(n_vax)
 dim(ve_I) <- c(n_group, n_vax)
 
 dim(cases_cumulative_by_age) <- n_group
+
+dim(waning_S) <- c(n_group, n_vax)
 
 dim(n_vaccination_t_S) <- c(n_group, n_vax)
 dim(n_vaccination_t_Ea) <- c(n_group, n_vax)
@@ -1254,6 +1279,9 @@ dim(all_deathrates) <- c(20, 79)
 all_birthrates <- parameter()
 dim(all_birthrates) <- 79
 dim(death_rate) <- 20
+
+proportion_births_vaxxed <- parameter(0)
+wane_rate <- parameter(0)
 
 prop_SW <- parameter()
 prop_PBS <- parameter(0.11*0.5)

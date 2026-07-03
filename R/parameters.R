@@ -687,7 +687,7 @@ parameters_fixed <- function(region, initial_infections, use_ve_D = FALSE,
   rm(misc1dt)
   rm(miscproj1dt)
   
-  ageout_prop <- c(1/5, 1.7, 1.3, rep(0.2, 12) , 0 , 1/8, 1/30, 1/30, 1/45) / 365 # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
+  ageout_prop <- c(1/5, 1/7, 1/3, rep(0.2, 12) , 0 , 1/8, 1/30, 1/30, 1/45) / 365 # 1/8 should eventually change to 1/6. CSWs aged 12-17, but I made 10-17 for now to fit with compartments
   
   
   params_list = list(
